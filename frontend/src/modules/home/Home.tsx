@@ -1,5 +1,5 @@
 import { NavLink } from "react-router";
-import SearchIcon from "../assets/icons/search.svg";
+import SearchIcon from "../../assets/icons/search.svg";
 import "./Home.css";
 
 export function Home() {

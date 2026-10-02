@@ -1,8 +1,8 @@
 import { Route, Routes } from "react-router";
-import { Home } from "./home/Home";
-import { Catalog } from "./catalog/Catalog";
-import { Admin } from "./admin/Admin";
-import { Student } from "./student/Student";
+import { Home } from "./modules/home/Home";
+import { Catalog } from "./modules/catalog/Catalog";
+import { Admin } from "./modules/admin/Admin";
+import { Student } from "./modules/student/Student";
 import { DashboardLayout } from "./layout/DashboardLayout";
 
 function App() {
