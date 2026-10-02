@@ -3,7 +3,7 @@ import { Home } from "./modules/home/Home";
 import { Catalog } from "./modules/catalog/Catalog";
 import { Admin } from "./modules/admin/Admin";
 import { Student } from "./modules/student/Student";
-import { DashboardLayout } from "./layout/DashboardLayout";
+import { DashboardLayout } from "./layouts/DashboardLayout";
 
 function App() {
   return (
