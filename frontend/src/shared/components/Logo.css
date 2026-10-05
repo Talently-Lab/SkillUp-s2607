@@ -1,0 +1,18 @@
+.logo {
+  border-radius: 6px;
+  font-family: var(--heading);
+  font-size: 1.0625rem;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  color: var(--text-h);
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+}
+
+.logo__brand {
+  font-weight: 700;
+}
