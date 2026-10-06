@@ -1,78 +1,59 @@
-# React + TypeScript + Vite
+# SkillUp Campus - Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Herramientas
 
-Currently, two official plugins are available:
+Como herramientas generales de desarrollo se usa:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **React.js** para el renderizado UI.
+- **React Router** para el enrutado.
+- **Vite** para el entorno de desarrollo y el build.
+- **TypeScript** para el tipado.
+- **ESLint** para el linting del código.
 
-## React Compiler
+Como manejador de paquetes se usa [**pnpm**](https://pnpm.io/es).
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+## Arquitectura
 
-Note: This will impact Vite dev & build performances.
-You can also try [the experimental native React Compiler support in plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md#rust-react-compiler) by using `compiler: true` in the plugin options instead of using the Babel plugin.
+El frontend sigue una arquitectura de **modular monolith**: es una sola aplicación, pero el código está dividido en módulos por dominio. Cada módulo agrupa sus propias páginas y estilos, y lo que se comparte entre módulos vive en `shared`.
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Actualmente el proyecto está estructurado así:
 
 ```
-
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+src/
+├── assets/          # imágenes e íconos
+├── layouts/         # layouts de la app
+│   ├── PublicLayout.tsx
+│   └── DashboardLayout.tsx
+├── modules/         # módulos por dominio
+│   ├── home/        # landing page
+│   ├── catalog/     # catálogo de cursos
+│   ├── student/     # panel del estudiante
+│   └── admin/       # panel del admin
+├── shared/          # código compartido entre módulos
+│   ├── components/  # componentes reutilizables (header, footer, course card, etc.)
+│   ├── mocks/       # datos de prueba
+│   ├── types/       # tipos de TypeScript
+│   └── utils/       # funciones utilitarias
+├── App.tsx          # definición de rutas
+├── main.tsx         # punto de entrada
+└── index.css        # estilos globales
 ```
+
+- **`layouts`**: `PublicLayout` se usa en las rutas públicas (`/` y `/catalog`) y `DashboardLayout` en los dashboards (`/student` y `/admin`).
+- **`modules`**: un módulo no debería importar de otro módulo. Si algo se necesita en más de uno, se mueve a `shared`.
+
+## Cómo levantar el proyecto
+
+1. Si no tienes pnpm instalado, ve a [https://pnpm.io/es](https://pnpm.io/es) y sigue los pasos de instalación.
+
+2. Dentro de la carpeta `frontend`, instala las dependencias:
+
+   ```bash
+   pnpm install
+   ```
+
+3. Ejecuta el entorno de desarrollo:
+
+   ```bash
+   pnpm dev
+   ```
