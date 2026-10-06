@@ -1,0 +1,48 @@
+.account-type-toggle {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.account-type-toggle__options {
+  display: grid;
+  padding: 0.25rem;
+  border-radius: 12px;
+  background-color: var(--color-primary-soft);
+}
+
+.account-type-toggle__option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+
+  &:hover {
+    color: var(--color-primary);
+  }
+
+  &:has(:focus-visible) {
+    outline: 2px solid var(--color-primary);
+  }
+}
+
+.account-type-toggle__option--active {
+  background-color: var(--fg);
+  color: var(--color-primary);
+  box-shadow: 0 1px 2px rgb(22 33 77 / 0.08);
+}
+
+.account-type-toggle__icon {
+  width: 1rem;
+  height: 1rem;
+}
