@@ -1,0 +1,143 @@
+.register__toggle {
+  margin-bottom: 2rem;
+}
+
+.register__title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.5px;
+}
+
+.register__subtitle {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.register__google {
+  margin-top: 1.5rem;
+}
+
+.register__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.register__required-note {
+  font-size: 0.75rem;
+  color: var(--text-subtle);
+}
+
+.register__required-mark {
+  color: var(--color-error-text);
+}
+
+.register__strength {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.register__strength-bars {
+  display: flex;
+  flex: 1;
+  gap: 0.25rem;
+}
+
+.register__strength-bar {
+  flex: 1;
+  height: 0.25rem;
+  border-radius: 999px;
+  background-color: var(--border);
+  transition: background-color 0.2s ease;
+}
+
+.register__strength-bar--weak {
+  background-color: var(--color-error);
+}
+
+.register__strength-bar--fair {
+  background-color: #f5b301;
+}
+
+.register__strength-bar--strong {
+  background-color: var(--color-success);
+}
+
+.register__strength-label {
+  width: 4rem;
+  text-align: right;
+}
+
+.register__submit {
+  width: 100%;
+  height: 2.75rem;
+  border-radius: var(--radius);
+  background-color: var(--color-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--fg);
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: var(--color-primary-hover);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px var(--color-primary-soft);
+  }
+}
+
+.register__terms {
+  font-size: 0.75rem;
+  line-height: 1.6;
+  text-align: center;
+  color: var(--text-subtle);
+}
+
+.register__terms-link {
+  padding: 0;
+  font-size: inherit;
+  text-decoration: underline;
+  color: inherit;
+
+  &:hover {
+    color: var(--color-primary);
+  }
+}
+
+.register__login {
+  margin-top: 2rem;
+  font-size: 0.875rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.register__login-link {
+  font-weight: 600;
+  color: var(--color-primary);
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.register__admin {
+  margin-top: 0.75rem;
+  font-size: 0.75rem;
+  text-align: center;
+  color: var(--text-subtle);
+}
+
+.register__admin-link {
+  font-weight: 500;
+  color: var(--color-primary);
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
