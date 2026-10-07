@@ -1,0 +1,131 @@
+.syllabus__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.syllabus__toggle-all {
+  padding: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-primary);
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.syllabus__list {
+  margin-top: 0.75rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background-color: var(--fg);
+}
+
+.syllabus__module + .syllabus__module {
+  border-top: 1px solid var(--border);
+}
+
+.syllabus__heading {
+  font-family: var(--inter);
+}
+
+.syllabus__trigger {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem 1.25rem;
+  text-align: left;
+  transition: background-color 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    background-color: var(--bg);
+  }
+}
+
+.syllabus__number {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius);
+  background-color: var(--color-primary-soft);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.syllabus__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.syllabus__title {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-h);
+
+  @media (min-width: 640px) {
+    font-size: 1rem;
+  }
+}
+
+.syllabus__meta {
+  display: block;
+  margin-top: 0.125rem;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--text-subtle);
+}
+
+.syllabus__chevron {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  transition: transform 0.2s ease-out;
+}
+
+.syllabus__chevron--open {
+  transform: rotate(180deg);
+}
+
+.syllabus__lessons {
+  padding: 0.5rem 1.25rem;
+  border-top: 1px solid var(--border);
+  background-color: var(--bg);
+}
+
+.syllabus__lesson {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0 0.625rem 3rem;
+  font-size: 0.875rem;
+
+  @media (max-width: 639px) {
+    padding-left: 0;
+  }
+}
+
+.syllabus__lesson-icon {
+  flex: none;
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.syllabus__lesson-title {
+  flex: 1;
+  color: var(--text-muted);
+}
+
+.syllabus__lesson-minutes {
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--text-subtle);
+}
