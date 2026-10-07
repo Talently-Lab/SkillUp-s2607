@@ -1,22 +1,25 @@
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router";
 
-import { AuthLayout } from "../../../layouts/AuthLayout";
-import { AccountTypeToggle } from "../../../shared/components/AccountTypeToggle";
-import { AuthDivider } from "../../../shared/components/AuthDivider";
-import { FormField } from "../../../shared/components/FormField";
-import { GoogleButton } from "../../../shared/components/GoogleButton";
-import { PasswordToggle } from "../../../shared/components/PasswordToggle";
-import { copy } from "../constants/registerCopy";
-import { NAME_MAX_LENGTH } from "../../../modules/auth/constants/name";
-import { PASSWORD_MIN_LENGTH, strengthMeta } from "../constants/password";
+import { AuthLayout } from "@/layouts/AuthLayout";
+import { AccountTypeToggle } from "@/shared/components/AccountTypeToggle";
+import { AuthDivider } from "@/shared/components/AuthDivider";
+import { FormField } from "@/shared/components/FormField";
+import { GoogleButton } from "@/shared/components/GoogleButton";
+import { PasswordToggle } from "@/shared/components/PasswordToggle";
+import { copy } from "@/modules/auth/constants/registerCopy";
+import { NAME_MAX_LENGTH } from "@/modules/auth/constants/name";
+import {
+  PASSWORD_MIN_LENGTH,
+  strengthMeta,
+} from "@/modules/auth/constants/password";
 import {
   validateRegister,
   type RegisterErrors,
   type RegisterValues,
-} from "../utils/validateRegister";
-import type { AccountType } from "../../../shared/types/account";
-import { getPasswordStrength } from "../../../shared/utils/validation";
+} from "@/modules/auth/utils/validateRegister";
+import type { AccountType } from "@/shared/types/account";
+import { getPasswordStrength } from "@/shared/utils/validation";
 import "./Register.css";
 
 export function Register() {

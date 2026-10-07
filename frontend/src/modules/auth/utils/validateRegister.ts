@@ -1,6 +1,9 @@
-import { isValidEmail } from "../../../shared/utils/validation";
-import { NAME_MAX_LENGTH, NAME_MIN_LENGTH } from "../constants/name";
-import { PASSWORD_MIN_LENGTH } from "../constants/password";
+import { isValidEmail } from "@/shared/utils/validation";
+import {
+  NAME_MAX_LENGTH,
+  NAME_MIN_LENGTH,
+} from "@/modules/auth/constants/name";
+import { PASSWORD_MIN_LENGTH } from "@/modules/auth/constants/password";
 
 export type RegisterValues = {
   name: string;
