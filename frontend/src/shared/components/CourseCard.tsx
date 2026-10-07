@@ -1,3 +1,5 @@
+import { Link } from "react-router";
+
 import type { Course } from "../types/course";
 import { formatPrice } from "../utils/format";
 
@@ -28,7 +30,11 @@ export function CourseCard({ course }: CourseCardProps) {
 
       <div className="course-card__body">
         <p className="course-card__category">{course.category}</p>
-        <h3 className="course-card__title">{course.title}</h3>
+        <h3 className="course-card__title">
+          <Link to={`/catalog/${course.id}`} className="course-card__link">
+            {course.title}
+          </Link>
+        </h3>
         <p className="course-card__instructor">{course.instructor}</p>
 
         <dl className="course-card__meta">
@@ -71,6 +77,7 @@ export function CourseCard({ course }: CourseCardProps) {
             </span>
           ) : (
             <div className="course-card__actions">
+              {/* TODO: el carrito está pendiente de ser desarrollado */}
               <button
                 type="button"
                 className="course-card__cart-btn"

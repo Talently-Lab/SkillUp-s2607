@@ -182,3 +182,30 @@
     transform: scale(0.97);
   }
 }
+
+/* Stretches the title link so the whole card is clickable */
+.course-card {
+  position: relative;
+}
+
+.course-card__link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.course-card__link:focus-visible {
+  outline: none;
+
+  &::after {
+    border-radius: 12px;
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+}
+
+/* Keeps the buttons clickable above the stretched link */
+.course-card__actions {
+  position: relative;
+  z-index: 1;
+}
