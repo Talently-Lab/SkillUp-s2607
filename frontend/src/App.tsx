@@ -4,7 +4,7 @@ import { Catalog } from "./modules/catalog/pages/Catalog";
 import { CourseDetail } from "./modules/catalog/pages/CourseDetail";
 import { Admin } from "./modules/admin/Admin";
 import { Student } from "./modules/student/Student";
-import { Register } from "./modules/register/pages/Register";
+import { Register } from "./modules/auth/pages/Register";
 import { DashboardLayout } from "./layouts/DashboardLayout";
 import { PublicLayout } from "./layouts/PublicLayout";
 

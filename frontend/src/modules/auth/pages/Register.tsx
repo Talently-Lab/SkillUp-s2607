@@ -7,8 +7,8 @@ import { AuthDivider } from "../../../shared/components/AuthDivider";
 import { FormField } from "../../../shared/components/FormField";
 import { GoogleButton } from "../../../shared/components/GoogleButton";
 import { PasswordToggle } from "../../../shared/components/PasswordToggle";
-import { copy } from "../constants/accountTypes";
-import { NAME_MAX_LENGTH } from "../constants/name";
+import { copy } from "../constants/registerCopy";
+import { NAME_MAX_LENGTH } from "../../../modules/auth/constants/name";
 import { PASSWORD_MIN_LENGTH, strengthMeta } from "../constants/password";
 import {
   validateRegister,
