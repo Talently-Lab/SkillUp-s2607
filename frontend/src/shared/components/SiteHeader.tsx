@@ -8,8 +8,9 @@ import CloseIcon from "../../assets/icons/close.svg";
 import "./SiteHeader.css";
 
 const navItems = [
-  { to: "/", label: "Inicio" },
-  { to: "/catalog", label: "Catálogo" },
+  { to: "/", label: "Inicio", end: true },
+  // Not `end`, so it stays active on /catalog/:courseId
+  { to: "/catalog", label: "Catálogo", end: false },
 ];
 
 const navLinkClass =
@@ -30,7 +31,7 @@ export function SiteHeader() {
               <NavLink
                 key={item.to}
                 to={item.to}
-                end
+                end={item.end}
                 className={navLinkClass("site-header__link")}
               >
                 {item.label}
@@ -89,7 +90,7 @@ export function SiteHeader() {
               <NavLink
                 key={item.to}
                 to={item.to}
-                end
+                end={item.end}
                 className={navLinkClass("site-header__mobile-link")}
                 onClick={() => setIsMenuOpen(false)}
               >

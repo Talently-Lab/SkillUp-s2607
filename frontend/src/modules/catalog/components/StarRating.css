@@ -1,0 +1,29 @@
+.star-rating {
+  --star-size: 0.875rem;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.star-rating--md {
+  --star-size: 1rem;
+}
+
+.star-rating__star {
+  position: relative;
+  width: var(--star-size);
+  height: var(--star-size);
+}
+
+.star-rating__fill {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.star-rating__icon {
+  width: var(--star-size);
+  max-width: none;
+  height: var(--star-size);
+}

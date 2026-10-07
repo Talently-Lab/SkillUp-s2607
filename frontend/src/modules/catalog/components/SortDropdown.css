@@ -1,0 +1,91 @@
+.sort-dropdown {
+  position: relative;
+}
+
+.sort-dropdown__button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2.5rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--fg);
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: #c5cff5;
+  }
+
+  &:focus-visible {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 4px var(--color-primary-soft);
+  }
+}
+
+.sort-dropdown__chevron {
+  width: 1rem;
+  height: 1rem;
+  transition: transform 0.2s ease-out;
+}
+
+.sort-dropdown__chevron--open {
+  transform: rotate(180deg);
+}
+
+.sort-dropdown__list {
+  position: absolute;
+  top: calc(100% + 0.375rem);
+  left: 0;
+  z-index: 20;
+  min-width: 100%;
+  padding: 0.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--fg);
+  box-shadow: 0 12px 28px -12px rgb(22 33 77 / 0.3);
+  animation: sort-dropdown-in 0.15s ease-out;
+
+  &:focus {
+    outline: none;
+  }
+
+  /* On desktop the button sits on the right edge, so open towards the left */
+  @media (min-width: 640px) {
+    right: 0;
+    left: auto;
+  }
+}
+
+.sort-dropdown__option {
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.sort-dropdown__option--active {
+  background-color: var(--color-primary-soft);
+}
+
+.sort-dropdown__option--selected {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+@keyframes sort-dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sort-dropdown__list {
+    animation: none;
+  }
+}
