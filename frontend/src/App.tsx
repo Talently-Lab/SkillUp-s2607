@@ -1,6 +1,6 @@
 import { Route, Routes } from "react-router";
 import { Home } from "./modules/home/Home";
-import { Catalog } from "./modules/catalog/Catalog";
+import { Catalog } from "./modules/catalog/pages/Catalog";
 import { Admin } from "./modules/admin/Admin";
 import { Student } from "./modules/student/Student";
 import { Register } from "./modules/register/pages/Register";
