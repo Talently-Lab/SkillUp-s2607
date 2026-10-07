@@ -5,6 +5,7 @@ import { CourseDetail } from "./modules/catalog/pages/CourseDetail";
 import { Admin } from "./modules/admin/Admin";
 import { Student } from "./modules/student/Student";
 import { Register } from "./modules/auth/pages/Register";
+import { Login } from "./modules/auth/pages/Login";
 import { DashboardLayout } from "./layouts/DashboardLayout";
 import { PublicLayout } from "./layouts/PublicLayout";
 
@@ -17,6 +18,7 @@ function App() {
         <Route path="/catalog/:courseId" element=<CourseDetail /> />
       </Route>
       <Route path="/register" element=<Register /> />
+      <Route path="/login" element=<Login /> />
       {/* This route must be protected and only accessible to users with admin privileges */}
       <Route path="/admin" element=<DashboardLayout title="Admin" />>
         <Route index element=<Admin /> />
