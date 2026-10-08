@@ -1,24 +1,33 @@
 import { useState, type FormEvent } from "react";
-import { Link, useSearchParams } from "react-router";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router";
 
-import { AuthLayout } from "../../../layouts/AuthLayout";
-import { AccountTypeToggle } from "../../../shared/components/AccountTypeToggle";
-import { AuthDivider } from "../../../shared/components/AuthDivider";
-import { FormField } from "../../../shared/components/FormField";
-import { GoogleButton } from "../../../shared/components/GoogleButton";
-import { PasswordToggle } from "../../../shared/components/PasswordToggle";
-import { copy } from "../constants/loginCopy";
-import { accountTypeFromParam } from "../utils/accountTypeFromParam";
+import { AuthLayout } from "@/layouts/AuthLayout";
+import { AccountTypeToggle } from "@/shared/components/AccountTypeToggle";
+import { AuthDivider } from "@/shared/components/AuthDivider";
+import { FormField } from "@/shared/components/FormField";
+import { GoogleButton } from "@/shared/components/GoogleButton";
+import { PasswordToggle } from "@/shared/components/PasswordToggle";
+import { useAuth } from "@/shared/hooks/useAuth";
+import { mockUsers } from "@/shared/mocks/users";
+import { AuthError } from "@/shared/services/authService";
+import type { AccountType } from "@/shared/types/account";
+import type { AuthUser } from "@/shared/types/auth";
+import { roleHome } from "@/shared/utils/roles";
+import { copy } from "@/modules/auth/constants/loginCopy";
+import { accountTypeFromParam } from "@/modules/auth/utils/accountTypeFromParam";
 import {
   validateLogin,
   type LoginErrors,
   type LoginValues,
-} from "../utils/validateLogin";
-import type { AccountType } from "../../../shared/types/account";
+} from "@/modules/auth/utils/validateLogin";
 import "./Login.css";
 
+type Status = "idle" | "loading" | "google";
+
 export function Login() {
+  const navigate = useNavigate();
   const [params] = useSearchParams();
+  const { user, login, loginWithGoogle } = useAuth();
   const [accountType, setAccountType] = useState<AccountType>(() =>
     accountTypeFromParam(params.get("tipo")),
   );
@@ -28,17 +37,53 @@ export function Login() {
     password: "",
   });
   const [errors, setErrors] = useState<LoginErrors>({});
+  const [formError, setFormError] = useState("");
+  const [status, setStatus] = useState<Status>("idle");
   const text = copy[accountType];
   const isAdmin = accountType === "admin";
+  const busy = status !== "idle";
+  const demoUser = mockUsers.find((item) => item.role === accountType);
+  // Only same-site paths, so the param can't send the user to another domain
+  const redirectParam = params.get("redirect");
+  const redirect =
+    redirectParam?.startsWith("/") && !redirectParam.startsWith("//")
+      ? redirectParam
+      : null;
+
+  if (user && status === "idle")
+    return <Navigate to={roleHome[user.role]} replace />;
 
   const handleChange = (field: keyof LoginValues, value: string) => {
     setValues((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
+    setFormError("");
+  };
+
+  const authenticate = async (
+    action: () => Promise<AuthUser>,
+    next: Status,
+  ) => {
+    setStatus(next);
+    setFormError("");
+    try {
+      const signedIn = await action();
+      navigate(redirect ?? roleHome[signedIn.role], { replace: true });
+    } catch (error) {
+      setFormError(
+        error instanceof AuthError
+          ? error.message
+          : "No pudimos iniciar sesión. Inténtalo de nuevo.",
+      );
+      setStatus("idle");
+    }
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setErrors(validateLogin(values));
+    const nextErrors = validateLogin(values);
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length) return;
+    authenticate(() => login({ ...values, role: accountType }), "loading");
   };
 
   return (
@@ -53,6 +98,7 @@ export function Login() {
           onChange={(type) => {
             setAccountType(type);
             setErrors({});
+            setFormError("");
           }}
         />
       </div>
@@ -60,10 +106,22 @@ export function Login() {
       <h1 className="login__title">{text.title}</h1>
       <p className="login__subtitle">{text.subtitle}</p>
 
+      {/* TODO: quitar la cuenta demo cuando el login use la API */}
+      {demoUser && (
+        <p className="login__demo">
+          Demo: <strong>{demoUser.email}</strong> · contraseña{" "}
+          <strong>{demoUser.password}</strong>
+        </p>
+      )}
+
       {!isAdmin && (
         <>
           <div className="login__google">
-            <GoogleButton />
+            <GoogleButton
+              onClick={() => authenticate(loginWithGoogle, "google")}
+              loading={status === "google"}
+              disabled={busy}
+            />
           </div>
 
           <AuthDivider />
@@ -75,6 +133,11 @@ export function Login() {
         onSubmit={handleSubmit}
         noValidate
       >
+        {formError && (
+          <p className="login__error" role="alert">
+            {formError}
+          </p>
+        )}
         <FormField
           id="login-email"
           label={text.emailLabel}
@@ -85,6 +148,7 @@ export function Login() {
           value={values.email}
           onChange={(event) => handleChange("email", event.target.value)}
           error={errors.email}
+          disabled={busy}
         />
         <FormField
           id="login-password"
@@ -96,6 +160,7 @@ export function Login() {
           value={values.password}
           onChange={(event) => handleChange("password", event.target.value)}
           error={errors.password}
+          disabled={busy}
           labelAction={
             <button type="button" className="login__forgot">
               ¿Olvidaste tu contraseña?
@@ -109,8 +174,8 @@ export function Login() {
           }
         />
 
-        <button type="submit" className="login__submit">
-          {text.submit}
+        <button type="submit" className="login__submit" disabled={busy}>
+          {status === "loading" ? "Iniciando sesión…" : text.submit}
         </button>
       </form>
 

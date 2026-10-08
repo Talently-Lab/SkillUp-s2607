@@ -1,13 +1,17 @@
-import { useState } from "react";
-import { Link, NavLink } from "react-router";
+import { startTransition, useState } from "react";
+import { Link, NavLink, useNavigate } from "react-router";
 
 import { Logo } from "./Logo";
+import { NotificationBell } from "./NotificationBell";
+import { UserMenu } from "./UserMenu";
+import { useAuth } from "../hooks/useAuth";
+import { roleHome, rolePanelLabel } from "../utils/roles";
 import CartShoppingIcon from "../../assets/icons/cart-shopping.svg";
 import MenuIcon from "../../assets/icons/menu.svg";
 import CloseIcon from "../../assets/icons/close.svg";
 import "./SiteHeader.css";
 
-const navItems = [
+const publicNavItems = [
   { to: "/", label: "Inicio", end: true },
   // Not `end`, so it stays active on /catalog/:courseId
   { to: "/catalog", label: "Catálogo", end: false },
@@ -20,6 +24,26 @@ const navLinkClass =
 
 export function SiteHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const isStudent = user?.role === "student";
+  const panelLabel = user && rolePanelLabel[user.role];
+  const navItems = panelLabel
+    ? [
+        ...publicNavItems,
+        { to: roleHome[user.role], label: panelLabel, end: false },
+      ]
+    : publicNavItems;
+
+  const handleSignOut = () => {
+    setIsMenuOpen(false);
+    // Same transition as the navigation, otherwise the panel guard sees the
+    // user gone first and redirects to the login instead of home
+    startTransition(() => {
+      navigate("/");
+      logout();
+    });
+  };
 
   return (
     <header className="site-header">
@@ -41,30 +65,42 @@ export function SiteHeader() {
         </div>
 
         <div className="site-header__actions">
-          <button
-            type="button"
-            className="site-header__icon-btn"
-            aria-label="Carrito de compras"
-          >
-            <img
-              className="site-header__icon"
-              src={CartShoppingIcon}
-              alt=""
-            />
-          </button>
+          {(!user || isStudent) && (
+            <button
+              type="button"
+              className="site-header__icon-btn"
+              aria-label="Carrito de compras"
+            >
+              <img
+                className="site-header__icon"
+                src={CartShoppingIcon}
+                alt=""
+              />
+            </button>
+          )}
+          {/* Keyed by user so the inbox resets when the account changes */}
+          {user && isStudent && (
+            <NotificationBell key={user.id} userId={user.id} />
+          )}
           <div className="site-header__auth">
-            <Link
-              to="/login"
-              className="site-header__btn site-header__btn--ghost"
-            >
-              Iniciar sesión
-            </Link>
-            <Link
-              to="/register"
-              className="site-header__btn site-header__btn--primary"
-            >
-              Crear cuenta
-            </Link>
+            {user ? (
+              <UserMenu user={user} onSignOut={handleSignOut} />
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="site-header__btn site-header__btn--ghost"
+                >
+                  Iniciar sesión
+                </Link>
+                <Link
+                  to="/register"
+                  className="site-header__btn site-header__btn--primary"
+                >
+                  Crear cuenta
+                </Link>
+              </>
+            )}
           </div>
           <button
             type="button"
@@ -98,20 +134,38 @@ export function SiteHeader() {
               </NavLink>
             ))}
           </nav>
-          <div className="site-header__mobile-auth">
-            <Link
-              to="/login"
-              className="site-header__btn site-header__btn--lg site-header__btn--outline"
-            >
-              Iniciar sesión
-            </Link>
-            <Link
-              to="/register"
-              className="site-header__btn site-header__btn--lg site-header__btn--primary"
-            >
-              Crear cuenta
-            </Link>
-          </div>
+          {user ? (
+            <div className="site-header__mobile-user">
+              <div className="site-header__mobile-identity">
+                <span className="site-header__avatar" aria-hidden="true">
+                  {user.name.charAt(0)}
+                </span>
+                <span className="site-header__mobile-name">{user.name}</span>
+              </div>
+              <button
+                type="button"
+                className="site-header__btn site-header__btn--ghost"
+                onClick={handleSignOut}
+              >
+                Cerrar sesión
+              </button>
+            </div>
+          ) : (
+            <div className="site-header__mobile-auth">
+              <Link
+                to="/login"
+                className="site-header__btn site-header__btn--lg site-header__btn--outline"
+              >
+                Iniciar sesión
+              </Link>
+              <Link
+                to="/register"
+                className="site-header__btn site-header__btn--lg site-header__btn--primary"
+              >
+                Crear cuenta
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </header>

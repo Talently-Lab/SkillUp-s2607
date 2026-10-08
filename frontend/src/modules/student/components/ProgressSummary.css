@@ -1,0 +1,35 @@
+.progress-summary__title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.progress-summary {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  margin: 0.75rem 0 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background-color: var(--border);
+}
+
+.progress-summary__item {
+  padding: 1rem;
+  background-color: var(--fg);
+}
+
+.progress-summary__label {
+  font-size: 0.75rem;
+  color: var(--text-subtle);
+}
+
+.progress-summary__value {
+  margin: 0.25rem 0 0;
+  font-family: var(--heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-primary);
+}
