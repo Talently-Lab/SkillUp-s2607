@@ -4,6 +4,7 @@ import { Catalog } from "./modules/catalog/pages/Catalog";
 import { CourseDetail } from "./modules/catalog/pages/CourseDetail";
 import { Admin } from "./modules/admin/Admin";
 import { Student } from "./modules/student/Student";
+import { Login } from "./modules/login/pages/Login";
 import { Register } from "./modules/register/pages/Register";
 import { DashboardLayout } from "./layouts/DashboardLayout";
 import { PublicLayout } from "./layouts/PublicLayout";
@@ -16,6 +17,7 @@ function App() {
         <Route path="/catalog" element=<Catalog /> />
         <Route path="/catalog/:courseId" element=<CourseDetail /> />
       </Route>
+      <Route path="/login" element=<Login /> />
       <Route path="/register" element=<Register /> />
       {/* This route must be protected and only accessible to users with admin privileges */}
       <Route path="/admin" element=<DashboardLayout title="Admin" />>
