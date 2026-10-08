@@ -1,9 +1,9 @@
 import { Link } from "react-router";
 
-import type { Course } from "../../../shared/types/course";
-import type { CourseProgress } from "../utils/progress";
+import type { Course } from "@/shared/types/course";
+import type { CourseProgress } from "@/modules/student/utils/progress";
 import { ProgressBar } from "./ProgressBar";
-import PlayFilledIcon from "../../../assets/icons/play-filled.svg";
+import PlayFilledIcon from "@/assets/icons/play-filled.svg";
 import "./ContinueCard.css";
 
 type ContinueCardProps = {

@@ -1,22 +1,22 @@
 import { Link, useSearchParams } from "react-router";
 
-import { useAuth } from "../../../shared/hooks/useAuth";
-import { courses } from "../../../shared/mocks/courses";
-import { enrollmentsByUser } from "../../../shared/mocks/enrollments";
-import { ContinueCard } from "../components/ContinueCard";
-import { DashboardTabs } from "../components/DashboardTabs";
-import { EmptyCourses } from "../components/EmptyCourses";
-import { EnrolledCourseRow } from "../components/EnrolledCourseRow";
-import { ProgressSummary } from "../components/ProgressSummary";
-import { RecommendedCourses } from "../components/RecommendedCourses";
+import { useAuth } from "@/shared/hooks/useAuth";
+import { courses } from "@/shared/mocks/courses";
+import { enrollmentsByUser } from "@/shared/mocks/enrollments";
+import { ContinueCard } from "@/modules/student/components/ContinueCard";
+import { DashboardTabs } from "@/modules/student/components/DashboardTabs";
+import { EmptyCourses } from "@/modules/student/components/EmptyCourses";
+import { EnrolledCourseRow } from "@/modules/student/components/EnrolledCourseRow";
+import { ProgressSummary } from "@/modules/student/components/ProgressSummary";
+import { RecommendedCourses } from "@/modules/student/components/RecommendedCourses";
 import {
   dashboardTabs,
   panelId,
   tabFromParam,
   tabId,
   type DashboardTab,
-} from "../constants/tabs";
-import { getCourseProgress } from "../utils/progress";
+} from "@/modules/student/constants/tabs";
+import { getCourseProgress } from "@/modules/student/utils/progress";
 import "./Student.css";
 
 const RECOMMENDED_LIMIT = 3;

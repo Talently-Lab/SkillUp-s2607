@@ -1,4 +1,4 @@
-import type { Enrollment } from "../types/enrollment";
+import type { Enrollment } from "@/shared/types/enrollment";
 
 /** Enrollments by user id, until the student API is ready. */
 export const enrollmentsByUser: Record<string, Enrollment[]> = {

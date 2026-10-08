@@ -1,4 +1,4 @@
-import type { AccountType } from "../types/account";
+import type { AccountType } from "@/shared/types/account";
 
 /** Where each role lands after signing in. The teacher panel is out of the MVP. */
 export const roleHome: Record<AccountType, string> = {

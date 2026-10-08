@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router";
 
-import { useAuth } from "../hooks/useAuth";
-import type { AccountType } from "../types/account";
-import { loginPath, roleHome } from "../utils/roles";
+import { useAuth } from "@/shared/hooks/useAuth";
+import type { AccountType } from "@/shared/types/account";
+import { loginPath, roleHome } from "@/shared/utils/roles";
 
 type RequireAuthProps = {
   role: AccountType;

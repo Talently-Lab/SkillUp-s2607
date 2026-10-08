@@ -1,6 +1,6 @@
-import type { Course } from "../../../shared/types/course";
-import type { Enrollment } from "../../../shared/types/enrollment";
-import { getSyllabus } from "../../../shared/utils/syllabus";
+import type { Course } from "@/shared/types/course";
+import type { Enrollment } from "@/shared/types/enrollment";
+import { getSyllabus } from "@/shared/utils/syllabus";
 
 export interface CourseProgress {
   completed: number;

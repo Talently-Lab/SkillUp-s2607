@@ -1,6 +1,10 @@
-import { mockGoogleUserId, mockUsers } from "../mocks/users";
-import type { AccountType } from "../types/account";
-import type { AuthSession, AuthUser, LoginCredentials } from "../types/auth";
+import { mockGoogleUserId, mockUsers } from "@/shared/mocks/users";
+import type { AccountType } from "@/shared/types/account";
+import type {
+  AuthSession,
+  AuthUser,
+  LoginCredentials,
+} from "@/shared/types/auth";
 
 const SESSION_KEY = "skillup-session";
 const MOCK_DELAY_MS = 700;

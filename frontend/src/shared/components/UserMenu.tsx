@@ -1,12 +1,12 @@
 import { useRef, useState } from "react";
 import { Link } from "react-router";
 
-import { useDismiss } from "../hooks/useDismiss";
-import type { AuthUser } from "../types/auth";
-import { roleHome, rolePanelLabel } from "../utils/roles";
-import ChevronDownIcon from "../../assets/icons/chevron-down.svg";
-import LayoutDashboardIcon from "../../assets/icons/layout-dashboard.svg";
-import LogOutIcon from "../../assets/icons/log-out.svg";
+import { useDismiss } from "@/shared/hooks/useDismiss";
+import type { AuthUser } from "@/shared/types/auth";
+import { roleHome, rolePanelLabel } from "@/shared/utils/roles";
+import ChevronDownIcon from "@/assets/icons/chevron-down.svg";
+import LayoutDashboardIcon from "@/assets/icons/layout-dashboard.svg";
+import LogOutIcon from "@/assets/icons/log-out.svg";
 import "./UserMenu.css";
 
 type UserMenuProps = {

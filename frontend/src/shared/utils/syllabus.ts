@@ -1,6 +1,6 @@
-import { syllabi } from "../mocks/syllabi";
-import type { Course } from "../types/course";
-import type { CourseSyllabus } from "../types/syllabus";
+import { syllabi } from "@/shared/mocks/syllabi";
+import type { Course } from "@/shared/types/course";
+import type { CourseSyllabus } from "@/shared/types/syllabus";
 
 /** Courses without a written syllabus get a generic one built from their data. */
 export function getSyllabus(course: Course): CourseSyllabus {

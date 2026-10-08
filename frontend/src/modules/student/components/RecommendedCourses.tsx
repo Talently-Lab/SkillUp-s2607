@@ -1,8 +1,8 @@
 import { Link } from "react-router";
 
-import type { Course } from "../../../shared/types/course";
-import { formatPrice } from "../../../shared/utils/format";
-import ClockIcon from "../../../assets/icons/clock.svg";
+import type { Course } from "@/shared/types/course";
+import { formatPrice } from "@/shared/utils/format";
+import ClockIcon from "@/assets/icons/clock.svg";
 import "./RecommendedCourses.css";
 
 type RecommendedCoursesProps = {

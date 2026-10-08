@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 
-import BookOpenIcon from "../../../assets/icons/book-open.svg";
-import ArrowRightIcon from "../../../assets/icons/arrow-right.svg";
+import BookOpenIcon from "@/assets/icons/book-open.svg";
+import ArrowRightIcon from "@/assets/icons/arrow-right.svg";
 import "./EmptyCourses.css";
 
 export function EmptyCourses() {

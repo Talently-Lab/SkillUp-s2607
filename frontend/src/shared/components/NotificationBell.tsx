@@ -1,16 +1,19 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
 
-import { useDismiss } from "../hooks/useDismiss";
-import { notificationsByUser } from "../mocks/notifications";
-import type { AppNotification, NotificationType } from "../types/notification";
-import { formatRelativeTime } from "../utils/format";
-import BellIcon from "../../assets/icons/bell.svg";
-import BellOffIcon from "../../assets/icons/bell-off.svg";
-import CartShoppingIcon from "../../assets/icons/cart-shopping.svg";
-import CertificateIcon from "../../assets/icons/certificate-ssl.svg";
-import CheckIcon from "../../assets/icons/check.svg";
-import GraduationCapIcon from "../../assets/icons/graduation-cap.svg";
+import { useDismiss } from "@/shared/hooks/useDismiss";
+import { notificationsByUser } from "@/shared/mocks/notifications";
+import type {
+  AppNotification,
+  NotificationType,
+} from "@/shared/types/notification";
+import { formatRelativeTime } from "@/shared/utils/format";
+import BellIcon from "@/assets/icons/bell.svg";
+import BellOffIcon from "@/assets/icons/bell-off.svg";
+import CartShoppingIcon from "@/assets/icons/cart-shopping.svg";
+import CertificateIcon from "@/assets/icons/certificate-ssl.svg";
+import CheckIcon from "@/assets/icons/check.svg";
+import GraduationCapIcon from "@/assets/icons/graduation-cap.svg";
 import "./NotificationBell.css";
 
 type NotificationBellProps = {

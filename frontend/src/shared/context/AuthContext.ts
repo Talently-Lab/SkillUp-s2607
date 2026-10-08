@@ -1,6 +1,6 @@
 import { createContext } from "react";
 
-import type { AuthUser, LoginCredentials } from "../types/auth";
+import type { AuthUser, LoginCredentials } from "@/shared/types/auth";
 
 export interface AuthContextValue {
   user: AuthUser | null;

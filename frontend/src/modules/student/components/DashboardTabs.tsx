@@ -5,7 +5,7 @@ import {
   panelId,
   tabId,
   type DashboardTab,
-} from "../constants/tabs";
+} from "@/modules/student/constants/tabs";
 import "./DashboardTabs.css";
 
 type DashboardTabsProps = {

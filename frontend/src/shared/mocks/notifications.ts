@@ -1,4 +1,4 @@
-import type { AppNotification } from "../types/notification";
+import type { AppNotification } from "@/shared/types/notification";
 
 function hoursAgo(hours: number): string {
   return new Date(Date.now() - hours * 3_600_000).toISOString();
