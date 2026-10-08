@@ -27,11 +27,16 @@ src/
 ├── modules/         # módulos por dominio
 │   ├── home/        # landing page
 │   ├── catalog/     # catálogo de cursos
+│   ├── login/       # inicio de sesión
+│   ├── register/    # registro
 │   ├── student/     # panel del estudiante
 │   └── admin/       # panel del admin
 ├── shared/          # código compartido entre módulos
 │   ├── components/  # componentes reutilizables (header, footer, course card, etc.)
+│   ├── context/     # contextos globales (sesión del usuario)
+│   ├── hooks/       # hooks reutilizables
 │   ├── mocks/       # datos de prueba
+│   ├── services/    # acceso a datos (hoy con mocks, luego la API)
 │   ├── types/       # tipos de TypeScript
 │   └── utils/       # funciones utilitarias
 ├── App.tsx          # definición de rutas
@@ -39,7 +44,8 @@ src/
 └── index.css        # estilos globales
 ```
 
-- **`layouts`**: `PublicLayout` se usa en las rutas públicas (`/` y `/catalog`) y `DashboardLayout` en los dashboards (`/student` y `/admin`).
+- **`layouts`**: `PublicLayout` se usa en las rutas públicas (`/` y `/catalog`) y en el panel del estudiante (`/student`), que conserva el header del sitio. `DashboardLayout` se usa en el panel del admin (`/admin`).
+- **Sesión**: `authService` inicia sesión con los usuarios de `shared/mocks/users.ts` (contraseña `skillup123`) y guarda la sesión en `localStorage`. Para integrar el backend solo hay que reemplazar los mocks de `authService` por las llamadas a la API. `/student` y `/admin` están protegidas con `RequireAuth`.
 - **`modules`**: un módulo no debería importar de otro módulo. Si algo se necesita en más de uno, se mueve a `shared`.
 
 ## Cómo levantar el proyecto
