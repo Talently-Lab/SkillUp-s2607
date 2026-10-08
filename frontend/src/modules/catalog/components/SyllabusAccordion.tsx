@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import type { SyllabusModule } from "../../../shared/types/syllabus";
-import { getModuleMinutes } from "../utils/syllabus";
+import { getModuleMinutes } from "../../../shared/utils/syllabus";
 import ChevronDownIcon from "../../../assets/icons/chevron-down.svg";
 import PlayIcon from "../../../assets/icons/play.svg";
 import "./SyllabusAccordion.css";

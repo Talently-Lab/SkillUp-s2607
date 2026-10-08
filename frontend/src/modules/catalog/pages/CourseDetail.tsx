@@ -8,7 +8,7 @@ import { EnrollCard } from "../components/EnrollCard";
 import { MobileEnrollBar } from "../components/MobileEnrollBar";
 import { SyllabusAccordion } from "../components/SyllabusAccordion";
 import { getReviewSummary } from "../utils/reviews";
-import { getModuleMinutes, getSyllabus } from "../utils/syllabus";
+import { getModuleMinutes, getSyllabus } from "../../../shared/utils/syllabus";
 import BarChartIcon from "../../../assets/icons/bar-chart.svg";
 import CheckIcon from "../../../assets/icons/check.svg";
 import ChevronRightIcon from "../../../assets/icons/chevron-right.svg";
