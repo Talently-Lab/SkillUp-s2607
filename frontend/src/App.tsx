@@ -4,8 +4,8 @@ import { Catalog } from "./modules/catalog/pages/Catalog";
 import { CourseDetail } from "./modules/catalog/pages/CourseDetail";
 import { Admin } from "./modules/admin/Admin";
 import { Student } from "./modules/student/pages/Student";
-import { Login } from "./modules/login/pages/Login";
-import { Register } from "./modules/register/pages/Register";
+import { Register } from "./modules/auth/pages/Register";
+import { Login } from "./modules/auth/pages/Login";
 import { DashboardLayout } from "./layouts/DashboardLayout";
 import { PublicLayout } from "./layouts/PublicLayout";
 import { RequireAuth } from "./shared/components/RequireAuth";
@@ -25,8 +25,8 @@ function App() {
           </RequireAuth>
         />
       </Route>
-      <Route path="/login" element=<Login /> />
       <Route path="/register" element=<Register /> />
+      <Route path="/login" element=<Login /> />
       <Route
         path="/admin"
         element=<RequireAuth role="admin">

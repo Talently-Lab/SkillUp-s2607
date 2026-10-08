@@ -27,8 +27,7 @@ src/
 ├── modules/         # módulos por dominio
 │   ├── home/        # landing page
 │   ├── catalog/     # catálogo de cursos
-│   ├── login/       # inicio de sesión
-│   ├── register/    # registro
+│   ├── auth/        # inicio de sesión y registro
 │   ├── student/     # panel del estudiante
 │   └── admin/       # panel del admin
 ├── shared/          # código compartido entre módulos

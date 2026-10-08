@@ -18,11 +18,6 @@ const roleParam: Record<AccountType, string> = {
   admin: "admin",
 };
 
-export function roleFromParam(value: string | null): AccountType {
-  const match = Object.entries(roleParam).find(([, param]) => param === value);
-  return (match?.[0] as AccountType | undefined) ?? "student";
-}
-
 export function loginPath(role: AccountType, redirect?: string): string {
   const params = new URLSearchParams();
   if (role !== "student") params.set("tipo", roleParam[role]);

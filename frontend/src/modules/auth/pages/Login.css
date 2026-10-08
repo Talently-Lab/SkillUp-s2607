@@ -33,7 +33,7 @@
 }
 
 .login__google {
-  margin-top: 1.5rem;
+  margin-top: 2rem;
 }
 
 .login__form {
@@ -91,7 +91,7 @@
   }
 }
 
-.login__register {
+.login__footer {
   margin-top: 2rem;
   font-size: 0.875rem;
   text-align: center;
