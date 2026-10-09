@@ -8,6 +8,7 @@ export const safeSchema = z.object({
   LOG_LEVEL: z
     .enum(["fatal", "error", "warn", "info", "debug", "trace"])
     .default("info"),
+  DATABASE_URL: z.url(),
 });
 
 const parsed = safeSchema.safeParse(process.env);
