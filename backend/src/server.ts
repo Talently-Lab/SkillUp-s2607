@@ -1,6 +1,7 @@
 import { env } from "./config/env.ts";
 import { app } from "./app.ts";
 import { logger } from "./shared/logger.ts";
+import { pool } from "./db/client.ts";
 
 const server = app.listen(env.PORT, () => {
   logger.info(`API listening on http://localhost:${env.PORT}`);
@@ -8,7 +9,10 @@ const server = app.listen(env.PORT, () => {
 
 function shutdown(signal: string) {
   logger.info(`Received ${signal}, shutting down...`);
-  server.close(() => process.exit(0));
+  server.close(async () => {
+    await pool.end();
+    process.exit(0);
+  });
 }
 
 process.on("SIGINT", shutdown);
