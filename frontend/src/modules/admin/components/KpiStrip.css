@@ -1,0 +1,116 @@
+.kpi-strip {
+  display: grid;
+  gap: 1rem;
+
+  @media (min-width: 1024px) {
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 2fr);
+  }
+}
+
+.kpi-strip__hero {
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  border-radius: 12px;
+  background-color: var(--text-h);
+}
+
+.kpi-strip__hero-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #c9d0ea;
+}
+
+.kpi-strip__hero-value {
+  margin-top: 0.5rem;
+  font-family: var(--heading);
+  font-size: 2.25rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.5px;
+  color: var(--fg);
+}
+
+.kpi-strip__hero-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 1rem;
+  margin-top: auto;
+  padding-top: 1.25rem;
+  font-size: 0.875rem;
+}
+
+.kpi-strip__delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.kpi-strip__delta-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+  background-color: currentColor;
+  mask: var(--icon) center / contain no-repeat;
+}
+
+.kpi-strip__delta--up {
+  background-color: rgb(33 150 83 / 0.25);
+  color: #8ce0b0;
+}
+
+.kpi-strip__delta--down {
+  background-color: rgb(235 87 87 / 0.25);
+  color: #ffb3b3;
+}
+
+.kpi-strip__hero-hint {
+  color: #aab4d8;
+}
+
+.kpi-strip__list {
+  display: grid;
+  gap: 1px;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background-color: var(--border);
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.kpi-strip__item {
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem;
+  background-color: var(--fg);
+}
+
+.kpi-strip__label {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.kpi-strip__value {
+  margin: 0.5rem 0 0;
+  font-family: var(--heading);
+  font-size: 1.875rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.5px;
+  color: var(--text-h);
+}
+
+.kpi-strip__hint {
+  margin: auto 0 0;
+  padding-top: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--text-subtle);
+}

@@ -1,0 +1,98 @@
+.sales-chart {
+  min-width: 0;
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background-color: var(--fg);
+
+  @media (max-width: 639px) {
+    padding: 1.25rem 1rem;
+  }
+}
+
+.sales-chart__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+
+  .segmented-control {
+    width: 13rem;
+  }
+}
+
+.sales-chart__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+
+  @media (max-width: 1024px) {
+    font-size: 1rem;
+  }
+}
+
+.sales-chart__subtitle {
+  margin-top: 0.125rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+
+  strong {
+    font-variant-numeric: tabular-nums;
+    color: var(--text-h);
+  }
+}
+
+.sales-chart__plot {
+  height: 18rem;
+  margin-top: 1.5rem;
+
+  @media (max-width: 639px) {
+    height: 15rem;
+  }
+
+  /* Recharts focuses the svg on click, the bars already show the hover */
+  .recharts-surface:focus {
+    outline: none;
+  }
+}
+
+.sales-chart__tooltip {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--fg);
+  box-shadow: 0 8px 24px -12px rgb(22 33 77 / 0.35);
+  font-size: 0.75rem;
+
+  p {
+    font-variant-numeric: tabular-nums;
+    color: var(--text-muted);
+  }
+
+  strong,
+  .sales-chart__tooltip-title {
+    color: var(--text-h);
+  }
+
+  .sales-chart__tooltip-title {
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+  }
+}
+
+.sales-chart__legend {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--text-subtle);
+}
+
+.sales-chart__legend-swatch {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 2px;
+  background-color: var(--color-accent);
+}
