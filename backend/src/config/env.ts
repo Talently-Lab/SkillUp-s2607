@@ -14,7 +14,7 @@ export const safeSchema = z.object({
 const parsed = safeSchema.safeParse(process.env);
 
 if (!parsed.success) {
-  // eslint-disable-next-line no-console -- the logger depens on env, so it isn't available yet
+  // eslint-disable-next-line no-console -- the logger depends on env, so it isn't available yet
   console.error(
     "Invalid environment variables",
     z.flattenError(parsed.error).fieldErrors,

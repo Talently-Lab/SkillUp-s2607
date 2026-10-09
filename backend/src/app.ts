@@ -13,10 +13,10 @@ app.use(express.json());
 app.get("/health", async (req, res) => {
   try {
     await db.execute(sql`select 1`);
-    res.send({ status: "ok" });
+    res.json({ status: "ok" });
   } catch (err) {
     req.log.error({ err }, "database health check failed");
-    res.status(503).json({ status: "error", db: "down " });
+    res.status(503).json({ status: "error", db: "down" });
   }
 });
 
