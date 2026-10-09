@@ -9,9 +9,8 @@ const server = app.listen(env.PORT, () => {
 
 function shutdown(signal: string) {
   logger.info(`Received ${signal}, shutting down...`);
-  server.close(async () => {
-    await pool.end();
-    process.exit(0);
+  server.close(() => {
+    void pool.end().finally(() => process.exit(0));
   });
 }
 
