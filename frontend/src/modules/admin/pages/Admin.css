@@ -1,0 +1,39 @@
+.admin-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem var(--gutter) 3rem;
+}
+
+.admin-dashboard__title {
+  margin: 0;
+  font-size: 1.75rem;
+  letter-spacing: -0.5px;
+
+  @media (max-width: 1024px) {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+}
+
+.admin-dashboard__subtitle {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.admin-dashboard__grid {
+  display: grid;
+  gap: 1.5rem;
+
+  @media (min-width: 1280px) {
+    grid-template-columns: minmax(0, 1fr) 380px;
+  }
+}
+
+.admin-dashboard__note {
+  font-size: 0.75rem;
+  color: var(--text-subtle);
+}

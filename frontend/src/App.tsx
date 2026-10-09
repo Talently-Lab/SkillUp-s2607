@@ -2,7 +2,8 @@ import { Route, Routes } from "react-router";
 import { Home } from "./modules/home/Home";
 import { Catalog } from "./modules/catalog/pages/Catalog";
 import { CourseDetail } from "./modules/catalog/pages/CourseDetail";
-import { Admin } from "./modules/admin/Admin";
+import { Admin } from "./modules/admin/pages/Admin";
+import { adminNav } from "./modules/admin/constants/nav";
 import { Student } from "./modules/student/pages/Student";
 import { Register } from "./modules/auth/pages/Register";
 import { Login } from "./modules/auth/pages/Login";
@@ -30,7 +31,11 @@ function App() {
       <Route
         path="/admin"
         element=<RequireAuth role="admin">
-          <DashboardLayout title="Admin" />
+          <DashboardLayout
+            title="Panel de administración"
+            roleLabel="Administrador"
+            nav={adminNav}
+          />
         </RequireAuth>
       >
         <Route index element=<Admin /> />

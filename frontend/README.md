@@ -9,6 +9,7 @@ Como herramientas generales de desarrollo se usa:
 - **Vite** para el entorno de desarrollo y el build.
 - **TypeScript** para el tipado.
 - **ESLint** para el linting del código.
+- **Recharts** para los gráficos del panel del admin.
 
 Como manejador de paquetes se usa [**pnpm**](https://pnpm.io/es).
 
@@ -43,7 +44,7 @@ src/
 └── index.css        # estilos globales
 ```
 
-- **`layouts`**: `PublicLayout` se usa en las rutas públicas (`/` y `/catalog`) y en el panel del estudiante (`/student`), que conserva el header del sitio. `DashboardLayout` se usa en el panel del admin (`/admin`).
+- **`layouts`**: `PublicLayout` se usa en las rutas públicas (`/` y `/catalog`) y en el panel del estudiante (`/student`), que conserva el header del sitio. `DashboardLayout` se usa en el panel del admin (`/admin`): tiene un sidebar en escritorio y una barra superior en mobile, y recibe los ítems de navegación por props (los del admin están en `modules/admin/constants/nav.ts`).
 - **Sesión**: `authService` inicia sesión con los usuarios de `shared/mocks/users.ts` (contraseña `skillup123`) y guarda la sesión en `localStorage`. Para integrar el backend solo hay que reemplazar los mocks de `authService` por las llamadas a la API. `/student` y `/admin` están protegidas con `RequireAuth`.
 - **`modules`**: un módulo no debería importar de otro módulo. Si algo se necesita en más de uno, se mueve a `shared`.
 

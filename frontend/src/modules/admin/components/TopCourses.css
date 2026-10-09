@@ -1,0 +1,120 @@
+.top-courses {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background-color: var(--fg);
+
+  @media (max-width: 639px) {
+    padding: 1.25rem 1rem;
+  }
+}
+
+.top-courses__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+
+  @media (max-width: 1024px) {
+    font-size: 1rem;
+  }
+}
+
+.top-courses__empty {
+  padding-block: 2.5rem;
+  font-size: 0.875rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.top-courses__list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 1.25rem;
+}
+
+.top-courses__item {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.top-courses__rank {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-top: 0.125rem;
+  border-radius: 999px;
+  background-color: var(--color-primary-soft);
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-primary);
+}
+
+.top-courses__rank--first {
+  background-color: var(--color-accent);
+  color: var(--fg);
+}
+
+.top-courses__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.top-courses__course {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--text-h);
+}
+
+.top-courses__meta,
+.top-courses__share {
+  margin-top: 0.125rem;
+  font-size: 0.75rem;
+  color: var(--text-subtle);
+}
+
+.top-courses__share {
+  font-variant-numeric: tabular-nums;
+}
+
+.top-courses__revenue {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.top-courses__bar {
+  flex: 1;
+  height: 0.375rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background-color: var(--color-primary-soft);
+}
+
+.top-courses__bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background-color: var(--color-primary);
+}
+
+.top-courses__amount {
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--text-h);
+}

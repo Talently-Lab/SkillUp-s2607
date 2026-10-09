@@ -26,8 +26,32 @@ export function formatRelativeTime(iso: string): string {
 
 /** Lowercases and strips accents so "diseño" matches "Diseno". */
 export function normalizeText(value: string): string {
-  return value
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "");
+  return value.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+}
+
+const moneyRounded = new Intl.NumberFormat("es-AR", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 0,
+});
+
+const moneyCompact = new Intl.NumberFormat("es-AR", {
+  style: "currency",
+  currency: "USD",
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+
+export function formatMoneyRounded(amount: number): string {
+  return moneyRounded.format(amount);
+}
+
+/** "US$ 45,2 k", for chart axes */
+export function formatMoneyCompact(amount: number): string {
+  return moneyCompact.format(amount);
+}
+
+/** "8,5%" */
+export function formatPercent(value: number): string {
+  return `${value.toLocaleString("es-AR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
 }
