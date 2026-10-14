@@ -47,6 +47,7 @@ src/
 - **`layouts`**: `PublicLayout` se usa en las rutas públicas (`/` y `/catalog`) y en el panel del estudiante (`/student`), que conserva el header del sitio. `DashboardLayout` se usa en el panel del admin (`/admin`): tiene un sidebar en escritorio y una barra superior en mobile, y recibe los ítems de navegación por props (los del admin están en `modules/admin/constants/nav.ts`).
 - **Sesión**: `authService` inicia sesión con los usuarios de `shared/mocks/users.ts` (contraseña `skillup123`) y guarda la sesión en `localStorage`. Para integrar el backend solo hay que reemplazar los mocks de `authService` por las llamadas a la API. `/student` y `/admin` están protegidas con `RequireAuth`.
 - **Cursos del admin** (`/admin/courses`): `useAdminCourses` arranca con los cursos de `shared/mocks/courses.ts` y guarda en estado local los que se crean, editan o eliminan, así que los cambios se pierden al recargar. Cuando la API esté lista, solo hay que reemplazar ese estado por las llamadas al backend.
+- **Usuarios del admin** (`/admin/users`): `useAdminUsers` arranca con las cuentas de `shared/mocks/adminUsers.ts` y guarda en estado local los cambios de rol y las suspensiones, así que también se pierden al recargar. El admin con sesión iniciada no puede cambiar su propio rol ni suspenderse.
 - **`modules`**: un módulo no debería importar de otro módulo. Si algo se necesita en más de uno, se mueve a `shared`.
 
 ## Cómo levantar el proyecto
