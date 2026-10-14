@@ -1,4 +1,4 @@
-import type { Course } from "../types/course";
+import type { Course, CourseLevel } from "../types/course";
 
 import DataAnalysisImage from "../../assets/images/courses/data-analysis.jpg";
 import UxUiImage from "../../assets/images/courses/ux-ui.jpg";
@@ -191,4 +191,18 @@ export const categories = [
   "Idiomas",
   "Liderazgo",
   "Cloud",
+];
+
+export const levels: CourseLevel[] = ["Principiante", "Intermedio", "Avanzado"];
+
+/** Cover images to pick from when creating a course */
+export const courseImages = [
+  DataAnalysisImage,
+  UxUiImage,
+  PythonImage,
+  MarketingImage,
+  FinanceImage,
+  EnglishImage,
+  LeadershipImage,
+  CloudImage,
 ];
