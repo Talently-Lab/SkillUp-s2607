@@ -18,6 +18,7 @@ import PlayIcon from "@/assets/icons/play-filled.svg";
 import StarIcon from "@/assets/icons/star-filled.svg";
 import TrashIcon from "@/assets/icons/trash.svg";
 import "./Button.css";
+import "./AdminTable.css";
 import "./CourseTable.css";
 
 type CourseTableProps = {
@@ -48,8 +49,8 @@ export function CourseTable({
   );
 
   return (
-    <div className="course-table__scroll">
-      <table className="course-table">
+    <div className="admin-table__scroll">
+      <table className="admin-table course-table">
         <thead>
           <tr>
             {header("Curso", "title")}
@@ -60,7 +61,7 @@ export function CourseTable({
             {header("Inscritos", "students", true)}
             {header("Ingresos", "revenue", true)}
             <th scope="col">Estado</th>
-            <th scope="col" className="course-table__actions-head">
+            <th scope="col" className="admin-table__actions-head">
               Acciones
             </th>
           </tr>
@@ -95,21 +96,21 @@ export function CourseTable({
               </td>
               <td data-label="Categoría">{course.category}</td>
               <td data-label="Nivel">{course.level}</td>
-              <td data-label="Duración" className="course-table__numeric">
+              <td data-label="Duración" className="admin-table__numeric">
                 {course.durationHours} h
               </td>
               <td
                 data-label="Precio"
-                className={`course-table__numeric ${course.price === null ? "course-table__free" : ""}`}
+                className={`admin-table__numeric ${course.price === null ? "course-table__free" : ""}`}
               >
                 {formatPrice(course.price)}
               </td>
-              <td data-label="Inscritos" className="course-table__numeric">
+              <td data-label="Inscritos" className="admin-table__numeric">
                 {formatNumber(course.students)}
               </td>
               <td
                 data-label="Ingresos"
-                className="course-table__numeric course-table__revenue"
+                className="admin-table__numeric course-table__revenue"
               >
                 {course.price === null
                   ? "—"
@@ -119,7 +120,7 @@ export function CourseTable({
                 <StatusBadge status={course.status} />
               </td>
               <td className="course-table__actions">
-                <div className="course-table__buttons">
+                <div className="admin-table__buttons">
                   <button
                     type="button"
                     className={`admin-button admin-button--sm course-table__toggle ${isDraft(course) ? "admin-button--accent" : "admin-button--secondary"}`}
@@ -182,7 +183,7 @@ function SortHeader({
   return (
     <th
       scope="col"
-      className={numeric ? "course-table__numeric" : undefined}
+      className={numeric ? "admin-table__numeric" : undefined}
       aria-sort={
         active ? (sort.dir === "asc" ? "ascending" : "descending") : "none"
       }

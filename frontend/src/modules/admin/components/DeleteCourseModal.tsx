@@ -5,7 +5,7 @@ import { formatNumber } from "@/shared/utils/format";
 import AlertIcon from "@/assets/icons/alert-triangle.svg";
 import TrashIcon from "@/assets/icons/trash.svg";
 import "./Button.css";
-import "./DeleteCourseModal.css";
+import "./ConfirmMessage.css";
 
 type DeleteCourseModalProps = {
   course: Course;
@@ -44,15 +44,15 @@ export function DeleteCourseModal({
         </>
       }
     >
-      <div className="delete-course">
-        <span className="delete-course__icon">
+      <div className="confirm-message">
+        <span className="confirm-message__icon">
           <MaskIcon src={AlertIcon} />
         </span>
         <div>
           <p>
             Vas a eliminar <strong>“{course.title}”</strong>.
           </p>
-          <p className="delete-course__detail">
+          <p className="confirm-message__detail">
             Dejará de aparecer en el catálogo
             {course.students > 0 && (
               <>

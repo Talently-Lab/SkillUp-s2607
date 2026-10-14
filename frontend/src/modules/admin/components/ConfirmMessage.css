@@ -1,4 +1,4 @@
-.delete-course {
+.confirm-message {
   display: flex;
   gap: 1rem;
   font-size: 0.875rem;
@@ -9,7 +9,7 @@
   }
 }
 
-.delete-course__icon {
+.confirm-message__icon {
   display: flex;
   flex: none;
   align-items: center;
@@ -26,7 +26,7 @@
   }
 }
 
-.delete-course__detail {
+.confirm-message__detail {
   margin-top: 0.75rem;
   color: var(--text-muted);
 }
