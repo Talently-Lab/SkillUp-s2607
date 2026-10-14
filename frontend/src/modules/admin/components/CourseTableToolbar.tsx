@@ -1,0 +1,99 @@
+import type { StatusFilter } from "@/modules/admin/hooks/useAdminCourses";
+import { MaskIcon } from "@/modules/admin/components/MaskIcon";
+import { categories } from "@/shared/mocks/courses";
+import CloseIcon from "@/assets/icons/close.svg";
+import SearchIcon from "@/assets/icons/search.svg";
+import "./CourseTableToolbar.css";
+
+const statusTabs: { value: StatusFilter; label: string }[] = [
+  { value: "all", label: "Todos" },
+  { value: "published", label: "Publicados" },
+  { value: "draft", label: "Borradores" },
+];
+
+type CourseTableToolbarProps = {
+  query: string;
+  category: string;
+  status: StatusFilter;
+  counts: Record<StatusFilter, number>;
+  onQueryChange: (value: string) => void;
+  onCategoryChange: (value: string) => void;
+  onStatusChange: (value: StatusFilter) => void;
+};
+
+export function CourseTableToolbar({
+  query,
+  category,
+  status,
+  counts,
+  onQueryChange,
+  onCategoryChange,
+  onStatusChange,
+}: CourseTableToolbarProps) {
+  return (
+    <div className="course-toolbar">
+      <div
+        className="course-toolbar__tabs"
+        role="radiogroup"
+        aria-label="Estado"
+      >
+        {statusTabs.map((tab) => (
+          <label key={tab.value} className="course-toolbar__tab">
+            <input
+              type="radio"
+              name="course-status"
+              value={tab.value}
+              checked={status === tab.value}
+              onChange={() => onStatusChange(tab.value)}
+              className="visually-hidden"
+            />
+            {tab.label}
+            <span className="course-toolbar__count">{counts[tab.value]}</span>
+          </label>
+        ))}
+      </div>
+
+      <div className="course-toolbar__filters">
+        <label htmlFor="course-category" className="visually-hidden">
+          Categoría
+        </label>
+        <select
+          id="course-category"
+          className="course-toolbar__select"
+          value={category}
+          onChange={(event) => onCategoryChange(event.target.value)}
+        >
+          <option value="all">Todas las categorías</option>
+          {categories.map((name) => (
+            <option key={name}>{name}</option>
+          ))}
+        </select>
+
+        <div className="course-toolbar__search">
+          <label htmlFor="course-search" className="visually-hidden">
+            Buscar cursos
+          </label>
+          <MaskIcon src={SearchIcon} className="course-toolbar__search-icon" />
+          <input
+            id="course-search"
+            type="search"
+            className="course-toolbar__input"
+            placeholder="Buscar por título o docente"
+            value={query}
+            onChange={(event) => onQueryChange(event.target.value)}
+          />
+          {query && (
+            <button
+              type="button"
+              className="course-toolbar__clear"
+              onClick={() => onQueryChange("")}
+              aria-label="Borrar búsqueda"
+            >
+              <MaskIcon src={CloseIcon} />
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,126 @@
+.admin-courses {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem var(--gutter) 3rem;
+}
+
+.admin-courses__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+
+  @media (max-width: 479px) {
+    > .admin-button {
+      width: 100%;
+    }
+  }
+}
+
+.admin-courses__title {
+  margin: 0;
+  font-size: 1.75rem;
+  letter-spacing: -0.5px;
+
+  @media (max-width: 1024px) {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+}
+
+.admin-courses__subtitle {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.admin-courses__panel {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background-color: var(--fg);
+}
+
+.admin-courses__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4rem 1.5rem;
+  text-align: center;
+}
+
+.admin-courses__empty-icon {
+  width: 2rem;
+  height: 2rem;
+  color: var(--text-subtle);
+}
+
+.admin-courses__empty-title {
+  margin-top: 0.75rem;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.admin-courses__empty-text {
+  margin: 0.25rem 0 1.25rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.admin-courses__footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.75rem;
+  color: var(--text-subtle);
+}
+
+.admin-courses__hint {
+  @media (max-width: 767px) {
+    display: none;
+  }
+}
+
+.admin-courses__note {
+  font-size: 0.75rem;
+  color: var(--text-subtle);
+}
+
+.admin-courses__notice {
+  position: fixed;
+  right: var(--gutter);
+  bottom: 1.5rem;
+  left: var(--gutter);
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+
+  @media (min-width: 640px) {
+    left: auto;
+  }
+}
+
+.admin-courses__notice-text {
+  max-width: 28rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  background-color: var(--text-h);
+  box-shadow: 0 12px 32px -12px rgb(22 33 77 / 0.5);
+  font-size: 0.875rem;
+  color: var(--fg);
+  animation: notice-in 0.2s ease-out;
+}
+
+@keyframes notice-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}

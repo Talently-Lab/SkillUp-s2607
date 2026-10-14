@@ -1,5 +1,7 @@
 export type CourseLevel = "Principiante" | "Intermedio" | "Avanzado";
 
+export type CourseStatus = "published" | "draft";
+
 export interface Course {
   id: string;
   title: string;
@@ -14,4 +16,8 @@ export interface Course {
   image: string;
   instructor: string;
   featured: boolean;
+  /** Missing means published */
+  status?: CourseStatus;
 }
+
+export type CourseInput = Omit<Course, "id" | "rating" | "students">;
