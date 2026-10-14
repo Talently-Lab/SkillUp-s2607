@@ -4,6 +4,7 @@ import { Catalog } from "./modules/catalog/pages/Catalog";
 import { CourseDetail } from "./modules/catalog/pages/CourseDetail";
 import { Admin } from "./modules/admin/pages/Admin";
 import { AdminCourses } from "./modules/admin/pages/AdminCourses";
+import { AdminUsers } from "./modules/admin/pages/AdminUsers";
 import { adminNav } from "./modules/admin/constants/nav";
 import { Student } from "./modules/student/pages/Student";
 import { Register } from "./modules/auth/pages/Register";
@@ -41,6 +42,7 @@ function App() {
       >
         <Route index element=<Admin /> />
         <Route path="courses" element=<AdminCourses /> />
+        <Route path="users" element=<AdminUsers /> />
       </Route>
     </Routes>
   );

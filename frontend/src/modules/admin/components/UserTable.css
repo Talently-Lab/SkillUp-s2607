@@ -1,0 +1,156 @@
+.user-table__row--suspended {
+  background-color: rgb(239 241 251 / 0.6);
+
+  .user-table__name {
+    color: var(--text-muted);
+  }
+
+  .user-table__avatar {
+    background-color: var(--border);
+    color: var(--text-subtle);
+  }
+}
+
+.user-table__user-body {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 14rem;
+}
+
+.user-table__avatar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  background-color: var(--color-primary-soft);
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.user-table__identity {
+  min-width: 0;
+}
+
+.user-table__name {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.user-table__self {
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  background-color: rgb(224 112 46 / 0.12);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #b4521a;
+}
+
+.user-table__email {
+  overflow: hidden;
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  color: var(--text-subtle);
+}
+
+.user-table__role {
+  height: 2rem;
+  padding: 0 1.75rem 0 0.625rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  appearance: none;
+  background: var(--fg) url("../../../assets/icons/chevron-down.svg") right
+    0.5rem center / 0.875rem no-repeat;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-h);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &:hover:not(:disabled) {
+    border-color: #c5cff5;
+  }
+
+  &:focus {
+    border-color: var(--color-primary);
+    outline: none;
+    box-shadow: 0 0 0 4px var(--color-primary-soft);
+  }
+
+  &:disabled {
+    background-color: var(--bg);
+    color: var(--text-subtle);
+    cursor: not-allowed;
+  }
+}
+
+.user-table__role--teacher:not(:disabled) {
+  color: var(--color-accent-hover);
+}
+
+.user-table__role--admin:not(:disabled) {
+  color: var(--color-primary);
+}
+
+.user-table__muted {
+  font-size: 0.75rem;
+  color: var(--text-subtle);
+}
+
+.user-table__date {
+  font-variant-numeric: tabular-nums;
+}
+
+.user-table__actions .admin-button {
+  min-width: 7.5rem;
+}
+
+@media (max-width: 767px) {
+  .user-table tbody tr {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .user-table__user {
+    grid-row: 1;
+    grid-column: 1 / -1;
+  }
+
+  /* Leaves room for the status badge, which sits on the same row */
+  .user-table__user-body {
+    min-width: 0;
+    padding-right: 6.5rem;
+  }
+
+  .user-table__email {
+    white-space: nowrap;
+  }
+
+  .user-table__status {
+    grid-row: 1;
+    grid-column: 2;
+    align-self: start;
+    justify-self: end;
+  }
+
+  .user-table__role {
+    width: 100%;
+    margin-top: 0.25rem;
+  }
+
+  .user-table__actions {
+    grid-column: 1 / -1;
+
+    .user-table__muted {
+      flex: 1;
+      text-align: center;
+    }
+  }
+}

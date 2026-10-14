@@ -1,5 +1,11 @@
 import type { AccountType } from "@/shared/types/account";
 
+export const roleName: Record<AccountType, string> = {
+  student: "Alumno",
+  teacher: "Docente",
+  admin: "Admin",
+};
+
 /** Where each role lands after signing in. The teacher panel is out of the MVP. */
 export const roleHome: Record<AccountType, string> = {
   student: "/student",

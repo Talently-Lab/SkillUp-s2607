@@ -1,54 +1,6 @@
-.course-table__scroll {
-  overflow-x: auto;
-}
-
-.course-table {
-  width: 100%;
-  min-width: 960px;
-  border-collapse: collapse;
-  font-size: 0.875rem;
-  text-align: left;
-
-  th,
-  td {
-    padding: 0.75rem 0.625rem;
-    white-space: nowrap;
-
-    &:first-child {
-      padding-left: 1rem;
-    }
-
-    &:last-child {
-      padding-right: 1rem;
-    }
-  }
-
-  thead {
-    border-bottom: 1px solid var(--border);
-    background-color: var(--bg);
-  }
-
-  th {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--text-subtle);
-  }
-
-  td {
-    color: var(--text-muted);
-  }
-
-  tbody tr {
-    border-bottom: 1px solid var(--border);
-    transition: background-color 0.15s ease;
-
-    &:last-child {
-      border-bottom: none;
-    }
-
-    &:hover {
-      background-color: var(--bg);
-    }
+@media (min-width: 768px) {
+  .course-table {
+    min-width: 960px;
   }
 }
 
@@ -78,12 +30,6 @@
     color: var(--color-primary);
     opacity: 1;
   }
-}
-
-.course-table__numeric {
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-  color: var(--text-h);
 }
 
 .course-table__course-body {
@@ -139,17 +85,6 @@
   font-weight: 600;
 }
 
-.course-table__actions-head {
-  text-align: right;
-}
-
-.course-table__buttons {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.375rem;
-}
-
 .course-table__toggle {
   min-width: 6.25rem;
 }
@@ -168,35 +103,8 @@
 }
 
 @media (max-width: 767px) {
-  .course-table {
-    display: block;
-    min-width: 0;
-
-    thead {
-      display: none;
-    }
-
-    tbody {
-      display: block;
-    }
-
-    tbody tr {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 0.75rem 0.5rem;
-      padding: 1rem;
-
-      &:hover {
-        background-color: transparent;
-      }
-    }
-
-    td,
-    td:first-child,
-    td:last-child {
-      padding: 0;
-      white-space: normal;
-    }
+  .course-table tbody tr {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .course-table__course {
@@ -206,19 +114,6 @@
   .course-table__course-body {
     align-items: flex-start;
     min-width: 0;
-  }
-
-  .course-table td[data-label] {
-    text-align: left;
-    color: var(--text-h);
-
-    &::before {
-      content: attr(data-label);
-      display: block;
-      font-size: 0.75rem;
-      font-weight: 400;
-      color: var(--text-subtle);
-    }
   }
 
   .course-table td.course-table__free {
@@ -233,13 +128,5 @@
 
   .course-table__actions {
     grid-column: 1 / -1;
-  }
-
-  .course-table__buttons {
-    justify-content: stretch;
-
-    .admin-button--sm {
-      flex: 1;
-    }
   }
 }

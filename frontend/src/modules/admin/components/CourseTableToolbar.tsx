@@ -3,7 +3,7 @@ import { MaskIcon } from "@/modules/admin/components/MaskIcon";
 import { categories } from "@/shared/mocks/courses";
 import CloseIcon from "@/assets/icons/close.svg";
 import SearchIcon from "@/assets/icons/search.svg";
-import "./CourseTableToolbar.css";
+import "./TableToolbar.css";
 
 const statusTabs: { value: StatusFilter; label: string }[] = [
   { value: "all", label: "Todos" },
@@ -31,14 +31,14 @@ export function CourseTableToolbar({
   onStatusChange,
 }: CourseTableToolbarProps) {
   return (
-    <div className="course-toolbar">
+    <div className="table-toolbar">
       <div
-        className="course-toolbar__tabs"
+        className="table-toolbar__tabs"
         role="radiogroup"
         aria-label="Estado"
       >
         {statusTabs.map((tab) => (
-          <label key={tab.value} className="course-toolbar__tab">
+          <label key={tab.value} className="table-toolbar__tab">
             <input
               type="radio"
               name="course-status"
@@ -48,18 +48,18 @@ export function CourseTableToolbar({
               className="visually-hidden"
             />
             {tab.label}
-            <span className="course-toolbar__count">{counts[tab.value]}</span>
+            <span className="table-toolbar__count">{counts[tab.value]}</span>
           </label>
         ))}
       </div>
 
-      <div className="course-toolbar__filters">
+      <div className="table-toolbar__filters">
         <label htmlFor="course-category" className="visually-hidden">
           Categoría
         </label>
         <select
           id="course-category"
-          className="course-toolbar__select"
+          className="table-toolbar__select"
           value={category}
           onChange={(event) => onCategoryChange(event.target.value)}
         >
@@ -69,15 +69,15 @@ export function CourseTableToolbar({
           ))}
         </select>
 
-        <div className="course-toolbar__search">
+        <div className="table-toolbar__search">
           <label htmlFor="course-search" className="visually-hidden">
             Buscar cursos
           </label>
-          <MaskIcon src={SearchIcon} className="course-toolbar__search-icon" />
+          <MaskIcon src={SearchIcon} className="table-toolbar__search-icon" />
           <input
             id="course-search"
             type="search"
-            className="course-toolbar__input"
+            className="table-toolbar__input"
             placeholder="Buscar por título o docente"
             value={query}
             onChange={(event) => onQueryChange(event.target.value)}
@@ -85,7 +85,7 @@ export function CourseTableToolbar({
           {query && (
             <button
               type="button"
-              className="course-toolbar__clear"
+              className="table-toolbar__clear"
               onClick={() => onQueryChange("")}
               aria-label="Borrar búsqueda"
             >
