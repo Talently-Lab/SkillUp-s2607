@@ -5,5 +5,9 @@ import { coursesQuerySchema } from "./courses.schemas.ts";
 
 export const coursesRouter = Router();
 
-coursesRouter.get("/", validateQuery(coursesQuerySchema), coursesController.list);
+coursesRouter.get(
+  "/",
+  validateQuery(coursesQuerySchema),
+  coursesController.list,
+);
 coursesRouter.get("/:id", coursesController.getById);

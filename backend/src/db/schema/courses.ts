@@ -6,7 +6,6 @@ import {
   pgEnum,
   pgTable,
   serial,
-  smallint,
   text,
   timestamp,
   uuid,

@@ -100,3 +100,63 @@ GET {{api}}/auth/me
 ### Invalid token -> 401 INVALID_TOKEN
 GET {{api}}/auth/me
 Authorization: Bearer not-a-real-token
+
+
+### ---------- Courses (public catalog) ----------
+
+### List published courses (no auth required)
+GET {{api}}/courses
+
+### List with filters
+GET {{api}}/courses?featured=true&page=1&limit=5
+
+### Get course by id (replace with a real id after creating one)
+# GET {{api}}/courses/{{courseId}}
+
+### Invalid uuid -> 400 VALIDATION_ERROR
+GET {{api}}/courses/not-a-uuid
+
+
+### ---------- Admin — Courses ----------
+
+### Create a course (admin only)
+# @name createCourse
+POST {{api}}/admin/courses
+Content-Type: application/json
+Authorization: Bearer {{loginAdmin.response.body.accessToken}}
+
+{
+  "title": "Introducción a Python",
+  "slug": "intro-python",
+  "categoryId": 1,
+  "level": "beginner",
+  "priceCents": 0,
+  "status": "published"
+}
+
+### Update a course (replace the id)
+# PUT {{api}}/admin/courses/{{createCourse.response.body.course.id}}
+# Content-Type: application/json
+# Authorization: Bearer {{loginAdmin.response.body.accessToken}}
+#
+# {
+#   "featured": true,
+#   "priceCents": 1990
+# }
+
+### Delete a course (replace the id)
+# DELETE {{api}}/admin/courses/{{createCourse.response.body.course.id}}
+# Authorization: Bearer {{loginAdmin.response.body.accessToken}}
+
+### No token -> 401 UNAUTHORIZED
+POST {{api}}/admin/courses
+Content-Type: application/json
+
+{ "title": "Test" }
+
+### Student token -> 403 FORBIDDEN
+# POST {{api}}/admin/courses
+# Content-Type: application/json
+# Authorization: Bearer {{loginStudent.response.body.accessToken}}
+#
+# { "title": "Test", "slug": "test", "categoryId": 1 }
