@@ -1,0 +1,102 @@
+### SkillUp Campus API - quick manual tests
+# Needs the VS Code extension "REST Client" (humao.rest-client).
+# Click "Send Request" above each request. Run login/register first: the
+# access token is read from their response, and the refresh cookie is
+# remembered by the extension for /refresh and /logout.
+# The admin credentials are read from backend/.env (SEED_ADMIN_*).
+
+@baseUrl = http://localhost:3000
+@api = {{baseUrl}}/api/v1
+@studentEmail = estudiante.demo@gmail.com
+@studentPassword = skillup123
+
+### Health check
+GET {{baseUrl}}/health
+
+### Register a student (returns 409 EMAIL_TAKEN the second time)
+# @name register
+POST {{api}}/auth/register
+Content-Type: application/json
+
+{
+  "fullName": "Estudiante Demo",
+  "email": "{{studentEmail}}",
+  "password": "{{studentPassword}}"
+}
+
+### Login as the student
+# @name loginStudent
+POST {{api}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{studentEmail}}",
+  "password": "{{studentPassword}}"
+}
+
+### Current user (student)
+GET {{api}}/auth/me
+Authorization: Bearer {{loginStudent.response.body.accessToken}}
+
+### Login as the admin (create it first with `pnpm db:seed:admin`)
+# @name loginAdmin
+POST {{api}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{$dotenv SEED_ADMIN_EMAIL}}",
+  "password": "{{$dotenv SEED_ADMIN_PASSWORD}}"
+}
+
+### Current user (admin)
+GET {{api}}/auth/me
+Authorization: Bearer {{loginAdmin.response.body.accessToken}}
+
+### Refresh the session with the cookie of the last login
+# @name refresh
+POST {{api}}/auth/refresh
+
+### Current user with the refreshed token
+GET {{api}}/auth/me
+Authorization: Bearer {{refresh.response.body.accessToken}}
+
+### Logout (revokes the refresh token and clears the cookie)
+POST {{api}}/auth/logout
+
+### Refresh after logout -> 401 INVALID_SESSION
+POST {{api}}/auth/refresh
+
+
+### ---------- Error cases ----------
+
+### Wrong password -> 401 INVALID_CREDENTIALS (6 in a row -> 429)
+POST {{api}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{studentEmail}}",
+  "password": "wrong-password"
+}
+
+### Invalid body -> 400 VALIDATION_ERROR with details per field
+POST {{api}}/auth/register
+Content-Type: application/json
+
+{
+  "fullName": "A",
+  "email": "not-an-email",
+  "password": "123"
+}
+
+### Malformed JSON -> 400 INVALID_JSON
+POST {{api}}/auth/login
+Content-Type: application/json
+
+{ "email":
+
+### No token -> 401 UNAUTHORIZED
+GET {{api}}/auth/me
+
+### Invalid token -> 401 INVALID_TOKEN
+GET {{api}}/auth/me
+Authorization: Bearer not-a-real-token
