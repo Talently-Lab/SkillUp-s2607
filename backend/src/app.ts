@@ -4,8 +4,9 @@ import express from "express";
 import helmet from "helmet";
 import { pinoHttp } from "pino-http";
 import { sql } from "drizzle-orm";
-import { corsOrigins, env } from "./config/env.ts";
+import { corsOrigins, docsEnabled, env } from "./config/env.ts";
 import { db } from "./db/client.ts";
+import { docsRouter } from "./docs/docs.routes.ts";
 import { AUTH_BASE_PATH } from "./modules/auth/auth.controller.ts";
 import { authRouter } from "./modules/auth/auth.routes.ts";
 import { notFound } from "./shared/errors/not-found.ts";
@@ -17,6 +18,7 @@ app.set("trust proxy", env.TRUST_PROXY);
 app.disable("x-powered-by");
 
 app.use(pinoHttp({ logger }));
+if (docsEnabled) app.use("/docs", docsRouter);
 app.use(helmet());
 app.use(cors({ origin: corsOrigins, credentials: true }));
 app.use(express.json({ limit: "10kb" }));
