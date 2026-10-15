@@ -18,3 +18,20 @@ export function validateBody(schema: z.ZodType): RequestHandler {
     next();
   };
 }
+
+/** Validates req.query and attaches the parsed (coerced, normalized) data as req.parsedQuery */
+export function validateQuery(schema: z.ZodType): RequestHandler {
+  return (req, _res, next) => {
+    const result = schema.safeParse(req.query ?? {});
+
+    if (!result.success) {
+      const { formErrors, fieldErrors } = z.flattenError(result.error);
+      const details: Record<string, string[]> = { ...fieldErrors };
+
+      if (formErrors.length > 0) details._ = formErrors;
+      throw new ValidationError(details);
+    }
+    req.parsedQuery = result.data;
+    next();
+  };
+}
