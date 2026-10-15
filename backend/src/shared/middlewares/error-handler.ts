@@ -9,6 +9,7 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
         message: err.message,
       },
     });
+    return;
   }
 
   req.log.error({ err }, "unhandled error");
