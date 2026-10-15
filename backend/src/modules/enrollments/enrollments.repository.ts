@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "../../db/client.ts";
 import {
   courses,
@@ -21,7 +21,7 @@ export const enrollmentsRepository = {
     return enrollment!;
   },
 
-  /** Returns all enrollments for a user with course data joined, ordered by most recent */
+  /** Returns all enrollments for a user with course data joined */
   async findManyByUser(userId: string) {
     return db
       .select({
@@ -44,7 +44,6 @@ export const enrollmentsRepository = {
       })
       .from(enrollments)
       .innerJoin(courses, eq(enrollments.courseId, courses.id))
-      .where(eq(enrollments.userId, userId))
-      .orderBy(desc(enrollments.enrolledAt));
+      .where(eq(enrollments.userId, userId));
   },
 };
