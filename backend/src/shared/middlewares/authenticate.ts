@@ -8,8 +8,6 @@ declare global {
   namespace Express {
     interface Request {
       auth?: AccessTokenClaims;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generic parsed query storage
-      parsedQuery?: any;
     }
   }
 }
