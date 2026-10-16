@@ -46,15 +46,6 @@
   margin-top: 2rem;
 }
 
-.login__error {
-  padding: 0.625rem 0.75rem;
-  border: 1px solid #f7c6c6;
-  border-radius: var(--radius);
-  background-color: #fdf0f0;
-  font-size: 0.875rem;
-  color: var(--color-error-text);
-}
-
 .login__forgot {
   padding: 0;
   font-size: 0.75rem;
