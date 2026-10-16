@@ -1,13 +1,14 @@
 import { useState, type FormEvent } from "react";
-import { Link } from "react-router";
+import { Link, Navigate, useNavigate } from "react-router";
+import { toast } from "sonner";
 
 import { AuthLayout } from "@/layouts/AuthLayout";
-import { AccountTypeToggle } from "@/shared/components/AccountTypeToggle";
 import { AuthDivider } from "@/shared/components/AuthDivider";
 import { FormField } from "@/shared/components/FormField";
 import { GoogleButton } from "@/shared/components/GoogleButton";
 import { PasswordToggle } from "@/shared/components/PasswordToggle";
 import { copy } from "@/modules/auth/constants/registerCopy";
+import { authErrorMessage } from "@/modules/auth/utils/authErrorMessage";
 import { NAME_MAX_LENGTH } from "@/modules/auth/constants/name";
 import {
   PASSWORD_MIN_LENGTH,
@@ -18,12 +19,16 @@ import {
   type RegisterErrors,
   type RegisterValues,
 } from "@/modules/auth/utils/validateRegister";
-import type { AccountType } from "@/shared/types/account";
+import { ApiError } from "@/shared/api/http";
+import { useAuthStore } from "@/shared/stores/authStore";
+import { roleHome } from "@/shared/utils/roles";
 import { getPasswordStrength } from "@/shared/utils/validation";
 import "./Register.css";
 
 export function Register() {
-  const [accountType, setAccountType] = useState<AccountType>("student");
+  const navigate = useNavigate();
+  const user = useAuthStore((state) => state.user);
+  const register = useAuthStore((state) => state.register);
   const [showPassword, setShowPassword] = useState(false);
   const [values, setValues] = useState<RegisterValues>({
     name: "",
@@ -31,19 +36,37 @@ export function Register() {
     password: "",
   });
   const [errors, setErrors] = useState<RegisterErrors>({});
-  const text = accountType === "teacher" ? copy.teacher : copy.student;
+  const [loading, setLoading] = useState(false);
+  // The API only signs up students, teachers are out of the MVP
+  const text = copy.student;
   const strength = getPasswordStrength(values.password);
   const { label: strengthLabel, modifier: strengthModifier } =
     strengthMeta[strength];
+
+  if (user && !loading) return <Navigate to={roleHome[user.role]} replace />;
 
   const handleChange = (field: keyof RegisterValues, value: string) => {
     setValues((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setErrors(validateRegister(values));
+    const nextErrors = validateRegister(values);
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length) return;
+
+    setLoading(true);
+    try {
+      const signedUp = await register(values);
+      toast.success(`¡Te damos la bienvenida, ${signedUp.name.split(" ")[0]}!`);
+      navigate(roleHome[signedUp.role], { replace: true });
+    } catch (error) {
+      if (error instanceof ApiError && error.code === "EMAIL_TAKEN")
+        setErrors({ email: "Ya existe una cuenta con este email." });
+      toast.error(authErrorMessage(error));
+      setLoading(false);
+    }
   };
 
   return (
@@ -52,22 +75,16 @@ export function Register() {
       author="Javier Ramírez"
       role="Estudiante de Diseño UX"
     >
-      <div className="register__toggle">
-        <AccountTypeToggle
-          value={accountType}
-          options={["student", "teacher"]}
-          onChange={(type) => {
-            setAccountType(type);
-            setErrors({});
-          }}
-        />
-      </div>
-
       <h1 className="register__title">{text.title}</h1>
       <p className="register__subtitle">{text.subtitle}</p>
 
       <div className="register__google">
-        <GoogleButton />
+        <GoogleButton
+          onClick={() =>
+            toast.info("El registro con Google estará disponible pronto.")
+          }
+          disabled={loading}
+        />
       </div>
 
       <AuthDivider />
@@ -87,6 +104,7 @@ export function Register() {
           value={values.name}
           onChange={(event) => handleChange("name", event.target.value)}
           error={errors.name}
+          disabled={loading}
         />
         <FormField
           id="register-email"
@@ -98,6 +116,7 @@ export function Register() {
           value={values.email}
           onChange={(event) => handleChange("email", event.target.value)}
           error={errors.email}
+          disabled={loading}
         />
         <FormField
           id="register-password"
@@ -109,6 +128,7 @@ export function Register() {
           value={values.password}
           onChange={(event) => handleChange("password", event.target.value)}
           error={errors.password}
+          disabled={loading}
           trailing={
             <PasswordToggle
               visible={showPassword}
@@ -136,8 +156,8 @@ export function Register() {
           }
         />
 
-        <button type="submit" className="register__submit">
-          {text.submit}
+        <button type="submit" className="register__submit" disabled={loading}>
+          {loading ? "Creando cuenta…" : text.submit}
         </button>
 
         <p className="register__terms">
