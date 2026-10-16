@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { useAuth } from "@/shared/hooks/useAuth";
+import { useAuthStore } from "@/shared/stores/authStore";
 import { adminUsers } from "@/shared/mocks/adminUsers";
 import { courses } from "@/shared/mocks/courses";
 import type { AccountType } from "@/shared/types/account";
@@ -22,7 +22,7 @@ function courseCount(user: AdminUser): number {
 }
 
 export function useAdminUsers() {
-  const { user: session } = useAuth();
+  const session = useAuthStore((state) => state.user);
   const [users, setUsers] = useState<AdminUser[]>(adminUsers);
   const [query, setQuery] = useState("");
   const [role, setRole] = useState<RoleFilter>("all");

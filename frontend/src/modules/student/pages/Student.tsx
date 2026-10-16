@@ -1,6 +1,6 @@
 import { Link, useSearchParams } from "react-router";
 
-import { useAuth } from "@/shared/hooks/useAuth";
+import { useAuthStore } from "@/shared/stores/authStore";
 import { courses } from "@/shared/mocks/courses";
 import { enrollmentsByUser } from "@/shared/mocks/enrollments";
 import { ContinueCard } from "@/modules/student/components/ContinueCard";
@@ -22,7 +22,7 @@ import "./Student.css";
 const RECOMMENDED_LIMIT = 3;
 
 export function Student() {
-  const user = useAuth().user!;
+  const user = useAuthStore((state) => state.user)!;
   const [params, setParams] = useSearchParams();
   const tab = tabFromParam(params.get("tab"));
 
