@@ -7,6 +7,7 @@ import {
   UnauthorizedError,
 } from "../../shared/errors/app-error.ts";
 import { signAccessToken } from "../../shared/security/jwt.ts";
+import { isUniqueViolation } from "../../shared/errors/db-errors.ts";
 import { authRepository } from "./auth.repository.ts";
 import type { LoginInput, RegisterInput } from "./auth.schemas.ts";
 import {
@@ -50,17 +51,6 @@ const invalidSession = () =>
   new UnauthorizedError("INVALID_SESSION", "Session is invalid or has expired");
 const accountSuspended = () =>
   new ForbiddenError("ACCOUNT_SUSPENDED", "This account is suspended");
-
-function isUniqueViolation(err: unknown) {
-  const cause =
-    err instanceof Error && err.cause !== undefined ? err.cause : err;
-  return (
-    typeof cause === "object" &&
-    cause !== null &&
-    "code" in cause &&
-    cause.code === "23505"
-  );
-}
 
 async function createSession(user: User): Promise<Session> {
   const refreshToken = randomBytes(32).toString("base64url");
