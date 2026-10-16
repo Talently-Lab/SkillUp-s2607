@@ -11,7 +11,6 @@ import {
   registerSchema,
   sessionSchema,
 } from "../modules/auth/auth.schemas.ts";
-import { COURSES_BASE_PATH } from "../modules/courses/courses.controller.ts";
 import { COURSES_ADMIN_BASE_PATH } from "../modules/courses/courses-admin.controller.ts";
 import {
   courseSchema,

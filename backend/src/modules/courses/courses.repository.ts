@@ -1,9 +1,14 @@
-import { and, asc, count, eq, type SQL } from "drizzle-orm";
+import { and, asc, count, desc, eq, type SQL } from "drizzle-orm";
 import { db } from "../../db/client.ts";
 import { courses, type NewCourse } from "../../db/schema/index.ts";
-import type { CoursesQuery, UpdateCourseInput } from "./courses.schemas.ts";
+import type {
+  AdminCoursesQuery,
+  CoursesQuery,
+  UpdateCourseInput,
+} from "./courses.schemas.ts";
 
 export const coursesRepository = {
+  /** Public catalog: filters applied by caller (status forced to published upstream) */
   async findMany({ page, limit, status, categoryId, featured }: CoursesQuery) {
     const filters: SQL[] = [];
 
@@ -20,7 +25,39 @@ export const coursesRepository = {
         where,
         limit,
         offset,
-        orderBy: [asc(courses.createdAt)],
+        orderBy: [desc(courses.createdAt), asc(courses.id)],
+      }),
+      db.select({ value: count() }).from(courses).where(where),
+    ]);
+
+    const total = totalResult[0]?.value ?? 0;
+    return { data, total };
+  },
+
+  /** Admin list: respects status filter, shows all statuses when omitted */
+  async findManyAdmin({
+    page,
+    limit,
+    status,
+    categoryId,
+    featured,
+  }: AdminCoursesQuery) {
+    const filters: SQL[] = [];
+
+    if (status !== undefined) filters.push(eq(courses.status, status));
+    if (categoryId !== undefined)
+      filters.push(eq(courses.categoryId, categoryId));
+    if (featured !== undefined) filters.push(eq(courses.featured, featured));
+
+    const where = filters.length > 0 ? and(...filters) : undefined;
+    const offset = (page - 1) * limit;
+
+    const [data, totalResult] = await Promise.all([
+      db.query.courses.findMany({
+        where,
+        limit,
+        offset,
+        orderBy: [desc(courses.createdAt), asc(courses.id)],
       }),
       db.select({ value: count() }).from(courses).where(where),
     ]);
@@ -31,10 +68,6 @@ export const coursesRepository = {
 
   async findById(id: string) {
     return db.query.courses.findFirst({ where: eq(courses.id, id) });
-  },
-
-  async findBySlug(slug: string) {
-    return db.query.courses.findFirst({ where: eq(courses.slug, slug) });
   },
 
   async create(data: NewCourse) {
