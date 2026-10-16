@@ -11,6 +11,13 @@ import {
   registerSchema,
   sessionSchema,
 } from "../modules/auth/auth.schemas.ts";
+import { COURSES_ADMIN_BASE_PATH } from "../modules/courses/courses-admin.controller.ts";
+import {
+  courseSchema,
+  coursesListSchema,
+  createCourseSchema,
+  updateCourseSchema,
+} from "../modules/courses/courses.schemas.ts";
 
 const errorSchema = z
   .object({
@@ -91,7 +98,11 @@ Todos los errores tienen la forma \`{ "error": { "code", "message", "details"? }
 `.trim(),
   },
   servers: [{ url: "/api/v1", description: "Servidor actual" }],
-  tags: [{ name: "Auth", description: "Registro, inicio de sesión y sesión" }],
+  tags: [
+    { name: "Auth", description: "Registro, inicio de sesión y sesión" },
+    { name: "Courses", description: "Catálogo público de cursos" },
+    { name: "Admin — Courses", description: "CRUD de cursos (solo admin)" },
+  ],
   components: {
     securitySchemes: {
       bearerAuth: {
@@ -158,7 +169,7 @@ Todos los errores tienen la forma \`{ "error": { "code", "message", "details"? }
         tags: ["Auth"],
         summary: "Renovar la sesión",
         description:
-          "Usa la cookie `refresh_token` para emitir un access token nuevo y rotar el refresh token. Sirve también para recuperar la sesión al recargar la página. No lleva body.",
+          "Usa la cookie `refresh_token` para emitir un access token nuevo y rotar el refresh token. No lleva body.",
         security: [{ refreshCookie: [] }],
         responses: {
           "200": sessionResponse("Sesión renovada."),
@@ -177,7 +188,7 @@ Todos los errores tienen la forma \`{ "error": { "code", "message", "details"? }
         tags: ["Auth"],
         summary: "Cerrar sesión",
         description:
-          "Revoca el refresh token de la cookie y la borra. Responde 204 aunque no haya sesión. El frontend debe descartar el access token que tenga en memoria.",
+          "Revoca el refresh token de la cookie y la borra. Responde 204 aunque no haya sesión.",
         security: [{ refreshCookie: [] }],
         responses: {
           "204": { description: "Sesión cerrada." },
@@ -202,6 +213,166 @@ Todos los errores tienen la forma \`{ "error": { "code", "message", "details"? }
           "403": errorResponse(
             "`ACCOUNT_SUSPENDED`: la cuenta está suspendida.",
           ),
+          ...commonErrors,
+        },
+      },
+    },
+    "/courses": {
+      get: {
+        tags: ["Courses"],
+        summary: "Listar cursos publicados",
+        description:
+          "Devuelve el catálogo paginado. Solo muestra cursos con `status = published`. Disponible para todos sin autenticación.",
+        parameters: [
+          {
+            name: "page",
+            in: "query",
+            schema: { type: "integer", default: 1 },
+          },
+          {
+            name: "limit",
+            in: "query",
+            schema: { type: "integer", default: 20, maximum: 50 },
+          },
+          { name: "categoryId", in: "query", schema: { type: "integer" } },
+          {
+            name: "featured",
+            in: "query",
+            schema: { type: "string", enum: ["true", "false"] },
+            description: 'Solo "true" o "false". Otros valores devuelven 400.',
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Lista de cursos publicados.",
+            content: { "application/json": { schema: coursesListSchema } },
+          },
+          "400": validationError,
+          ...commonErrors,
+        },
+      },
+    },
+    [`/courses/{id}`]: {
+      get: {
+        tags: ["Courses"],
+        summary: "Obtener un curso publicado",
+        description:
+          "Devuelve el detalle de un curso publicado. Devuelve 404 si no existe o está en draft.",
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Curso encontrado.",
+            content: {
+              "application/json": {
+                schema: z
+                  .object({ course: courseSchema })
+                  .meta({ id: "CourseResponse" }),
+              },
+            },
+          },
+          "400": errorResponse(
+            "`VALIDATION_ERROR`: el id no es un UUID válido.",
+          ),
+          "404": errorResponse(
+            "`NOT_FOUND`: el curso no existe o no está publicado.",
+          ),
+          ...commonErrors,
+        },
+      },
+    },
+    [`${COURSES_ADMIN_BASE_PATH.replace("/api/v1", "")}`]: {
+      post: {
+        tags: ["Admin — Courses"],
+        summary: "Crear un curso",
+        description: "Crea un curso nuevo. Solo admins.",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: { "application/json": { schema: createCourseSchema } },
+        },
+        responses: {
+          "201": {
+            description: "Curso creado.",
+            content: {
+              "application/json": {
+                schema: z
+                  .object({ course: courseSchema })
+                  .meta({ id: "CourseCreatedResponse" }),
+              },
+            },
+          },
+          "400": validationError,
+          "401": errorResponse("`UNAUTHORIZED`: falta el token."),
+          "403": errorResponse("`FORBIDDEN`: el usuario no es admin."),
+          "409": errorResponse(
+            "`SLUG_TAKEN`: ya existe un curso con ese slug.",
+          ),
+          ...commonErrors,
+        },
+      },
+    },
+    [`${COURSES_ADMIN_BASE_PATH.replace("/api/v1", "")}/{id}`]: {
+      put: {
+        tags: ["Admin — Courses"],
+        summary: "Actualizar un curso",
+        description:
+          "Actualiza los campos enviados. Los campos no enviados no cambian.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: { "application/json": { schema: updateCourseSchema } },
+        },
+        responses: {
+          "200": {
+            description: "Curso actualizado.",
+            content: {
+              "application/json": {
+                schema: z
+                  .object({ course: courseSchema })
+                  .meta({ id: "CourseUpdatedResponse" }),
+              },
+            },
+          },
+          "400": validationError,
+          "401": errorResponse("`UNAUTHORIZED`"),
+          "403": errorResponse("`FORBIDDEN`"),
+          "404": errorResponse("`NOT_FOUND`: el curso no existe."),
+          "409": errorResponse("`SLUG_TAKEN`"),
+          ...commonErrors,
+        },
+      },
+      delete: {
+        tags: ["Admin — Courses"],
+        summary: "Eliminar un curso",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: {
+          "204": { description: "Curso eliminado." },
+          "401": errorResponse("`UNAUTHORIZED`"),
+          "403": errorResponse("`FORBIDDEN`"),
+          "404": errorResponse("`NOT_FOUND`: el curso no existe."),
           ...commonErrors,
         },
       },

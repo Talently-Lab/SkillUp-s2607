@@ -9,6 +9,8 @@ import { db } from "./db/client.ts";
 import { docsRouter } from "./docs/docs.routes.ts";
 import { AUTH_BASE_PATH } from "./modules/auth/auth.controller.ts";
 import { authRouter } from "./modules/auth/auth.routes.ts";
+import { COURSES_BASE_PATH } from "./modules/courses/courses.controller.ts";
+import { coursesRouter } from "./modules/courses/courses.routes.ts";
 import { notFound } from "./shared/errors/not-found.ts";
 import { logger } from "./shared/logger.ts";
 import { errorHandler } from "./shared/middlewares/error-handler.ts";
@@ -35,6 +37,7 @@ app.get("/health", async (req, res) => {
 });
 
 app.use(AUTH_BASE_PATH, authRouter);
+app.use(COURSES_BASE_PATH, coursesRouter);
 
 app.use(notFound);
 app.use(errorHandler);
