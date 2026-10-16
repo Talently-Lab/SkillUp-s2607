@@ -9,11 +9,16 @@ export interface AuthUser {
 
 export interface AuthSession {
   user: AuthUser;
-  token: string;
+  accessToken: string;
 }
 
 export interface LoginCredentials {
   email: string;
   password: string;
-  role: AccountType;
+}
+
+export interface RegisterData {
+  name: string;
+  email: string;
+  password: string;
 }

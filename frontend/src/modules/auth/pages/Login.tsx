@@ -1,20 +1,21 @@
 import { useState, type FormEvent } from "react";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router";
+import { toast } from "sonner";
 
 import { AuthLayout } from "@/layouts/AuthLayout";
 import { AccountTypeToggle } from "@/shared/components/AccountTypeToggle";
 import { AuthDivider } from "@/shared/components/AuthDivider";
 import { FormField } from "@/shared/components/FormField";
 import { GoogleButton } from "@/shared/components/GoogleButton";
+import { Loader } from "@/shared/components/Loader";
 import { PasswordToggle } from "@/shared/components/PasswordToggle";
-import { useAuth } from "@/shared/hooks/useAuth";
 import { mockUsers } from "@/shared/mocks/users";
-import { AuthError } from "@/shared/services/authService";
+import { useAuthStore } from "@/shared/stores/authStore";
 import type { AccountType } from "@/shared/types/account";
-import type { AuthUser } from "@/shared/types/auth";
 import { roleHome } from "@/shared/utils/roles";
 import { copy } from "@/modules/auth/constants/loginCopy";
 import { accountTypeFromParam } from "@/modules/auth/utils/accountTypeFromParam";
+import { authErrorMessage } from "@/modules/auth/utils/authErrorMessage";
 import {
   validateLogin,
   type LoginErrors,
@@ -22,12 +23,11 @@ import {
 } from "@/modules/auth/utils/validateLogin";
 import "./Login.css";
 
-type Status = "idle" | "loading" | "google";
-
 export function Login() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const { user, login, loginWithGoogle } = useAuth();
+  const user = useAuthStore((state) => state.user);
+  const login = useAuthStore((state) => state.login);
   const [accountType, setAccountType] = useState<AccountType>(() =>
     accountTypeFromParam(params.get("tipo")),
   );
@@ -37,11 +37,9 @@ export function Login() {
     password: "",
   });
   const [errors, setErrors] = useState<LoginErrors>({});
-  const [formError, setFormError] = useState("");
-  const [status, setStatus] = useState<Status>("idle");
+  const [loading, setLoading] = useState(false);
   const text = copy[accountType];
   const isAdmin = accountType === "admin";
-  const busy = status !== "idle";
   const demoUser = mockUsers.find((item) => item.role === accountType);
   // Only same-site paths, so the param can't send the user to another domain
   const redirectParam = params.get("redirect");
@@ -50,40 +48,27 @@ export function Login() {
       ? redirectParam
       : null;
 
-  if (user && status === "idle")
-    return <Navigate to={roleHome[user.role]} replace />;
+  if (user && !loading) return <Navigate to={roleHome[user.role]} replace />;
 
   const handleChange = (field: keyof LoginValues, value: string) => {
     setValues((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
-    setFormError("");
   };
 
-  const authenticate = async (
-    action: () => Promise<AuthUser>,
-    next: Status,
-  ) => {
-    setStatus(next);
-    setFormError("");
-    try {
-      const signedIn = await action();
-      navigate(redirect ?? roleHome[signedIn.role], { replace: true });
-    } catch (error) {
-      setFormError(
-        error instanceof AuthError
-          ? error.message
-          : "No pudimos iniciar sesión. Inténtalo de nuevo.",
-      );
-      setStatus("idle");
-    }
-  };
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const nextErrors = validateLogin(values);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
-    authenticate(() => login({ ...values, role: accountType }), "loading");
+
+    setLoading(true);
+    try {
+      const signedIn = await login(values, accountType);
+      navigate(redirect ?? roleHome[signedIn.role], { replace: true });
+    } catch (error) {
+      toast.error(authErrorMessage(error));
+      setLoading(false);
+    }
   };
 
   return (
@@ -93,12 +78,13 @@ export function Login() {
       role="Analista de datos"
     >
       <div className="login__toggle">
+        {/* Teachers are out of the MVP, so their option is hidden */}
         <AccountTypeToggle
           value={accountType}
+          options={["student", "admin"]}
           onChange={(type) => {
             setAccountType(type);
             setErrors({});
-            setFormError("");
           }}
         />
       </div>
@@ -106,7 +92,8 @@ export function Login() {
       <h1 className="login__title">{text.title}</h1>
       <p className="login__subtitle">{text.subtitle}</p>
 
-      {/* TODO: quitar la cuenta demo cuando el login use la API */}
+      {/* Only to try the UI: these mock accounts don't exist in the API.
+          TODO: remove it once the courses endpoints work */}
       {demoUser && (
         <p className="login__demo">
           Demo: <strong>{demoUser.email}</strong> · contraseña{" "}
@@ -118,9 +105,12 @@ export function Login() {
         <>
           <div className="login__google">
             <GoogleButton
-              onClick={() => authenticate(loginWithGoogle, "google")}
-              loading={status === "google"}
-              disabled={busy}
+              onClick={() =>
+                toast.info(
+                  "El inicio de sesión con Google estará disponible pronto.",
+                )
+              }
+              disabled={loading}
             />
           </div>
 
@@ -133,11 +123,6 @@ export function Login() {
         onSubmit={handleSubmit}
         noValidate
       >
-        {formError && (
-          <p className="login__error" role="alert">
-            {formError}
-          </p>
-        )}
         <FormField
           id="login-email"
           label={text.emailLabel}
@@ -148,7 +133,7 @@ export function Login() {
           value={values.email}
           onChange={(event) => handleChange("email", event.target.value)}
           error={errors.email}
-          disabled={busy}
+          disabled={loading}
         />
         <FormField
           id="login-password"
@@ -160,7 +145,7 @@ export function Login() {
           value={values.password}
           onChange={(event) => handleChange("password", event.target.value)}
           error={errors.password}
-          disabled={busy}
+          disabled={loading}
           labelAction={
             <button type="button" className="login__forgot">
               ¿Olvidaste tu contraseña?
@@ -174,8 +159,9 @@ export function Login() {
           }
         />
 
-        <button type="submit" className="login__submit" disabled={busy}>
-          {status === "loading" ? "Iniciando sesión…" : text.submit}
+        <button type="submit" className="login__submit" disabled={loading}>
+          {loading && <Loader />}
+          {loading ? "Iniciando sesión…" : text.submit}
         </button>
       </form>
 
@@ -187,9 +173,7 @@ export function Login() {
         <p className="login__footer">
           ¿Aún no tienes cuenta?{" "}
           <Link to="/register" className="login__register-link">
-            {accountType === "teacher"
-              ? "Solicita tu cuenta docente"
-              : "Regístrate gratis"}
+            Regístrate gratis
           </Link>
         </p>
       )}

@@ -2,7 +2,7 @@ import type { CSSProperties } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router";
 
 import { Logo } from "@/shared/components/Logo";
-import { useAuth } from "@/shared/hooks/useAuth";
+import { useAuthStore } from "@/shared/stores/authStore";
 import LogOutIcon from "@/assets/icons/log-out.svg";
 import "./DashboardLayout.css";
 
@@ -28,7 +28,8 @@ export function DashboardLayout({
   nav,
 }: DashboardLayoutProps) {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
 
   const handleSignOut = () => {
     navigate("/");

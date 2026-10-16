@@ -1,10 +1,10 @@
-import { startTransition, useState } from "react";
+import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router";
 
 import { Logo } from "./Logo";
 import { NotificationBell } from "./NotificationBell";
 import { UserMenu } from "./UserMenu";
-import { useAuth } from "../hooks/useAuth";
+import { useAuthStore } from "../stores/authStore";
 import { roleHome, rolePanelLabel } from "../utils/roles";
 import CartShoppingIcon from "../../assets/icons/cart-shopping.svg";
 import MenuIcon from "../../assets/icons/menu.svg";
@@ -25,7 +25,8 @@ const navLinkClass =
 export function SiteHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
   const isStudent = user?.role === "student";
   const panelLabel = user && rolePanelLabel[user.role];
   const navItems = panelLabel
@@ -37,12 +38,8 @@ export function SiteHeader() {
 
   const handleSignOut = () => {
     setIsMenuOpen(false);
-    // Same transition as the navigation, otherwise the panel guard sees the
-    // user gone first and redirects to the login instead of home
-    startTransition(() => {
-      navigate("/");
-      logout();
-    });
+    navigate("/");
+    logout();
   };
 
   return (

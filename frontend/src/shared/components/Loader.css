@@ -1,0 +1,11 @@
+.loader {
+  display: inline-flex;
+  flex: none;
+}
+
+.page-loader {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-height: 50svh;
+}

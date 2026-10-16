@@ -2,7 +2,11 @@ import type { AuthUser } from "@/shared/types/auth";
 
 type MockUser = AuthUser & { password: string };
 
-/** Demo accounts until the auth API is ready. */
+/**
+ * Demo accounts shown in the login only to try the UI. They don't exist in the
+ * API: sign up as a student, or use the admin from `pnpm db:seed:admin`.
+ * TODO: remove them once the courses endpoints work.
+ */
 export const mockUsers: MockUser[] = [
   {
     id: "u-student-01",
@@ -26,5 +30,3 @@ export const mockUsers: MockUser[] = [
     password: "skillup123",
   },
 ];
-
-export const mockGoogleUserId = "u-student-01";

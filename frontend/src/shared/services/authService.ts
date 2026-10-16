@@ -1,70 +1,73 @@
-import { mockGoogleUserId, mockUsers } from "@/shared/mocks/users";
+import { request } from "@/shared/api/http";
 import type { AccountType } from "@/shared/types/account";
 import type {
   AuthSession,
   AuthUser,
   LoginCredentials,
+  RegisterData,
 } from "@/shared/types/auth";
 
-const SESSION_KEY = "skillup-session";
-const MOCK_DELAY_MS = 700;
-
-export class AuthError extends Error {}
-
-const roleLabel: Record<AccountType, string> = {
-  student: "alumno",
-  teacher: "docente",
-  admin: "administrador",
+type ApiUser = {
+  id: string;
+  email: string;
+  fullName: string;
+  role: AccountType;
+  status: "active" | "suspended";
+  createdAt: string;
 };
 
-function wait(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+type ApiSession = {
+  user: ApiUser;
+  accessToken: string;
+  tokenType: "Bearer";
+  expiresIn: number;
+};
+
+function toAuthUser({ id, fullName, email, role }: ApiUser): AuthUser {
+  return { id, name: fullName, email, role };
 }
 
-function toSession({ id, name, email, role }: AuthUser): AuthSession {
-  return { user: { id, name, email, role }, token: `mock-token-${id}` };
+function toSession({ user, accessToken }: ApiSession): AuthSession {
+  return { user: toAuthUser(user), accessToken };
 }
 
-// TODO: reemplazar los mocks por las llamadas a la API de auth (POST /auth/login)
 export const authService = {
-  async login({
+  async login(credentials: LoginCredentials): Promise<AuthSession> {
+    const session = await request<ApiSession>("/auth/login", {
+      method: "POST",
+      body: credentials,
+    });
+    return toSession(session);
+  },
+
+  async register({
+    name,
     email,
     password,
-    role,
-  }: LoginCredentials): Promise<AuthSession> {
-    await wait(MOCK_DELAY_MS);
-    const user = mockUsers.find(
-      (item) =>
-        item.email === email.trim().toLowerCase() && item.password === password,
-    );
-    if (!user)
-      throw new AuthError("El email o la contraseña no son correctos.");
-    if (user.role !== role)
-      throw new AuthError(`Esta cuenta no es de ${roleLabel[role]}.`);
-    return toSession(user);
+  }: RegisterData): Promise<AuthSession> {
+    const session = await request<ApiSession>("/auth/register", {
+      method: "POST",
+      body: { fullName: name, email, password },
+    });
+    return toSession(session);
   },
 
-  async loginWithGoogle(): Promise<AuthSession> {
-    await wait(MOCK_DELAY_MS);
-    const user = mockUsers.find((item) => item.id === mockGoogleUserId)!;
-    return toSession(user);
+  /** Uses the refresh cookie to get a new access token (and rotates the cookie) */
+  async refresh(): Promise<AuthSession> {
+    const session = await request<ApiSession>("/auth/refresh", {
+      method: "POST",
+    });
+    return toSession(session);
   },
 
-  getStoredSession(): AuthSession | null {
-    try {
-      const raw = localStorage.getItem(SESSION_KEY);
-      return raw ? (JSON.parse(raw) as AuthSession) : null;
-    } catch {
-      return null;
-    }
+  async logout(): Promise<void> {
+    await request<void>("/auth/logout", { method: "POST" });
   },
 
-  storeSession(session: AuthSession | null) {
-    try {
-      if (session) localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-      else localStorage.removeItem(SESSION_KEY);
-    } catch {
-      // Storage unavailable, the session only lives in memory
-    }
+  async me(): Promise<AuthUser> {
+    const { user } = await request<{ user: ApiUser }>("/auth/me", {
+      auth: true,
+    });
+    return toAuthUser(user);
   },
 };
