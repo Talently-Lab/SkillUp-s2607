@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter as Router } from "react-router";
+import { Toaster } from "sonner";
 import App from "./App.tsx";
 import { useAuthStore } from "./shared/stores/authStore";
 
@@ -15,6 +16,7 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Router>
       <App />
+      <Toaster position="top-right" richColors closeButton />
     </Router>
   </StrictMode>,
 );
