@@ -7,7 +7,7 @@ export const coursesQuerySchema = z
   .object({
     page: z.coerce.number().int().positive().default(1),
     limit: z.coerce.number().int().min(1).max(50).default(20),
-    // status is only honored for admin routes; public routes force status=published
+    // Public catalog — status is not exposed to users but used internally to force published
     status: z.enum(["draft", "published"]).optional(),
     categoryId: z.coerce.number().int().positive().optional(),
     // strict boolean: only "true" or "false" accepted
@@ -21,6 +21,25 @@ export const coursesQuerySchema = z
   .meta({ id: "CoursesQuery" });
 
 export type CoursesQuery = z.infer<typeof coursesQuerySchema>;
+
+// ── Admin query params (status filter respected) ─────────────────────────────
+
+export const adminCoursesQuerySchema = z
+  .object({
+    page: z.coerce.number().int().positive().default(1),
+    limit: z.coerce.number().int().min(1).max(50).default(20),
+    status: z.enum(["draft", "published"]).optional(),
+    categoryId: z.coerce.number().int().positive().optional(),
+    featured: z
+      .enum(["true", "false"], {
+        error: 'featured must be "true" or "false"',
+      })
+      .optional()
+      .transform((v) => (v === undefined ? undefined : v === "true")),
+  })
+  .meta({ id: "AdminCoursesQuery" });
+
+export type AdminCoursesQuery = z.infer<typeof adminCoursesQuerySchema>;
 
 // ── Response schemas (OpenAPI) ────────────────────────────────────────────────
 
