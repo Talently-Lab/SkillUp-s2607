@@ -6,6 +6,7 @@ import { AuthLayout } from "@/layouts/AuthLayout";
 import { AuthDivider } from "@/shared/components/AuthDivider";
 import { FormField } from "@/shared/components/FormField";
 import { GoogleButton } from "@/shared/components/GoogleButton";
+import { Loader } from "@/shared/components/Loader";
 import { PasswordToggle } from "@/shared/components/PasswordToggle";
 import { copy } from "@/modules/auth/constants/registerCopy";
 import { authErrorMessage } from "@/modules/auth/utils/authErrorMessage";
@@ -157,6 +158,7 @@ export function Register() {
         />
 
         <button type="submit" className="register__submit" disabled={loading}>
+          {loading && <Loader />}
           {loading ? "Creando cuenta…" : text.submit}
         </button>
 

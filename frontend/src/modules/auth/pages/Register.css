@@ -70,6 +70,10 @@
 
 .register__submit {
   width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   height: 2.75rem;
   border-radius: var(--radius);
   background-color: var(--color-primary);

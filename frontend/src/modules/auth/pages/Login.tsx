@@ -7,6 +7,7 @@ import { AccountTypeToggle } from "@/shared/components/AccountTypeToggle";
 import { AuthDivider } from "@/shared/components/AuthDivider";
 import { FormField } from "@/shared/components/FormField";
 import { GoogleButton } from "@/shared/components/GoogleButton";
+import { Loader } from "@/shared/components/Loader";
 import { PasswordToggle } from "@/shared/components/PasswordToggle";
 import { mockUsers } from "@/shared/mocks/users";
 import { useAuthStore } from "@/shared/stores/authStore";
@@ -159,6 +160,7 @@ export function Login() {
         />
 
         <button type="submit" className="login__submit" disabled={loading}>
+          {loading && <Loader />}
           {loading ? "Iniciando sesión…" : text.submit}
         </button>
       </form>
