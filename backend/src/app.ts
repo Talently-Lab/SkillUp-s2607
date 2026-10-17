@@ -15,8 +15,10 @@ import { COURSES_ADMIN_BASE_PATH } from "./modules/courses/courses-admin.control
 import { coursesAdminRouter } from "./modules/courses/courses-admin.routes.ts";
 import { ENROLLMENTS_BASE_PATH } from "./modules/enrollments/enrollments.controller.ts";
 import { enrollmentsRouter } from "./modules/enrollments/enrollments.routes.ts";
+import { progressRouter } from "./modules/enrollments/progress.routes.ts";
 import { USERS_ADMIN_BASE_PATH } from "./modules/users/users-admin.controller.ts";
 import { usersAdminRouter } from "./modules/users/users-admin.routes.ts";
+import { modulesRouter } from "./modules/modules/modules.routes.ts";
 import { notFound } from "./shared/errors/not-found.ts";
 import { logger } from "./shared/logger.ts";
 import { errorHandler } from "./shared/middlewares/error-handler.ts";
@@ -46,7 +48,11 @@ app.use(AUTH_BASE_PATH, authRouter);
 app.use(COURSES_BASE_PATH, coursesRouter);
 app.use(COURSES_ADMIN_BASE_PATH, coursesAdminRouter);
 app.use(ENROLLMENTS_BASE_PATH, enrollmentsRouter);
+// Progress routes: /api/v1/enrollments/:enrollmentId/progress
+app.use(`${ENROLLMENTS_BASE_PATH}/:enrollmentId/progress`, progressRouter);
 app.use(USERS_ADMIN_BASE_PATH, usersAdminRouter);
+// Modules & lessons: /api/v1/courses/:courseId/modules
+app.use(`${COURSES_BASE_PATH}/:courseId/modules`, modulesRouter);
 
 app.use(notFound);
 app.use(errorHandler);
