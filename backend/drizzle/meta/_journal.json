@@ -15,6 +15,27 @@
       "when": 1792034343338,
       "tag": "0001_add-auth-tables",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792057650452,
+      "tag": "0002_add-courses-tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792104030484,
+      "tag": "0003_add-enrollments-table",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792212741249,
+      "tag": "0004_add-modules-lessons-progress",
+      "breakpoints": true
     }
   ]
 }
