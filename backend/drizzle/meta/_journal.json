@@ -29,6 +29,13 @@
       "when": 1792104030484,
       "tag": "0003_add-enrollments-table",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792212741249,
+      "tag": "0004_add-modules-lessons-progress",
+      "breakpoints": true
     }
   ]
 }
