@@ -1,1 +1,1025 @@
-{"openapi":"3.1.0","info":{"title":"SkillUp Campus API","version":"1.0.0","description":"API de SkillUp Campus.\n\n## Cómo funciona la sesión\n\n1. `POST /auth/register` o `POST /auth/login` devuelven un **access token** (JWT, dura 15 minutos) en el body y dejan un **refresh token** en la cookie httpOnly `refresh_token` (dura 7 días).\n2. Las rutas protegidas reciben el access token en el header `Authorization: Bearer <token>`. En esta página, usa el botón **Authorize** y pega solo el token.\n3. Cuando el access token expira (`401 TOKEN_EXPIRED`), `POST /auth/refresh` entrega uno nuevo y **rota** el refresh token: el anterior deja de servir.\n4. `POST /auth/logout` revoca el refresh token y borra la cookie.\n\nSi un refresh token ya usado se vuelve a enviar, se considera robado y se cierran **todas** las sesiones del usuario.\n\n## Errores\n\nTodos los errores tienen la forma `{ \"error\": { \"code\", \"message\", \"details\"? } }`. El frontend debe decidir según el `code`, no según el `message`.\n\n## Límites de intentos\n\n| Ruta | Límite |\n| --- | --- |\n| Todo `/auth` | 100 solicitudes cada 15 min por IP |\n| `POST /auth/register` | 5 cuentas por hora por IP |\n| `POST /auth/login` | 5 intentos fallidos cada 15 min por IP y email, y 20 por IP |"},"servers":[{"url":"/api/v1","description":"Servidor actual"}],"tags":[{"name":"Auth","description":"Registro, inicio de sesión y sesión"},{"name":"Courses","description":"Catálogo público de cursos"},{"name":"Admin — Courses","description":"CRUD de cursos (solo admin)"}],"paths":{"/auth/register":{"post":{"tags":["Auth"],"summary":"Registrar un estudiante","description":"Crea una cuenta con rol `student` e inicia sesión. No se pueden crear docentes ni admins por esta ruta.\n\nEl email se guarda en minúsculas y sin espacios. La contraseña debe tener entre 8 y 128 caracteres.","requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/RegisterRequest"}}}},"responses":{"201":{"description":"Cuenta creada y sesión iniciada.","headers":{"Set-Cookie":{"description":"Cookie `refresh_token` (httpOnly) con el refresh token. Solo se envía a `/api/v1/auth`.","schema":{"type":"string"}}},"content":{"application/json":{"schema":{"$ref":"#/components/schemas/Session"}}}},"400":{"description":"`VALIDATION_ERROR`: el body no cumple el esquema. `INVALID_JSON`: el body no es JSON válido.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"409":{"description":"`EMAIL_TAKEN`: ya existe una cuenta con ese email.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"429":{"description":"`TOO_MANY_REQUESTS`: se superó el límite de intentos. El header `RateLimit` indica cuándo se reinicia.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"500":{"description":"`INTERNAL_ERROR`: error inesperado del servidor.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/auth/login":{"post":{"tags":["Auth"],"summary":"Iniciar sesión","description":"Sirve para estudiantes y admins. La respuesta incluye el `role` del usuario para que el frontend sepa a qué panel redirigir.","requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/LoginRequest"}}}},"responses":{"200":{"description":"Sesión iniciada.","headers":{"Set-Cookie":{"description":"Cookie `refresh_token` (httpOnly) con el refresh token. Solo se envía a `/api/v1/auth`.","schema":{"type":"string"}}},"content":{"application/json":{"schema":{"$ref":"#/components/schemas/Session"}}}},"400":{"description":"`VALIDATION_ERROR`: el body no cumple el esquema. `INVALID_JSON`: el body no es JSON válido.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"`INVALID_CREDENTIALS`: email o contraseña incorrectos. Es el mismo error exista o no el email.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"`ACCOUNT_SUSPENDED`: la contraseña es correcta pero la cuenta está suspendida.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"429":{"description":"`TOO_MANY_REQUESTS`: se superó el límite de intentos. El header `RateLimit` indica cuándo se reinicia.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"500":{"description":"`INTERNAL_ERROR`: error inesperado del servidor.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/auth/refresh":{"post":{"tags":["Auth"],"summary":"Renovar la sesión","description":"Usa la cookie `refresh_token` para emitir un access token nuevo y rotar el refresh token. No lleva body.","security":[{"refreshCookie":[]}],"responses":{"200":{"description":"Sesión renovada.","headers":{"Set-Cookie":{"description":"Cookie `refresh_token` (httpOnly) con el refresh token. Solo se envía a `/api/v1/auth`.","schema":{"type":"string"}}},"content":{"application/json":{"schema":{"$ref":"#/components/schemas/Session"}}}},"401":{"description":"`INVALID_SESSION`: no hay cookie, o el refresh token no existe, expiró o ya fue usado. La cookie se borra.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"`ACCOUNT_SUSPENDED`: la cuenta fue suspendida. Se cierran todas sus sesiones.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"429":{"description":"`TOO_MANY_REQUESTS`: se superó el límite de intentos. El header `RateLimit` indica cuándo se reinicia.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"500":{"description":"`INTERNAL_ERROR`: error inesperado del servidor.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/auth/logout":{"post":{"tags":["Auth"],"summary":"Cerrar sesión","description":"Revoca el refresh token de la cookie y la borra. Responde 204 aunque no haya sesión.","security":[{"refreshCookie":[]}],"responses":{"204":{"description":"Sesión cerrada."},"429":{"description":"`TOO_MANY_REQUESTS`: se superó el límite de intentos. El header `RateLimit` indica cuándo se reinicia.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"500":{"description":"`INTERNAL_ERROR`: error inesperado del servidor.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/auth/me":{"get":{"tags":["Auth"],"summary":"Usuario de la sesión","description":"Devuelve los datos del usuario dueño del access token.","security":[{"bearerAuth":[]}],"responses":{"200":{"description":"Usuario autenticado.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/MeResponse"}}}},"401":{"description":"`UNAUTHORIZED`: falta el header. `INVALID_TOKEN`: token inválido. `TOKEN_EXPIRED`: hay que llamar a `/auth/refresh`. `INVALID_SESSION`: el usuario ya no existe.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"`ACCOUNT_SUSPENDED`: la cuenta está suspendida.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"429":{"description":"`TOO_MANY_REQUESTS`: se superó el límite de intentos. El header `RateLimit` indica cuándo se reinicia.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"500":{"description":"`INTERNAL_ERROR`: error inesperado del servidor.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/courses":{"get":{"tags":["Courses"],"summary":"Listar cursos publicados","description":"Devuelve el catálogo paginado. Solo muestra cursos con `status = published`. Disponible para todos sin autenticación.","parameters":[{"name":"page","in":"query","schema":{"type":"integer","default":1}},{"name":"limit","in":"query","schema":{"type":"integer","default":20,"maximum":50}},{"name":"categoryId","in":"query","schema":{"type":"integer"}},{"name":"featured","in":"query","schema":{"type":"string","enum":["true","false"]},"description":"Solo \"true\" o \"false\". Otros valores devuelven 400."}],"responses":{"200":{"description":"Lista de cursos publicados.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/CoursesList"}}}},"400":{"description":"`VALIDATION_ERROR`: el body no cumple el esquema. `INVALID_JSON`: el body no es JSON válido.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"429":{"description":"`TOO_MANY_REQUESTS`: se superó el límite de intentos. El header `RateLimit` indica cuándo se reinicia.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"500":{"description":"`INTERNAL_ERROR`: error inesperado del servidor.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/courses/{id}":{"get":{"tags":["Courses"],"summary":"Obtener un curso publicado","description":"Devuelve el detalle de un curso publicado. Devuelve 404 si no existe o está en draft.","parameters":[{"name":"id","in":"path","required":true,"schema":{"type":"string","format":"uuid"}}],"responses":{"200":{"description":"Curso encontrado.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/CourseResponse"}}}},"400":{"description":"`VALIDATION_ERROR`: el id no es un UUID válido.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"`NOT_FOUND`: el curso no existe o no está publicado.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"429":{"description":"`TOO_MANY_REQUESTS`: se superó el límite de intentos. El header `RateLimit` indica cuándo se reinicia.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"500":{"description":"`INTERNAL_ERROR`: error inesperado del servidor.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/admin/courses":{"post":{"tags":["Admin — Courses"],"summary":"Crear un curso","description":"Crea un curso nuevo. Solo admins.","security":[{"bearerAuth":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreateCourseRequest"}}}},"responses":{"201":{"description":"Curso creado.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/CourseCreatedResponse"}}}},"400":{"description":"`VALIDATION_ERROR`: el body no cumple el esquema. `INVALID_JSON`: el body no es JSON válido.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"`UNAUTHORIZED`: falta el token.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"`FORBIDDEN`: el usuario no es admin.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"409":{"description":"`SLUG_TAKEN`: ya existe un curso con ese slug.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"429":{"description":"`TOO_MANY_REQUESTS`: se superó el límite de intentos. El header `RateLimit` indica cuándo se reinicia.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"500":{"description":"`INTERNAL_ERROR`: error inesperado del servidor.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/admin/courses/{id}":{"put":{"tags":["Admin — Courses"],"summary":"Actualizar un curso","description":"Actualiza los campos enviados. Los campos no enviados no cambian.","security":[{"bearerAuth":[]}],"parameters":[{"name":"id","in":"path","required":true,"schema":{"type":"string","format":"uuid"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/UpdateCourseRequest"}}}},"responses":{"200":{"description":"Curso actualizado.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/CourseUpdatedResponse"}}}},"400":{"description":"`VALIDATION_ERROR`: el body no cumple el esquema. `INVALID_JSON`: el body no es JSON válido.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"`UNAUTHORIZED`","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"`FORBIDDEN`","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"`NOT_FOUND`: el curso no existe.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"409":{"description":"`SLUG_TAKEN`","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"429":{"description":"`TOO_MANY_REQUESTS`: se superó el límite de intentos. El header `RateLimit` indica cuándo se reinicia.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"500":{"description":"`INTERNAL_ERROR`: error inesperado del servidor.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}},"delete":{"tags":["Admin — Courses"],"summary":"Eliminar un curso","security":[{"bearerAuth":[]}],"parameters":[{"name":"id","in":"path","required":true,"schema":{"type":"string","format":"uuid"}}],"responses":{"204":{"description":"Curso eliminado."},"401":{"description":"`UNAUTHORIZED`","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"`FORBIDDEN`","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"`NOT_FOUND`: el curso no existe.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"429":{"description":"`TOO_MANY_REQUESTS`: se superó el límite de intentos. El header `RateLimit` indica cuándo se reinicia.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"500":{"description":"`INTERNAL_ERROR`: error inesperado del servidor.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}}},"components":{"schemas":{"RegisterRequest":{"type":"object","properties":{"fullName":{"type":"string","minLength":2,"maxLength":60,"example":"Valentina Ruiz"},"email":{"example":"valentina.ruiz@gmail.com","type":"string"},"password":{"type":"string","minLength":8,"maxLength":128,"example":"skillup123"}},"required":["fullName","email","password"]},"LoginRequest":{"type":"object","properties":{"email":{"example":"valentina.ruiz@gmail.com","type":"string"},"password":{"type":"string","minLength":1,"maxLength":128,"example":"skillup123"}},"required":["email","password"]},"CreateCourseRequest":{"type":"object","properties":{"title":{"type":"string","minLength":3,"maxLength":255},"slug":{"type":"string","maxLength":255,"pattern":"^[a-z0-9]+(?:-[a-z0-9]+)*$"},"description":{"anyOf":[{"type":"string","maxLength":5000},{"type":"null"}]},"coverUrl":{"anyOf":[{"type":"string","format":"uri"},{"type":"null"}]},"categoryId":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"instructorId":{"anyOf":[{"type":"string","format":"uuid","pattern":"^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"},{"type":"null"}]},"level":{"default":"beginner","type":"string","enum":["beginner","intermediate","advanced"]},"priceCents":{"default":0,"type":"integer","minimum":0,"maximum":9007199254740991},"currency":{"default":"USD","type":"string","minLength":3,"maxLength":3},"status":{"default":"draft","type":"string","enum":["draft","published"]},"featured":{"default":false,"type":"boolean"}},"required":["title","slug","categoryId"]},"UpdateCourseRequest":{"type":"object","properties":{"title":{"type":"string","minLength":3,"maxLength":255},"slug":{"type":"string","maxLength":255,"pattern":"^[a-z0-9]+(?:-[a-z0-9]+)*$"},"description":{"anyOf":[{"type":"string","maxLength":5000},{"type":"null"}]},"coverUrl":{"anyOf":[{"type":"string","format":"uri"},{"type":"null"}]},"categoryId":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"instructorId":{"anyOf":[{"type":"string","format":"uuid","pattern":"^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"},{"type":"null"}]},"level":{"type":"string","enum":["beginner","intermediate","advanced"]},"priceCents":{"type":"integer","minimum":0,"maximum":9007199254740991},"currency":{"type":"string","minLength":3,"maxLength":3},"status":{"type":"string","enum":["draft","published"]},"featured":{"type":"boolean"}}},"Session":{"type":"object","properties":{"user":{"$ref":"#/components/schemas/User"},"accessToken":{"type":"string","description":"JWT to send as `Authorization: Bearer <token>`"},"tokenType":{"type":"string","const":"Bearer"},"expiresIn":{"type":"integer","minimum":-9007199254740991,"maximum":9007199254740991,"description":"Seconds until the access token expires","example":900}},"required":["user","accessToken","tokenType","expiresIn"],"additionalProperties":false},"User":{"type":"object","properties":{"id":{"type":"string","format":"uuid","pattern":"^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"},"email":{"type":"string","format":"email","pattern":"^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"},"fullName":{"type":"string"},"role":{"type":"string","enum":["student","teacher","admin"]},"status":{"type":"string","enum":["active","suspended"]},"createdAt":{"type":"string","format":"date-time","pattern":"^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"}},"required":["id","email","fullName","role","status","createdAt"],"additionalProperties":false},"Error":{"type":"object","properties":{"error":{"type":"object","properties":{"code":{"type":"string","example":"INVALID_CREDENTIALS"},"message":{"type":"string","example":"Invalid email or password"},"details":{"description":"Solo en `VALIDATION_ERROR`: errores por campo","example":{"email":["Invalid email"]},"type":"object","propertyNames":{"type":"string"},"additionalProperties":{"type":"array","items":{"type":"string"}}}},"required":["code","message"],"additionalProperties":false}},"required":["error"],"additionalProperties":false},"MeResponse":{"type":"object","properties":{"user":{"$ref":"#/components/schemas/User"}},"required":["user"],"additionalProperties":false},"CoursesList":{"type":"object","properties":{"data":{"type":"array","items":{"$ref":"#/components/schemas/Course"}},"pagination":{"type":"object","properties":{"page":{"type":"integer","minimum":-9007199254740991,"maximum":9007199254740991},"limit":{"type":"integer","minimum":-9007199254740991,"maximum":9007199254740991},"total":{"type":"integer","minimum":-9007199254740991,"maximum":9007199254740991},"totalPages":{"type":"integer","minimum":-9007199254740991,"maximum":9007199254740991}},"required":["page","limit","total","totalPages"],"additionalProperties":false}},"required":["data","pagination"],"additionalProperties":false},"Course":{"type":"object","properties":{"id":{"type":"string","format":"uuid","pattern":"^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"},"slug":{"type":"string"},"title":{"type":"string"},"description":{"type":["string","null"]},"coverUrl":{"type":["string","null"]},"categoryId":{"type":"integer","minimum":-9007199254740991,"maximum":9007199254740991},"instructorId":{"anyOf":[{"type":"string","format":"uuid","pattern":"^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"},{"type":"null"}]},"level":{"type":"string","enum":["beginner","intermediate","advanced"]},"priceCents":{"type":"integer","minimum":-9007199254740991,"maximum":9007199254740991},"currency":{"type":"string"},"status":{"type":"string","enum":["draft","published"]},"featured":{"type":"boolean"},"lessonsCount":{"type":"integer","minimum":-9007199254740991,"maximum":9007199254740991},"durationMinutes":{"type":"integer","minimum":-9007199254740991,"maximum":9007199254740991},"studentsCount":{"type":"integer","minimum":-9007199254740991,"maximum":9007199254740991},"ratingAvg":{"type":["string","null"]},"reviewsCount":{"type":"integer","minimum":-9007199254740991,"maximum":9007199254740991},"publishedAt":{"anyOf":[{"type":"string","format":"date-time","pattern":"^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"},{"type":"null"}]},"createdAt":{"type":"string","format":"date-time","pattern":"^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"},"updatedAt":{"type":"string","format":"date-time","pattern":"^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"}},"required":["id","slug","title","description","coverUrl","categoryId","instructorId","level","priceCents","currency","status","featured","lessonsCount","durationMinutes","studentsCount","ratingAvg","reviewsCount","publishedAt","createdAt","updatedAt"],"additionalProperties":false},"CourseResponse":{"type":"object","properties":{"course":{"$ref":"#/components/schemas/Course"}},"required":["course"],"additionalProperties":false},"CourseCreatedResponse":{"type":"object","properties":{"course":{"$ref":"#/components/schemas/Course"}},"required":["course"],"additionalProperties":false},"CourseUpdatedResponse":{"type":"object","properties":{"course":{"$ref":"#/components/schemas/Course"}},"required":["course"],"additionalProperties":false}},"securitySchemes":{"bearerAuth":{"type":"http","scheme":"bearer","bearerFormat":"JWT","description":"Access token devuelto por login, register o refresh."},"refreshCookie":{"type":"apiKey","in":"cookie","name":"refresh_token","description":"La pone el servidor al hacer login. El navegador la envía sola; no hace falta copiarla."}}}}
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "SkillUp Campus API",
+    "version": "1.0.0",
+    "description": "API de SkillUp Campus.\n\n## Cómo funciona la sesión\n\n1. `POST /auth/register` o `POST /auth/login` devuelven un **access token** (JWT, dura 15 minutos) en el body y dejan un **refresh token** en la cookie httpOnly `refresh_token` (dura 7 días).\n2. Las rutas protegidas reciben el access token en el header `Authorization: Bearer <token>`. En esta página, usa el botón **Authorize** y pega solo el token.\n3. Cuando el access token expira (`401 TOKEN_EXPIRED`), `POST /auth/refresh` entrega uno nuevo y **rota** el refresh token: el anterior deja de servir.\n4. `POST /auth/logout` revoca el refresh token y borra la cookie.\n\nSi un refresh token ya usado se vuelve a enviar, se considera robado y se cierran **todas** las sesiones del usuario.\n\n## Errores\n\nTodos los errores tienen la forma `{ \"error\": { \"code\", \"message\", \"details\"? } }`. El frontend debe decidir según el `code`, no según el `message`.\n\n## Límites de intentos\n\n| Ruta | Límite |\n| --- | --- |\n| Todo `/auth` | 100 solicitudes cada 15 min por IP |\n| `POST /auth/register` | 5 cuentas por hora por IP |\n| `POST /auth/login` | 5 intentos fallidos cada 15 min por IP y email, y 20 por IP |"
+  },
+  "servers": [{ "url": "/api/v1", "description": "Servidor actual" }],
+  "tags": [
+    { "name": "Auth", "description": "Registro, inicio de sesión y sesión" },
+    { "name": "Courses", "description": "Catálogo público de cursos" },
+    { "name": "Admin — Courses", "description": "CRUD de cursos (solo admin)" }
+  ],
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Registrar un estudiante",
+        "description": "Crea una cuenta con rol `student` e inicia sesión. No se pueden crear docentes ni admins por esta ruta.\n\nEl email se guarda en minúsculas y sin espacios. La contraseña debe tener entre 8 y 128 caracteres.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RegisterRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Cuenta creada y sesión iniciada.",
+            "headers": {
+              "Set-Cookie": {
+                "description": "Cookie `refresh_token` (httpOnly) con el refresh token. Solo se envía a `/api/v1/auth`.",
+                "schema": { "type": "string" }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Session" }
+              }
+            }
+          },
+          "400": {
+            "description": "`VALIDATION_ERROR`: el body no cumple el esquema. `INVALID_JSON`: el body no es JSON válido.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "409": {
+            "description": "`EMAIL_TAKEN`: ya existe una cuenta con ese email.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "429": {
+            "description": "`TOO_MANY_REQUESTS`: se superó el límite de intentos. El header `RateLimit` indica cuándo se reinicia.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "500": {
+            "description": "`INTERNAL_ERROR`: error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Iniciar sesión",
+        "description": "Sirve para estudiantes y admins. La respuesta incluye el `role` del usuario para que el frontend sepa a qué panel redirigir.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sesión iniciada.",
+            "headers": {
+              "Set-Cookie": {
+                "description": "Cookie `refresh_token` (httpOnly) con el refresh token. Solo se envía a `/api/v1/auth`.",
+                "schema": { "type": "string" }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Session" }
+              }
+            }
+          },
+          "400": {
+            "description": "`VALIDATION_ERROR`: el body no cumple el esquema. `INVALID_JSON`: el body no es JSON válido.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "401": {
+            "description": "`INVALID_CREDENTIALS`: email o contraseña incorrectos. Es el mismo error exista o no el email.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "403": {
+            "description": "`ACCOUNT_SUSPENDED`: la contraseña es correcta pero la cuenta está suspendida.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "429": {
+            "description": "`TOO_MANY_REQUESTS`: se superó el límite de intentos. El header `RateLimit` indica cuándo se reinicia.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "500": {
+            "description": "`INTERNAL_ERROR`: error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Renovar la sesión",
+        "description": "Usa la cookie `refresh_token` para emitir un access token nuevo y rotar el refresh token. No lleva body.",
+        "security": [{ "refreshCookie": [] }],
+        "responses": {
+          "200": {
+            "description": "Sesión renovada.",
+            "headers": {
+              "Set-Cookie": {
+                "description": "Cookie `refresh_token` (httpOnly) con el refresh token. Solo se envía a `/api/v1/auth`.",
+                "schema": { "type": "string" }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Session" }
+              }
+            }
+          },
+          "401": {
+            "description": "`INVALID_SESSION`: no hay cookie, o el refresh token no existe, expiró o ya fue usado. La cookie se borra.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "403": {
+            "description": "`ACCOUNT_SUSPENDED`: la cuenta fue suspendida. Se cierran todas sus sesiones.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "429": {
+            "description": "`TOO_MANY_REQUESTS`: se superó el límite de intentos. El header `RateLimit` indica cuándo se reinicia.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "500": {
+            "description": "`INTERNAL_ERROR`: error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Cerrar sesión",
+        "description": "Revoca el refresh token de la cookie y la borra. Responde 204 aunque no haya sesión.",
+        "security": [{ "refreshCookie": [] }],
+        "responses": {
+          "204": { "description": "Sesión cerrada." },
+          "429": {
+            "description": "`TOO_MANY_REQUESTS`: se superó el límite de intentos. El header `RateLimit` indica cuándo se reinicia.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "500": {
+            "description": "`INTERNAL_ERROR`: error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Usuario de la sesión",
+        "description": "Devuelve los datos del usuario dueño del access token.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Usuario autenticado.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MeResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "`UNAUTHORIZED`: falta el header. `INVALID_TOKEN`: token inválido. `TOKEN_EXPIRED`: hay que llamar a `/auth/refresh`. `INVALID_SESSION`: el usuario ya no existe.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "403": {
+            "description": "`ACCOUNT_SUSPENDED`: la cuenta está suspendida.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "429": {
+            "description": "`TOO_MANY_REQUESTS`: se superó el límite de intentos. El header `RateLimit` indica cuándo se reinicia.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "500": {
+            "description": "`INTERNAL_ERROR`: error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/courses": {
+      "get": {
+        "tags": ["Courses"],
+        "summary": "Listar cursos publicados",
+        "description": "Devuelve el catálogo paginado. Solo muestra cursos con `status = published`. Disponible para todos sin autenticación.",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": { "type": "integer", "default": 1 }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer", "default": 20, "maximum": 50 }
+          },
+          {
+            "name": "categoryId",
+            "in": "query",
+            "schema": { "type": "integer" }
+          },
+          {
+            "name": "featured",
+            "in": "query",
+            "schema": { "type": "string", "enum": ["true", "false"] },
+            "description": "Solo \"true\" o \"false\". Otros valores devuelven 400."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de cursos publicados.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CoursesList" }
+              }
+            }
+          },
+          "400": {
+            "description": "`VALIDATION_ERROR`: el body no cumple el esquema. `INVALID_JSON`: el body no es JSON válido.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "429": {
+            "description": "`TOO_MANY_REQUESTS`: se superó el límite de intentos. El header `RateLimit` indica cuándo se reinicia.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "500": {
+            "description": "`INTERNAL_ERROR`: error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/courses/{id}": {
+      "get": {
+        "tags": ["Courses"],
+        "summary": "Obtener un curso publicado",
+        "description": "Devuelve el detalle de un curso publicado. Devuelve 404 si no existe o está en draft.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Curso encontrado.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CourseResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "`VALIDATION_ERROR`: el id no es un UUID válido.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "`NOT_FOUND`: el curso no existe o no está publicado.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "429": {
+            "description": "`TOO_MANY_REQUESTS`: se superó el límite de intentos. El header `RateLimit` indica cuándo se reinicia.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "500": {
+            "description": "`INTERNAL_ERROR`: error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/courses": {
+      "post": {
+        "tags": ["Admin — Courses"],
+        "summary": "Crear un curso",
+        "description": "Crea un curso nuevo. Solo admins.",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateCourseRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Curso creado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseCreatedResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`VALIDATION_ERROR`: el body no cumple el esquema. `INVALID_JSON`: el body no es JSON válido.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "401": {
+            "description": "`UNAUTHORIZED`: falta el token.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "403": {
+            "description": "`FORBIDDEN`: el usuario no es admin.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "409": {
+            "description": "`SLUG_TAKEN`: ya existe un curso con ese slug.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "429": {
+            "description": "`TOO_MANY_REQUESTS`: se superó el límite de intentos. El header `RateLimit` indica cuándo se reinicia.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "500": {
+            "description": "`INTERNAL_ERROR`: error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/courses/{id}": {
+      "put": {
+        "tags": ["Admin — Courses"],
+        "summary": "Actualizar un curso",
+        "description": "Actualiza los campos enviados. Los campos no enviados no cambian.",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateCourseRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Curso actualizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseUpdatedResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`VALIDATION_ERROR`: el body no cumple el esquema. `INVALID_JSON`: el body no es JSON válido.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "401": {
+            "description": "`UNAUTHORIZED`",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "403": {
+            "description": "`FORBIDDEN`",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "`NOT_FOUND`: el curso no existe.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "409": {
+            "description": "`SLUG_TAKEN`",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "429": {
+            "description": "`TOO_MANY_REQUESTS`: se superó el límite de intentos. El header `RateLimit` indica cuándo se reinicia.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "500": {
+            "description": "`INTERNAL_ERROR`: error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Admin — Courses"],
+        "summary": "Eliminar un curso",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "204": { "description": "Curso eliminado." },
+          "401": {
+            "description": "`UNAUTHORIZED`",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "403": {
+            "description": "`FORBIDDEN`",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "`NOT_FOUND`: el curso no existe.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "429": {
+            "description": "`TOO_MANY_REQUESTS`: se superó el límite de intentos. El header `RateLimit` indica cuándo se reinicia.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "500": {
+            "description": "`INTERNAL_ERROR`: error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "RegisterRequest": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 60,
+            "example": "Valentina Ruiz"
+          },
+          "email": { "example": "valentina.ruiz@gmail.com", "type": "string" },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 128,
+            "example": "skillup123"
+          }
+        },
+        "required": ["fullName", "email", "password"]
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "email": { "example": "valentina.ruiz@gmail.com", "type": "string" },
+          "password": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "example": "skillup123"
+          }
+        },
+        "required": ["email", "password"]
+      },
+      "CreateCourseRequest": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string", "minLength": 3, "maxLength": 255 },
+          "slug": {
+            "type": "string",
+            "maxLength": 255,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          },
+          "description": {
+            "anyOf": [
+              { "type": "string", "maxLength": 5000 },
+              { "type": "null" }
+            ]
+          },
+          "coverUrl": {
+            "anyOf": [{ "type": "string", "format": "uri" }, { "type": "null" }]
+          },
+          "categoryId": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "instructorId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              { "type": "null" }
+            ]
+          },
+          "level": {
+            "default": "beginner",
+            "type": "string",
+            "enum": ["beginner", "intermediate", "advanced"]
+          },
+          "priceCents": {
+            "default": 0,
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "currency": {
+            "default": "USD",
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3
+          },
+          "status": {
+            "default": "draft",
+            "type": "string",
+            "enum": ["draft", "published"]
+          },
+          "featured": { "default": false, "type": "boolean" }
+        },
+        "required": ["title", "slug", "categoryId"]
+      },
+      "UpdateCourseRequest": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string", "minLength": 3, "maxLength": 255 },
+          "slug": {
+            "type": "string",
+            "maxLength": 255,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          },
+          "description": {
+            "anyOf": [
+              { "type": "string", "maxLength": 5000 },
+              { "type": "null" }
+            ]
+          },
+          "coverUrl": {
+            "anyOf": [{ "type": "string", "format": "uri" }, { "type": "null" }]
+          },
+          "categoryId": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "instructorId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              { "type": "null" }
+            ]
+          },
+          "level": {
+            "type": "string",
+            "enum": ["beginner", "intermediate", "advanced"]
+          },
+          "priceCents": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+          "status": { "type": "string", "enum": ["draft", "published"] },
+          "featured": { "type": "boolean" }
+        }
+      },
+      "Session": {
+        "type": "object",
+        "properties": {
+          "user": { "$ref": "#/components/schemas/User" },
+          "accessToken": {
+            "type": "string",
+            "description": "JWT to send as `Authorization: Bearer <token>`"
+          },
+          "tokenType": { "type": "string", "const": "Bearer" },
+          "expiresIn": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Seconds until the access token expires",
+            "example": 900
+          }
+        },
+        "required": ["user", "accessToken", "tokenType", "expiresIn"],
+        "additionalProperties": false
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          },
+          "fullName": { "type": "string" },
+          "role": { "type": "string", "enum": ["student", "teacher", "admin"] },
+          "status": { "type": "string", "enum": ["active", "suspended"] },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          }
+        },
+        "required": ["id", "email", "fullName", "role", "status", "createdAt"],
+        "additionalProperties": false
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": { "type": "string", "example": "INVALID_CREDENTIALS" },
+              "message": {
+                "type": "string",
+                "example": "Invalid email or password"
+              },
+              "details": {
+                "description": "Solo en `VALIDATION_ERROR`: errores por campo",
+                "example": { "email": ["Invalid email"] },
+                "type": "object",
+                "propertyNames": { "type": "string" },
+                "additionalProperties": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                }
+              }
+            },
+            "required": ["code", "message"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["error"],
+        "additionalProperties": false
+      },
+      "MeResponse": {
+        "type": "object",
+        "properties": { "user": { "$ref": "#/components/schemas/User" } },
+        "required": ["user"],
+        "additionalProperties": false
+      },
+      "CoursesList": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Course" }
+          },
+          "pagination": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "limit": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "total": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "totalPages": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": ["page", "limit", "total", "totalPages"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["data", "pagination"],
+        "additionalProperties": false
+      },
+      "Course": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "slug": { "type": "string" },
+          "title": { "type": "string" },
+          "description": { "type": ["string", "null"] },
+          "coverUrl": { "type": ["string", "null"] },
+          "categoryId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "instructorId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              { "type": "null" }
+            ]
+          },
+          "level": {
+            "type": "string",
+            "enum": ["beginner", "intermediate", "advanced"]
+          },
+          "priceCents": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "currency": { "type": "string" },
+          "status": { "type": "string", "enum": ["draft", "published"] },
+          "featured": { "type": "boolean" },
+          "lessonsCount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "durationMinutes": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "studentsCount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "ratingAvg": { "type": ["string", "null"] },
+          "reviewsCount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "publishedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+              },
+              { "type": "null" }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "description",
+          "coverUrl",
+          "categoryId",
+          "instructorId",
+          "level",
+          "priceCents",
+          "currency",
+          "status",
+          "featured",
+          "lessonsCount",
+          "durationMinutes",
+          "studentsCount",
+          "ratingAvg",
+          "reviewsCount",
+          "publishedAt",
+          "createdAt",
+          "updatedAt"
+        ],
+        "additionalProperties": false
+      },
+      "CourseResponse": {
+        "type": "object",
+        "properties": { "course": { "$ref": "#/components/schemas/Course" } },
+        "required": ["course"],
+        "additionalProperties": false
+      },
+      "CourseCreatedResponse": {
+        "type": "object",
+        "properties": { "course": { "$ref": "#/components/schemas/Course" } },
+        "required": ["course"],
+        "additionalProperties": false
+      },
+      "CourseUpdatedResponse": {
+        "type": "object",
+        "properties": { "course": { "$ref": "#/components/schemas/Course" } },
+        "required": ["course"],
+        "additionalProperties": false
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Access token devuelto por login, register o refresh."
+      },
+      "refreshCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "refresh_token",
+        "description": "La pone el servidor al hacer login. El navegador la envía sola; no hace falta copiarla."
+      }
+    }
+  }
+}
