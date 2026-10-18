@@ -1,44 +1,29 @@
 import { z } from "zod";
 import "zod-openapi";
 
-// ── Query params ──────────────────────────────────────────────────────────────
+// ── Shared query fields ───────────────────────────────────────────────────────
 
-export const coursesQuerySchema = z
-  .object({
-    page: z.coerce.number().int().positive().default(1),
-    limit: z.coerce.number().int().min(1).max(50).default(20),
-    // Public catalog — status is not exposed to users but used internally to force published
-    status: z.enum(["draft", "published"]).optional(),
-    categoryId: z.coerce.number().int().positive().optional(),
-    // strict boolean: only "true" or "false" accepted
-    featured: z
-      .enum(["true", "false"], {
-        error: 'featured must be "true" or "false"',
-      })
-      .optional()
-      .transform((v) => (v === undefined ? undefined : v === "true")),
-  })
-  .meta({ id: "CoursesQuery" });
+const queryBase = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().min(1).max(50).default(20),
+  categoryId: z.coerce.number().int().positive().optional(),
+  // strict boolean: only "true" or "false" accepted; other values return 400
+  featured: z
+    .enum(["true", "false"], {
+      error: 'featured must be "true" or "false"',
+    })
+    .optional()
+    .transform((v) => (v === undefined ? undefined : v === "true")),
+});
 
+// ── Public query: status is not a user-facing filter; controller forces published ─
+export const coursesQuerySchema = queryBase.meta({ id: "CoursesQuery" });
 export type CoursesQuery = z.infer<typeof coursesQuerySchema>;
 
-// ── Admin query params (status filter respected) ─────────────────────────────
-
-export const adminCoursesQuerySchema = z
-  .object({
-    page: z.coerce.number().int().positive().default(1),
-    limit: z.coerce.number().int().min(1).max(50).default(20),
-    status: z.enum(["draft", "published"]).optional(),
-    categoryId: z.coerce.number().int().positive().optional(),
-    featured: z
-      .enum(["true", "false"], {
-        error: 'featured must be "true" or "false"',
-      })
-      .optional()
-      .transform((v) => (v === undefined ? undefined : v === "true")),
-  })
+// ── Admin query: status filter respected ─────────────────────────────────────
+export const adminCoursesQuerySchema = queryBase
+  .extend({ status: z.enum(["draft", "published"]).optional() })
   .meta({ id: "AdminCoursesQuery" });
-
 export type AdminCoursesQuery = z.infer<typeof adminCoursesQuerySchema>;
 
 // ── Response schemas (OpenAPI) ────────────────────────────────────────────────
@@ -113,9 +98,8 @@ const courseFieldsSchema = z.object({
     })
     .max(255),
   description: z.string().trim().max(5000).optional().nullable(),
+  // fix: z.url() with protocol restriction to avoid javascript: URLs
   coverUrl: z
-    .string()
-    .trim()
     .url({ error: "Cover URL must be a valid URL" })
     .optional()
     .nullable(),
@@ -123,7 +107,14 @@ const courseFieldsSchema = z.object({
   instructorId: z.uuid().optional().nullable(),
   level: z.enum(["beginner", "intermediate", "advanced"]),
   priceCents: z.number().int().min(0),
-  currency: z.string().length(3),
+  // fix: normalize to uppercase and enforce 3-letter ISO 4217
+  currency: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(/^[A-Z]{3}$/, {
+      error: "Currency must be a 3-letter ISO code (e.g. USD)",
+    }),
   status: z.enum(["draft", "published"]),
   featured: z.boolean(),
   lessonsCount: z.number().int().min(0),
@@ -143,9 +134,12 @@ export const createCourseSchema = courseFieldsSchema
   })
   .meta({ id: "CreateCourseRequest" });
 
-// Update: all fields optional, no defaults (missing field = keep existing value in DB)
+// Update: all fields optional, no defaults; empty body {} rejected
 export const updateCourseSchema = courseFieldsSchema
   .partial()
+  .refine((o) => Object.keys(o).length > 0, {
+    error: "At least one field is required",
+  })
   .meta({ id: "UpdateCourseRequest" });
 
 export type CreateCourseInput = z.infer<typeof createCourseSchema>;

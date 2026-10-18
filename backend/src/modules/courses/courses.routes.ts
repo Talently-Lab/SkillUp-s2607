@@ -16,6 +16,4 @@ coursesRouter.get(
   validateQuery(coursesQuerySchema),
   coursesController.list,
 );
-// slug route before :id to avoid capturing "slug" as a UUID
-coursesRouter.get("/slug/:slug", coursesController.getBySlug);
 coursesRouter.get("/:id", uuidParams, coursesController.getById);

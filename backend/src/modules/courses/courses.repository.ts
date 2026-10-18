@@ -1,11 +1,6 @@
 import { and, asc, count, desc, eq, type SQL } from "drizzle-orm";
 import { db } from "../../db/client.ts";
-import {
-  categories,
-  courses,
-  type NewCourse,
-  users,
-} from "../../db/schema/index.ts";
+import { courses, type NewCourse } from "../../db/schema/index.ts";
 import type {
   AdminCoursesQuery,
   CoursesQuery,
@@ -30,84 +25,38 @@ function buildWhere(opts: FindManyOptions): SQL | undefined {
   return filters.length > 0 ? and(...filters) : undefined;
 }
 
-/** Columns selected for course list/detail responses — includes category and instructor */
-const courseSelect = {
-  id: courses.id,
-  slug: courses.slug,
-  title: courses.title,
-  description: courses.description,
-  coverUrl: courses.coverUrl,
-  categoryId: courses.categoryId,
-  instructorId: courses.instructorId,
-  level: courses.level,
-  priceCents: courses.priceCents,
-  currency: courses.currency,
-  status: courses.status,
-  featured: courses.featured,
-  lessonsCount: courses.lessonsCount,
-  durationMinutes: courses.durationMinutes,
-  studentsCount: courses.studentsCount,
-  ratingAvg: courses.ratingAvg,
-  reviewsCount: courses.reviewsCount,
-  publishedAt: courses.publishedAt,
-  createdAt: courses.createdAt,
-  updatedAt: courses.updatedAt,
-  category: {
-    id: categories.id,
-    slug: categories.slug,
-    name: categories.name,
-  },
-  instructor: {
-    id: users.id,
-    fullName: users.fullName,
-  },
-} as const;
-
 export const coursesRepository = {
   async findMany(query: CoursesQuery) {
     return findPage(query);
   },
 
+  /** Admin list: respects status filter, shows all statuses when omitted */
   async findManyAdmin(query: AdminCoursesQuery) {
     return findPage(query);
   },
 
   async findById(id: string) {
-    return findOneCourse(eq(courses.id, id));
+    return db.query.courses.findFirst({ where: eq(courses.id, id) });
   },
 
   async findPublishedById(id: string) {
-    return findOneCourse(
-      and(eq(courses.id, id), eq(courses.status, "published"))!,
-    );
+    return db.query.courses.findFirst({
+      where: and(eq(courses.id, id), eq(courses.status, "published")),
+    });
   },
 
-  async findPublishedBySlug(slug: string) {
-    return findOneCourse(
-      and(eq(courses.slug, slug), eq(courses.status, "published"))!,
-    );
-  },
-
-  /** Returns the created course with category and instructor */
   async create(data: NewCourse) {
-    const [created] = await db
-      .insert(courses)
-      .values(data)
-      .returning({ id: courses.id });
-    return (await findOneCourse(eq(courses.id, created!.id)))!;
+    const [course] = await db.insert(courses).values(data).returning();
+    return course!;
   },
 
-  /** Returns the updated course with category and instructor, or null if not found */
-  async update(
-    id: string,
-    data: UpdateCourseInput & { publishedAt?: Date | null | undefined },
-  ) {
-    const [updated] = await db
+  async update(id: string, data: UpdateCourseInput) {
+    const [course] = await db
       .update(courses)
       .set(data)
       .where(eq(courses.id, id))
-      .returning({ id: courses.id });
-    return updated ? findOneCourse(eq(courses.id, updated.id)) : null;
+      .returning();
+    return course ?? null;
   },
 
   async remove(id: string) {
@@ -123,28 +72,14 @@ async function findPage(opts: FindManyOptions) {
   const where = buildWhere(opts);
   const offset = (opts.page - 1) * opts.limit;
   const [data, totalResult] = await Promise.all([
-    db
-      .select(courseSelect)
-      .from(courses)
-      .innerJoin(categories, eq(courses.categoryId, categories.id))
-      .leftJoin(users, eq(courses.instructorId, users.id))
-      .where(where)
-      .orderBy(desc(courses.createdAt), asc(courses.id))
-      .limit(opts.limit)
-      .offset(offset),
+    db.query.courses.findMany({
+      where,
+      limit: opts.limit,
+      offset,
+      orderBy: [desc(courses.createdAt), asc(courses.id)],
+    }),
     db.select({ value: count() }).from(courses).where(where),
   ]);
   const total = totalResult[0]?.value ?? 0;
   return { data, total };
-}
-
-async function findOneCourse(condition: SQL) {
-  const rows = await db
-    .select(courseSelect)
-    .from(courses)
-    .innerJoin(categories, eq(courses.categoryId, categories.id))
-    .leftJoin(users, eq(courses.instructorId, users.id))
-    .where(condition)
-    .limit(1);
-  return rows[0] ?? null;
 }

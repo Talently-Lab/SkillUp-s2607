@@ -15,17 +15,6 @@ import type {
   UpdateCourseInput,
 } from "./courses.schemas.ts";
 
-type Status = "draft" | "published";
-
-/** publishedAt only changes with the status: now on publish, null on unpublish */
-function publishedAtFor(
-  next: Status | undefined,
-  current?: Status,
-): Date | null | undefined {
-  if (next === undefined || next === current) return undefined;
-  return next === "published" ? new Date() : null;
-}
-
 function handleWriteError(err: unknown): never {
   if (isUniqueViolation(err))
     throw new ConflictError(
@@ -40,12 +29,32 @@ function handleWriteError(err: unknown): never {
   throw err;
 }
 
+/** Sets publishedAt when status changes to published */
+type WithStatus = { status?: "draft" | "published" | undefined };
+
+function withPublishedAt<T extends WithStatus>(
+  input: T,
+): Omit<T, "publishedAt"> & { publishedAt: Date | null | undefined } {
+  const status = input.status;
+  if (status === "published") return { ...input, publishedAt: new Date() };
+  if (status === "draft") return { ...input, publishedAt: null };
+  return { ...input, publishedAt: undefined };
+}
+
 export const coursesService = {
-  /** Public catalog: status is always forced to published */
+  async list(query: CoursesQuery) {
+    const { data, total } = await coursesRepository.findMany(query);
+    const totalPages = Math.ceil(total / query.limit);
+    return {
+      data,
+      pagination: { page: query.page, limit: query.limit, total, totalPages },
+    };
+  },
+
   async listPublished(query: CoursesQuery) {
-    const { data, total } = await coursesRepository.findMany({
+    const { data, total } = await coursesRepository.findManyAdmin({
       ...query,
-      status: "published",
+      status: "published" as const,
     });
     const totalPages = Math.ceil(total / query.limit);
     return {
@@ -70,13 +79,6 @@ export const coursesService = {
     return course;
   },
 
-  /** Public: find published course by slug */
-  async getPublishedBySlug(slug: string) {
-    const course = await coursesRepository.findPublishedBySlug(slug);
-    if (!course) throw new NotFoundError("Course not found");
-    return course;
-  },
-
   /** Admin: returns course of any status */
   async getByIdAdmin(id: string) {
     const course = await coursesRepository.findById(id);
@@ -86,24 +88,18 @@ export const coursesService = {
 
   async create(input: CreateCourseInput) {
     try {
-      return await coursesRepository.create({
-        ...input,
-        publishedAt: publishedAtFor(input.status) ?? null,
-      });
+      return await coursesRepository.create(withPublishedAt(input));
     } catch (err) {
       handleWriteError(err);
     }
   },
 
   async update(id: string, input: UpdateCourseInput) {
-    const current = await coursesRepository.findById(id);
-    if (!current) throw new NotFoundError("Course not found");
-
     try {
-      const updated = await coursesRepository.update(id, {
-        ...input,
-        publishedAt: publishedAtFor(input.status, current.status),
-      });
+      const updated = await coursesRepository.update(
+        id,
+        withPublishedAt(input),
+      );
       if (!updated) throw new NotFoundError("Course not found");
       return updated;
     } catch (err) {
@@ -112,16 +108,7 @@ export const coursesService = {
   },
 
   async remove(id: string) {
-    try {
-      const removed = await coursesRepository.remove(id);
-      if (!removed) throw new NotFoundError("Course not found");
-    } catch (err) {
-      if (isForeignKeyViolation(err))
-        throw new ConflictError(
-          "COURSE_HAS_ENROLLMENTS",
-          "Cannot delete a course that has enrolled students",
-        );
-      throw err;
-    }
+    const removed = await coursesRepository.remove(id);
+    if (!removed) throw new NotFoundError("Course not found");
   },
 };

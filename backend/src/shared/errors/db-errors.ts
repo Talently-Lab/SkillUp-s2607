@@ -3,11 +3,7 @@ export function isUniqueViolation(err: unknown): boolean {
   return isPgError(err, "23505");
 }
 
-/**
- * Returns true if the error is a PostgreSQL foreign-key violation (code 23503).
- * Raised on INSERT/UPDATE with a missing reference, and also on DELETE of a row
- * that still has dependents under ON DELETE RESTRICT.
- */
+/** Returns true if the error is a PostgreSQL foreign-key violation (code 23503) */
 export function isForeignKeyViolation(err: unknown): boolean {
   return isPgError(err, "23503");
 }
