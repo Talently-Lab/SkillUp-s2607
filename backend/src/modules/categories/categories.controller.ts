@@ -1,16 +1,11 @@
 import type { RequestHandler } from "express";
-import { db } from "../../db/client.ts";
-import { categories } from "../../db/schema/index.ts";
-import { asc } from "drizzle-orm";
+import { categoriesService } from "./categories.service.ts";
 
 export const CATEGORIES_BASE_PATH = "/api/v1/categories";
 
 export const categoriesController = {
   list: (async (_req, res) => {
-    const data = await db
-      .select()
-      .from(categories)
-      .orderBy(asc(categories.name));
-    res.json({ categories: data });
+    const categories = await categoriesService.list();
+    res.json({ categories });
   }) satisfies RequestHandler,
 };
