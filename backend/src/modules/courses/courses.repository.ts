@@ -1,73 +1,85 @@
 import { and, asc, count, desc, eq, type SQL } from "drizzle-orm";
 import { db } from "../../db/client.ts";
-import { courses, type NewCourse } from "../../db/schema/index.ts";
+import {
+  categories,
+  courses,
+  type NewCourse,
+  users,
+} from "../../db/schema/index.ts";
 import type {
   AdminCoursesQuery,
   CoursesQuery,
   UpdateCourseInput,
 } from "./courses.schemas.ts";
 
+interface FindManyOptions {
+  page: number;
+  limit: number;
+  status?: "draft" | "published" | undefined;
+  categoryId?: number | undefined;
+  featured?: boolean | undefined;
+}
+
+function buildWhere(opts: FindManyOptions): SQL | undefined {
+  const filters: SQL[] = [];
+  if (opts.status !== undefined) filters.push(eq(courses.status, opts.status));
+  if (opts.categoryId !== undefined)
+    filters.push(eq(courses.categoryId, opts.categoryId));
+  if (opts.featured !== undefined)
+    filters.push(eq(courses.featured, opts.featured));
+  return filters.length > 0 ? and(...filters) : undefined;
+}
+
+/** Columns selected for course list/detail responses — includes category and instructor */
+const courseSelect = {
+  id: courses.id,
+  slug: courses.slug,
+  title: courses.title,
+  description: courses.description,
+  coverUrl: courses.coverUrl,
+  categoryId: courses.categoryId,
+  instructorId: courses.instructorId,
+  level: courses.level,
+  priceCents: courses.priceCents,
+  currency: courses.currency,
+  status: courses.status,
+  featured: courses.featured,
+  lessonsCount: courses.lessonsCount,
+  durationMinutes: courses.durationMinutes,
+  studentsCount: courses.studentsCount,
+  ratingAvg: courses.ratingAvg,
+  reviewsCount: courses.reviewsCount,
+  publishedAt: courses.publishedAt,
+  createdAt: courses.createdAt,
+  updatedAt: courses.updatedAt,
+  category: {
+    id: categories.id,
+    slug: categories.slug,
+    name: categories.name,
+  },
+  instructor: {
+    id: users.id,
+    fullName: users.fullName,
+  },
+} as const;
+
 export const coursesRepository = {
-  /** Public catalog: filters applied by caller (status forced to published upstream) */
-  async findMany({ page, limit, status, categoryId, featured }: CoursesQuery) {
-    const filters: SQL[] = [];
-
-    if (status !== undefined) filters.push(eq(courses.status, status));
-    if (categoryId !== undefined)
-      filters.push(eq(courses.categoryId, categoryId));
-    if (featured !== undefined) filters.push(eq(courses.featured, featured));
-
-    const where = filters.length > 0 ? and(...filters) : undefined;
-    const offset = (page - 1) * limit;
-
-    const [data, totalResult] = await Promise.all([
-      db.query.courses.findMany({
-        where,
-        limit,
-        offset,
-        orderBy: [desc(courses.createdAt), asc(courses.id)],
-      }),
-      db.select({ value: count() }).from(courses).where(where),
-    ]);
-
-    const total = totalResult[0]?.value ?? 0;
-    return { data, total };
+  async findMany(query: CoursesQuery) {
+    return findPage(query);
   },
 
-  /** Admin list: respects status filter, shows all statuses when omitted */
-  async findManyAdmin({
-    page,
-    limit,
-    status,
-    categoryId,
-    featured,
-  }: AdminCoursesQuery) {
-    const filters: SQL[] = [];
-
-    if (status !== undefined) filters.push(eq(courses.status, status));
-    if (categoryId !== undefined)
-      filters.push(eq(courses.categoryId, categoryId));
-    if (featured !== undefined) filters.push(eq(courses.featured, featured));
-
-    const where = filters.length > 0 ? and(...filters) : undefined;
-    const offset = (page - 1) * limit;
-
-    const [data, totalResult] = await Promise.all([
-      db.query.courses.findMany({
-        where,
-        limit,
-        offset,
-        orderBy: [desc(courses.createdAt), asc(courses.id)],
-      }),
-      db.select({ value: count() }).from(courses).where(where),
-    ]);
-
-    const total = totalResult[0]?.value ?? 0;
-    return { data, total };
+  async findManyAdmin(query: AdminCoursesQuery) {
+    return findPage(query);
   },
 
   async findById(id: string) {
-    return db.query.courses.findFirst({ where: eq(courses.id, id) });
+    return findOneCourse(eq(courses.id, id));
+  },
+
+  async findPublishedById(id: string) {
+    return findOneCourse(
+      and(eq(courses.id, id), eq(courses.status, "published"))!,
+    );
   },
 
   async create(data: NewCourse) {
@@ -92,3 +104,33 @@ export const coursesRepository = {
     return course ?? null;
   },
 };
+
+async function findPage(opts: FindManyOptions) {
+  const where = buildWhere(opts);
+  const offset = (opts.page - 1) * opts.limit;
+  const [data, totalResult] = await Promise.all([
+    db
+      .select(courseSelect)
+      .from(courses)
+      .leftJoin(categories, eq(courses.categoryId, categories.id))
+      .leftJoin(users, eq(courses.instructorId, users.id))
+      .where(where)
+      .orderBy(desc(courses.createdAt), asc(courses.id))
+      .limit(opts.limit)
+      .offset(offset),
+    db.select({ value: count() }).from(courses).where(where),
+  ]);
+  const total = totalResult[0]?.value ?? 0;
+  return { data, total };
+}
+
+async function findOneCourse(condition: SQL) {
+  const rows = await db
+    .select(courseSelect)
+    .from(courses)
+    .leftJoin(categories, eq(courses.categoryId, categories.id))
+    .leftJoin(users, eq(courses.instructorId, users.id))
+    .where(condition)
+    .limit(1);
+  return rows[0] ?? null;
+}

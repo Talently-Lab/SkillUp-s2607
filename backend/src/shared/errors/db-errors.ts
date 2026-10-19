@@ -1,11 +1,28 @@
 /** Returns true if the error is a PostgreSQL unique-constraint violation (code 23505) */
 export function isUniqueViolation(err: unknown): boolean {
+  return isPgError(err, "23505");
+}
+
+/** Returns true if the error is a PostgreSQL foreign-key violation on INSERT/UPDATE (code 23503) */
+export function isForeignKeyViolation(err: unknown): boolean {
+  return isPgError(err, "23503");
+}
+
+/**
+ * Returns true if the error is a PostgreSQL restrict violation on DELETE (code 23001).
+ * This happens when a row has dependents and the FK is configured with ON DELETE RESTRICT.
+ */
+export function isRestrictViolation(err: unknown): boolean {
+  return isPgError(err, "23001");
+}
+
+function isPgError(err: unknown, code: string): boolean {
   const cause =
     err instanceof Error && err.cause !== undefined ? err.cause : err;
   return (
     typeof cause === "object" &&
     cause !== null &&
     "code" in cause &&
-    (cause as Record<string, unknown>).code === "23505"
+    (cause as Record<string, unknown>).code === code
   );
 }
