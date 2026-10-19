@@ -1,4 +1,5 @@
 import {
+  check,
   index,
   pgEnum,
   pgTable,
@@ -7,6 +8,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { courses } from "./courses.ts";
 import { users } from "./users.ts";
 
@@ -22,22 +24,26 @@ export const enrollments = pgTable(
     userId: uuid()
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    // restrict: deleting a course with enrolled students is rejected at DB level
     courseId: uuid()
       .notNull()
-      .references(() => courses.id, { onDelete: "cascade" }),
+      .references(() => courses.id, { onDelete: "restrict" }),
     status: enrollmentStatus().notNull().default("active"),
-    // 0–100 maintained by the application when lesson progress is recorded
+    // 0-100 maintained by the app; enforced by DB check constraint
     progressPercent: smallint().notNull().default(0),
     enrolledAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     completedAt: timestamp({ withTimezone: true }),
   },
   (table) => [
-    // Prevents a user from enrolling in the same course twice
     uniqueIndex("enrollments_user_course_unique").on(
       table.userId,
       table.courseId,
     ),
     index().on(table.courseId),
+    check(
+      "enrollments_progress_percent_check",
+      sql`${table.progressPercent} >= 0 AND ${table.progressPercent} <= 100`,
+    ),
   ],
 );
 

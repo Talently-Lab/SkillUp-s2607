@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { Router } from "express";
 import {
   requireAuth,
@@ -5,6 +6,7 @@ import {
 } from "../../shared/middlewares/authenticate.ts";
 import {
   validateBody,
+  validateParams,
   validateQuery,
 } from "../../shared/middlewares/validate.ts";
 import { usersAdminController } from "./users-admin.controller.ts";
@@ -24,6 +26,7 @@ usersAdminRouter.get(
 );
 usersAdminRouter.patch(
   "/:id/status",
+  validateParams(z.object({ id: z.uuid() })),
   validateBody(updateUserStatusSchema),
   usersAdminController.updateStatus,
 );

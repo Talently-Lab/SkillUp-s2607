@@ -13,6 +13,10 @@ import {
 } from "../modules/auth/auth.schemas.ts";
 import { COURSES_ADMIN_BASE_PATH } from "../modules/courses/courses-admin.controller.ts";
 import {
+  enrollmentSchema,
+  enrollmentWithCourseSchema,
+} from "../modules/enrollments/enrollments.schemas.ts";
+import {
   courseSchema,
   coursesListSchema,
   createCourseSchema,
@@ -102,6 +106,8 @@ Todos los errores tienen la forma \`{ "error": { "code", "message", "details"? }
     { name: "Auth", description: "Registro, inicio de sesión y sesión" },
     { name: "Courses", description: "Catálogo público de cursos" },
     { name: "Admin — Courses", description: "CRUD de cursos (solo admin)" },
+    { name: "Enrollments", description: "Inscripciones del estudiante" },
+    { name: "Admin — Users", description: "Gestión de usuarios (solo admin)" },
   ],
   components: {
     securitySchemes: {
@@ -373,6 +379,195 @@ Todos los errores tienen la forma \`{ "error": { "code", "message", "details"? }
           "401": errorResponse("`UNAUTHORIZED`"),
           "403": errorResponse("`FORBIDDEN`"),
           "404": errorResponse("`NOT_FOUND`: el curso no existe."),
+          ...commonErrors,
+        },
+      },
+    },
+
+    "/enrollments": {
+      post: {
+        tags: ["Enrollments"],
+        summary: "Inscribirse a un curso",
+        description:
+          "Inscribe al estudiante autenticado en un curso publicado.",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: z
+                .object({ courseId: z.uuid() })
+                .meta({ id: "EnrollRequest" }),
+            },
+          },
+        },
+        responses: {
+          "201": {
+            description: "Inscripción creada.",
+            content: {
+              "application/json": {
+                schema: z
+                  .object({ enrollment: enrollmentSchema })
+                  .meta({ id: "EnrollResponse" }),
+              },
+            },
+          },
+          "401": errorResponse("`UNAUTHORIZED`"),
+          "403": errorResponse("`FORBIDDEN`: el usuario no es estudiante."),
+          "404": errorResponse(
+            "`NOT_FOUND`: el curso no existe o no está publicado.",
+          ),
+          "409": errorResponse(
+            "`ALREADY_ENROLLED`: el estudiante ya está inscrito.",
+          ),
+          ...commonErrors,
+        },
+      },
+    },
+    "/enrollments/me": {
+      get: {
+        tags: ["Enrollments"],
+        summary: "Mis inscripciones",
+        description:
+          "Lista las inscripciones del estudiante autenticado con datos del curso.",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          "200": {
+            description: "Lista de inscripciones.",
+            content: {
+              "application/json": {
+                schema: z
+                  .object({ enrollments: z.array(enrollmentWithCourseSchema) })
+                  .meta({ id: "MyEnrollmentsResponse" }),
+              },
+            },
+          },
+          "401": errorResponse("`UNAUTHORIZED`"),
+          "403": errorResponse("`FORBIDDEN`"),
+          ...commonErrors,
+        },
+      },
+    },
+    "/admin/users": {
+      get: {
+        tags: ["Admin — Users"],
+        summary: "Listar usuarios",
+        description:
+          "Listado paginado de usuarios. Admite filtros por role, status y búsqueda por email o nombre.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "page",
+            in: "query",
+            schema: { type: "integer", default: 1 },
+          },
+          {
+            name: "limit",
+            in: "query",
+            schema: { type: "integer", default: 20, maximum: 50 },
+          },
+          {
+            name: "role",
+            in: "query",
+            schema: { type: "string", enum: ["student", "teacher", "admin"] },
+          },
+          {
+            name: "status",
+            in: "query",
+            schema: { type: "string", enum: ["active", "suspended"] },
+          },
+          {
+            name: "search",
+            in: "query",
+            schema: { type: "string" },
+            description: "Busca por email o nombre.",
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Lista de usuarios.",
+            content: {
+              "application/json": {
+                schema: z
+                  .object({
+                    data: z.array(
+                      z.object({
+                        id: z.uuid(),
+                        email: z.string(),
+                        fullName: z.string(),
+                        role: z.string(),
+                        status: z.string(),
+                        createdAt: z.iso.datetime(),
+                      }),
+                    ),
+                    pagination: z.object({
+                      page: z.number(),
+                      limit: z.number(),
+                      total: z.number(),
+                      totalPages: z.number(),
+                    }),
+                  })
+                  .meta({ id: "UsersListResponse" }),
+              },
+            },
+          },
+          "401": errorResponse("`UNAUTHORIZED`"),
+          "403": errorResponse("`FORBIDDEN`"),
+          ...commonErrors,
+        },
+      },
+    },
+    "/admin/users/{id}/status": {
+      patch: {
+        tags: ["Admin — Users"],
+        summary: "Cambiar estado de un usuario",
+        description:
+          "Suspende o activa una cuenta. Al suspender revoca todos los refresh tokens. No se puede suspender un admin ni la propia cuenta.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: z
+                .object({ status: z.enum(["active", "suspended"]) })
+                .meta({ id: "UpdateStatusRequest" }),
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description: "Estado actualizado.",
+            content: {
+              "application/json": {
+                schema: z
+                  .object({
+                    user: z.object({
+                      id: z.uuid(),
+                      email: z.string(),
+                      fullName: z.string(),
+                      role: z.string(),
+                      status: z.string(),
+                      createdAt: z.iso.datetime(),
+                    }),
+                  })
+                  .meta({ id: "UserStatusResponse" }),
+              },
+            },
+          },
+          "400": errorResponse("`VALIDATION_ERROR`"),
+          "401": errorResponse("`UNAUTHORIZED`"),
+          "403": errorResponse(
+            "`FORBIDDEN`: no es admin, intenta suspender a un admin, o se auto-suspende.",
+          ),
+          "404": errorResponse("`NOT_FOUND`: usuario no existe."),
           ...commonErrors,
         },
       },

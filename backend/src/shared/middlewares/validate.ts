@@ -45,3 +45,19 @@ export function validateQuery(schema: z.ZodType): RequestHandler {
     next();
   };
 }
+
+/** Validates req.params against a Zod schema and throws 400 on failure */
+export function validateParams(schema: z.ZodType): RequestHandler {
+  return (req, _res, next) => {
+    const result = schema.safeParse(req.params ?? {});
+
+    if (!result.success) {
+      const { formErrors, fieldErrors } = z.flattenError(result.error);
+      const details: Record<string, string[]> = { ...fieldErrors };
+
+      if (formErrors.length > 0) details._ = formErrors;
+      throw new ValidationError(details);
+    }
+    next();
+  };
+}
