@@ -17,6 +17,7 @@ import {
   enrollmentWithCourseSchema,
 } from "../modules/enrollments/enrollments.schemas.ts";
 import {
+  categorySchema,
   courseSchema,
   coursesListSchema,
   createCourseSchema,
@@ -104,6 +105,7 @@ Todos los errores tienen la forma \`{ "error": { "code", "message", "details"? }
   servers: [{ url: "/api/v1", description: "Servidor actual" }],
   tags: [
     { name: "Auth", description: "Registro, inicio de sesión y sesión" },
+    { name: "Categories", description: "Categorías de cursos" },
     { name: "Courses", description: "Catálogo público de cursos" },
     { name: "Admin — Courses", description: "CRUD de cursos (solo admin)" },
     { name: "Enrollments", description: "Inscripciones del estudiante" },
@@ -223,6 +225,27 @@ Todos los errores tienen la forma \`{ "error": { "code", "message", "details"? }
         },
       },
     },
+    "/categories": {
+      get: {
+        tags: ["Categories"],
+        summary: "Listar categorías",
+        description:
+          "Devuelve todas las categorías ordenadas por nombre. Disponible para todos sin autenticación.",
+        responses: {
+          "200": {
+            description: "Lista de categorías.",
+            content: {
+              "application/json": {
+                schema: z
+                  .object({ categories: z.array(categorySchema) })
+                  .meta({ id: "CategoriesResponse" }),
+              },
+            },
+          },
+          ...commonErrors,
+        },
+      },
+    },
     "/courses": {
       get: {
         tags: ["Courses"],
@@ -254,6 +277,38 @@ Todos los errores tienen la forma \`{ "error": { "code", "message", "details"? }
             content: { "application/json": { schema: coursesListSchema } },
           },
           "400": validationError,
+          ...commonErrors,
+        },
+      },
+    },
+    [`/courses/slug/{slug}`]: {
+      get: {
+        tags: ["Courses"],
+        summary: "Obtener un curso publicado por slug",
+        description:
+          "Devuelve el detalle de un curso publicado a partir de su slug. Devuelve 404 si no existe o está en draft.",
+        parameters: [
+          {
+            name: "slug",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Curso encontrado.",
+            content: {
+              "application/json": {
+                schema: z
+                  .object({ course: courseSchema })
+                  .meta({ id: "CourseBySlugResponse" }),
+              },
+            },
+          },
+          "404": errorResponse(
+            "`NOT_FOUND`: el curso no existe o no está publicado.",
+          ),
           ...commonErrors,
         },
       },
@@ -379,6 +434,9 @@ Todos los errores tienen la forma \`{ "error": { "code", "message", "details"? }
           "401": errorResponse("`UNAUTHORIZED`"),
           "403": errorResponse("`FORBIDDEN`"),
           "404": errorResponse("`NOT_FOUND`: el curso no existe."),
+          "409": errorResponse(
+            "`COURSE_HAS_ENROLLMENTS`: el curso tiene estudiantes inscritos.",
+          ),
           ...commonErrors,
         },
       },
