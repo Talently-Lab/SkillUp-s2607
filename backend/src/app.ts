@@ -11,6 +11,8 @@ import { AUTH_BASE_PATH } from "./modules/auth/auth.controller.ts";
 import { authRouter } from "./modules/auth/auth.routes.ts";
 import { COURSES_BASE_PATH } from "./modules/courses/courses.controller.ts";
 import { coursesRouter } from "./modules/courses/courses.routes.ts";
+import { CATEGORIES_BASE_PATH } from "./modules/categories/categories.controller.ts";
+import { categoriesRouter } from "./modules/categories/categories.routes.ts";
 import { COURSES_ADMIN_BASE_PATH } from "./modules/courses/courses-admin.controller.ts";
 import { coursesAdminRouter } from "./modules/courses/courses-admin.routes.ts";
 import { ENROLLMENTS_BASE_PATH } from "./modules/enrollments/enrollments.controller.ts";
@@ -43,6 +45,7 @@ app.get("/health", async (req, res) => {
 });
 
 app.use(AUTH_BASE_PATH, authRouter);
+app.use(CATEGORIES_BASE_PATH, categoriesRouter);
 app.use(COURSES_BASE_PATH, coursesRouter);
 app.use(COURSES_ADMIN_BASE_PATH, coursesAdminRouter);
 app.use(ENROLLMENTS_BASE_PATH, enrollmentsRouter);

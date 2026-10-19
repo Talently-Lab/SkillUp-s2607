@@ -73,6 +73,13 @@ export const courseSchema = z
     publishedAt: z.iso.datetime().nullable(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
+    category: categorySchema,
+    instructor: z
+      .object({
+        id: z.uuid(),
+        fullName: z.string(),
+      })
+      .nullable(),
   })
   .meta({ id: "Course" });
 
