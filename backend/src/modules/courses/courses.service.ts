@@ -41,19 +41,11 @@ function handleWriteError(err: unknown): never {
 }
 
 export const coursesService = {
-  async list(query: CoursesQuery) {
-    const { data, total } = await coursesRepository.findMany(query);
-    const totalPages = Math.ceil(total / query.limit);
-    return {
-      data,
-      pagination: { page: query.page, limit: query.limit, total, totalPages },
-    };
-  },
-
+  /** Public catalog: status is always forced to published */
   async listPublished(query: CoursesQuery) {
-    const { data, total } = await coursesRepository.findManyAdmin({
+    const { data, total } = await coursesRepository.findMany({
       ...query,
-      status: "published" as const,
+      status: "published",
     });
     const totalPages = Math.ceil(total / query.limit);
     return {

@@ -126,7 +126,7 @@ async function findPage(opts: FindManyOptions) {
     db
       .select(courseSelect)
       .from(courses)
-      .leftJoin(categories, eq(courses.categoryId, categories.id))
+      .innerJoin(categories, eq(courses.categoryId, categories.id))
       .leftJoin(users, eq(courses.instructorId, users.id))
       .where(where)
       .orderBy(desc(courses.createdAt), asc(courses.id))
@@ -142,7 +142,7 @@ async function findOneCourse(condition: SQL) {
   const rows = await db
     .select(courseSelect)
     .from(courses)
-    .leftJoin(categories, eq(courses.categoryId, categories.id))
+    .innerJoin(categories, eq(courses.categoryId, categories.id))
     .leftJoin(users, eq(courses.instructorId, users.id))
     .where(condition)
     .limit(1);
