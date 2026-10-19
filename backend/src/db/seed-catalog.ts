@@ -1,20 +1,8 @@
 import { eq } from "drizzle-orm";
-import { z } from "zod";
 import { db, pool } from "./client.ts";
 import { categories, courses } from "./schema/index.ts";
 
 /* eslint-disable no-console -- CLI script output */
-
-const parsed = z
-  .object({
-    SEED_ADMIN_EMAIL: z.string().optional(),
-  })
-  .safeParse(process.env);
-
-if (!parsed.success) {
-  console.error("Env error", parsed.error);
-  process.exit(1);
-}
 
 const CATEGORIES = [
   { slug: "datos", name: "Datos" },
