@@ -22,6 +22,20 @@
       "when": 1792057650452,
       "tag": "0002_add-courses-tables",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792104030484,
+      "tag": "0003_add-enrollments-table",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792391641601,
+      "tag": "0004_fix-enrollments-restrict-and-check",
+      "breakpoints": true
     }
   ]
 }
