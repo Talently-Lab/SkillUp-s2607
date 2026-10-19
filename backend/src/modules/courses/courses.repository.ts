@@ -82,18 +82,32 @@ export const coursesRepository = {
     );
   },
 
-  async create(data: NewCourse) {
-    const [course] = await db.insert(courses).values(data).returning();
-    return course!;
+  async findPublishedBySlug(slug: string) {
+    return findOneCourse(
+      and(eq(courses.slug, slug), eq(courses.status, "published"))!,
+    );
   },
 
-  async update(id: string, data: UpdateCourseInput) {
-    const [course] = await db
+  /** Returns the created course with category and instructor */
+  async create(data: NewCourse) {
+    const [created] = await db
+      .insert(courses)
+      .values(data)
+      .returning({ id: courses.id });
+    return (await findOneCourse(eq(courses.id, created!.id)))!;
+  },
+
+  /** Returns the updated course with category and instructor, or null if not found */
+  async update(
+    id: string,
+    data: UpdateCourseInput & { publishedAt?: Date | null | undefined },
+  ) {
+    const [updated] = await db
       .update(courses)
       .set(data)
       .where(eq(courses.id, id))
-      .returning();
-    return course ?? null;
+      .returning({ id: courses.id });
+    return updated ? findOneCourse(eq(courses.id, updated.id)) : null;
   },
 
   async remove(id: string) {

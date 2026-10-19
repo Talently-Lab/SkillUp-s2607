@@ -1,4 +1,3 @@
-import { and, eq } from "drizzle-orm";
 import {
   BadRequestError,
   ConflictError,
@@ -8,8 +7,6 @@ import {
   isForeignKeyViolation,
   isUniqueViolation,
 } from "../../shared/errors/db-errors.ts";
-import { db } from "../../db/client.ts";
-import { courses } from "../../db/schema/index.ts";
 import { coursesRepository } from "./courses.repository.ts";
 import type {
   AdminCoursesQuery,
@@ -83,9 +80,7 @@ export const coursesService = {
 
   /** Public: find published course by slug */
   async getPublishedBySlug(slug: string) {
-    const course = await db.query.courses.findFirst({
-      where: and(eq(courses.slug, slug), eq(courses.status, "published")),
-    });
+    const course = await coursesRepository.findPublishedBySlug(slug);
     if (!course) throw new NotFoundError("Course not found");
     return course;
   },
