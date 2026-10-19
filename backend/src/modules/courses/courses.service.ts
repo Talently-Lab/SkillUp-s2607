@@ -6,7 +6,6 @@ import {
 } from "../../shared/errors/app-error.ts";
 import {
   isForeignKeyViolation,
-  isRestrictViolation,
   isUniqueViolation,
 } from "../../shared/errors/db-errors.ts";
 import { db } from "../../db/client.ts";
@@ -124,7 +123,7 @@ export const coursesService = {
       const removed = await coursesRepository.remove(id);
       if (!removed) throw new NotFoundError("Course not found");
     } catch (err) {
-      if (isRestrictViolation(err))
+      if (isForeignKeyViolation(err))
         throw new ConflictError(
           "COURSE_HAS_ENROLLMENTS",
           "Cannot delete a course that has enrolled students",
