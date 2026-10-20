@@ -1,11 +1,15 @@
 import { useState } from "react";
 
 import { CourseCard } from "../../../shared/components/CourseCard";
-import { courses } from "../../../shared/mocks/courses";
+import { PageLoader } from "../../../shared/components/Loader";
+import { useFetch } from "../../../shared/hooks/useFetch";
+import { categoriesService } from "../../../shared/services/categoriesService";
+import { coursesService } from "../../../shared/services/coursesService";
 import { CatalogFilters } from "../components/CatalogFilters";
 import { FilterDrawer } from "../components/FilterDrawer";
 import { SortDropdown } from "../components/SortDropdown";
 import { useCatalogFilters } from "../hooks/useCatalogFilters";
+import AlertTriangleIcon from "../../../assets/icons/alert-triangle.svg";
 import CloseIcon from "../../../assets/icons/close.svg";
 import SearchIcon from "../../../assets/icons/search.svg";
 import SearchXIcon from "../../../assets/icons/search-x.svg";
@@ -13,14 +17,31 @@ import SlidersIcon from "../../../assets/icons/sliders.svg";
 import "./Catalog.css";
 
 export function Catalog() {
-  const catalog = useCatalogFilters();
+  const coursesQuery = useFetch("catalog-courses", coursesService.list);
+  const categoriesQuery = useFetch("categories", categoriesService.list);
+  const courses = coursesQuery.data ?? [];
+  const catalog = useCatalogFilters(courses);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const closeDrawer = () => setIsDrawerOpen(false);
   const resultCount = catalog.results.length;
 
+  // Without the categories endpoint the filter still works with the loaded courses
+  const categories =
+    categoriesQuery.data?.map((category) => category.name) ??
+    [...new Set(courses.map((course) => course.category))];
+  const categoryCounts = courses.reduce<Record<string, number>>(
+    (acc, course) => {
+      acc[course.category] = (acc[course.category] ?? 0) + 1;
+      return acc;
+    },
+    {},
+  );
+
   const renderFilters = (idPrefix: string) => (
     <CatalogFilters
       idPrefix={idPrefix}
+      categories={categories}
+      categoryCounts={categoryCounts}
       filters={catalog.filters}
       activeCount={catalog.activeCount}
       onToggleCategory={catalog.toggleCategory}
@@ -37,8 +58,8 @@ export function Catalog() {
         <div className="catalog-hero__inner container">
           <h1 className="catalog-hero__title">Catálogo de cursos</h1>
           <p className="catalog-hero__subtitle">
-            {courses.length} cursos online con certificado. Encuentra el tuyo y
-            empieza hoy.
+            {coursesQuery.data ? `${courses.length} cursos` : "Cursos"} online
+            con certificado. Encuentra el tuyo y empieza hoy.
           </p>
           <div className="catalog-search">
             <label htmlFor="catalog-search" className="visually-hidden">
@@ -83,8 +104,14 @@ export function Catalog() {
               className="catalog__count"
               aria-live="polite"
             >
-              <strong>{resultCount}</strong>{" "}
-              {resultCount === 1 ? "curso encontrado" : "cursos encontrados"}
+              {coursesQuery.data ? (
+                <>
+                  <strong>{resultCount}</strong>{" "}
+                  {resultCount === 1 ? "curso encontrado" : "cursos encontrados"}
+                </>
+              ) : (
+                "Cursos"
+              )}
             </h2>
             <div className="catalog__controls">
               <button
@@ -108,7 +135,32 @@ export function Catalog() {
             </div>
           </div>
 
-          {resultCount > 0 ? (
+          {coursesQuery.isLoading ? (
+            <PageLoader label="Cargando cursos…" />
+          ) : coursesQuery.error ? (
+            <div className="catalog-empty" role="alert">
+              <span className="catalog-empty__icon-wrap">
+                <img
+                  className="catalog-empty__icon"
+                  src={AlertTriangleIcon}
+                  alt=""
+                />
+              </span>
+              <h3 className="catalog-empty__title">
+                No pudimos cargar los cursos
+              </h3>
+              <p className="catalog-empty__text">
+                Revisa tu conexión e inténtalo de nuevo en unos segundos.
+              </p>
+              <button
+                type="button"
+                className="catalog-empty__btn"
+                onClick={coursesQuery.retry}
+              >
+                Reintentar
+              </button>
+            </div>
+          ) : resultCount > 0 ? (
             <ul className="catalog__grid">
               {catalog.results.map((course) => (
                 <li key={course.id}>
