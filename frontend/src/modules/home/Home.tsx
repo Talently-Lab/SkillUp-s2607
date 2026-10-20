@@ -1,10 +1,15 @@
 import { Link } from "react-router";
 
 import { CourseCard } from "../../shared/components/CourseCard";
-import { featuredCourses } from "../../shared/mocks/courses";
+import { Loader } from "../../shared/components/Loader";
+import { useFetch } from "../../shared/hooks/useFetch";
+import { coursesService } from "../../shared/services/coursesService";
 import ArrowRightIcon from "../../assets/icons/arrow-right.svg";
 import SearchIcon from "../../assets/icons/search.svg";
 import "./Home.css";
+
+/** One row of the grid on desktop */
+const FEATURED_LIMIT = 4;
 
 const steps = [
   {
@@ -22,6 +27,10 @@ const steps = [
 ];
 
 export function Home() {
+  const featured = useFetch("featured-courses", () =>
+    coursesService.listFeatured(FEATURED_LIMIT),
+  );
+
   return (
     <>
       <section className="hero">
@@ -73,13 +82,32 @@ export function Home() {
               <img className="featured__link-icon" src={ArrowRightIcon} alt="" />
             </Link>
           </div>
-          <ul className="featured__grid">
-            {featuredCourses.map((course) => (
-              <li key={course.id}>
-                <CourseCard course={course} />
-              </li>
-            ))}
-          </ul>
+          {featured.isLoading ? (
+            <div className="featured__status">
+              <Loader
+                size={32}
+                color="var(--color-primary)"
+                label="Cargando cursos destacados…"
+              />
+            </div>
+          ) : featured.data && featured.data.length > 0 ? (
+            <ul className="featured__grid">
+              {featured.data.map((course) => (
+                <li key={course.id}>
+                  <CourseCard course={course} />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="featured__status">
+              {featured.error
+                ? "No pudimos cargar los cursos destacados."
+                : "Pronto tendremos cursos destacados."}{" "}
+              <Link to="/catalog" className="featured__status-link">
+                Explora el catálogo
+              </Link>
+            </p>
+          )}
         </div>
       </section>
 
