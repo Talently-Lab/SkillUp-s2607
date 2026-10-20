@@ -31,7 +31,7 @@ export function CourseCard({ course }: CourseCardProps) {
       <div className="course-card__body">
         <p className="course-card__category">{course.category}</p>
         <h3 className="course-card__title">
-          <Link to={`/catalog/${course.id}`} className="course-card__link">
+          <Link to={`/catalog/${course.slug}`} className="course-card__link">
             {course.title}
           </Link>
         </h3>

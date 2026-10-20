@@ -10,9 +10,15 @@ import {
   isDraft,
   useAdminCourses,
 } from "@/modules/admin/hooks/useAdminCourses";
+import { courseErrorMessage } from "@/modules/admin/utils/courseErrorMessage";
 import { courseRevenue } from "@/modules/admin/utils/metrics";
+import { PageLoader } from "@/shared/components/Loader";
+import { useFetch } from "@/shared/hooks/useFetch";
+import { adminUsersService } from "@/shared/services/adminUsersService";
+import { categoriesService } from "@/shared/services/categoriesService";
 import type { Course, CourseInput } from "@/shared/types/course";
 import { formatMoneyRounded, formatNumber } from "@/shared/utils/format";
+import AlertIcon from "@/assets/icons/alert-triangle.svg";
 import PlusIcon from "@/assets/icons/plus.svg";
 import SearchXIcon from "@/assets/icons/search-x.svg";
 import "@/modules/admin/components/Button.css";
@@ -23,8 +29,11 @@ type FormTarget = { mode: "create" } | { mode: "edit"; course: Course } | null;
 export function AdminCourses() {
   const table = useAdminCourses();
   const { courses } = table;
+  const categoriesQuery = useFetch("categories", categoriesService.list);
+  const teachersQuery = useFetch("teachers", adminUsersService.listTeachers);
   const [formTarget, setFormTarget] = useState<FormTarget>(null);
   const [deleteTarget, setDeleteTarget] = useState<Course | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [notice, setNotice] = useState<NoticeContent | null>(null);
   const showNotice = (message: string) => setNotice({ message });
   const dismissNotice = useCallback(() => setNotice(null), []);
@@ -38,12 +47,19 @@ export function AdminCourses() {
     0,
   );
 
-  const handleSave = (input: CourseInput) => {
+  const categories = categoriesQuery.data ?? [];
+  // Without the categories endpoint the filter still works with the loaded courses
+  const categoryNames =
+    categoriesQuery.data?.map((category) => category.name) ??
+    [...new Set(courses.map((course) => course.category))];
+
+  // Errors reach the form, which shows them and stays open
+  const handleSave = async (input: CourseInput) => {
     if (formTarget?.mode === "edit") {
-      table.updateCourse(formTarget.course.id, input);
+      await table.updateCourse(formTarget.course.id, input);
       showNotice(`Cambios guardados en “${input.title}”.`);
     } else {
-      table.createCourse(input);
+      await table.createCourse(input);
       showNotice(
         input.status === "published"
           ? `“${input.title}” se creó y publicó.`
@@ -53,20 +69,31 @@ export function AdminCourses() {
     setFormTarget(null);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deleteTarget) return;
-    table.deleteCourse(deleteTarget.id);
-    showNotice(`“${deleteTarget.title}” se eliminó.`);
-    setDeleteTarget(null);
+    setIsDeleting(true);
+    try {
+      await table.deleteCourse(deleteTarget.id);
+      showNotice(`“${deleteTarget.title}” se eliminó.`);
+    } catch (error) {
+      showNotice(courseErrorMessage(error));
+    } finally {
+      setIsDeleting(false);
+      setDeleteTarget(null);
+    }
   };
 
-  const handleToggleStatus = (course: Course) => {
-    table.toggleStatus(course.id);
-    showNotice(
-      isDraft(course)
-        ? `“${course.title}” ya está publicado.`
-        : `“${course.title}” pasó a borrador.`,
-    );
+  const handleToggleStatus = async (course: Course) => {
+    try {
+      await table.toggleStatus(course);
+      showNotice(
+        isDraft(course)
+          ? `“${course.title}” ya está publicado.`
+          : `“${course.title}” pasó a borrador.`,
+      );
+    } catch (error) {
+      showNotice(courseErrorMessage(error));
+    }
   };
 
   const openCreate = () => setFormTarget({ mode: "create" });
@@ -94,6 +121,7 @@ export function AdminCourses() {
 
       <section aria-label="Listado de cursos" className="admin-page__panel">
         <CourseTableToolbar
+          categories={categoryNames}
           query={table.query}
           category={table.category}
           status={table.status}
@@ -103,7 +131,26 @@ export function AdminCourses() {
           onStatusChange={table.setStatus}
         />
 
-        {table.rows.length > 0 ? (
+        {table.isLoading ? (
+          <PageLoader label="Cargando cursos…" />
+        ) : table.hasError ? (
+          <div className="admin-page__empty" role="alert">
+            <MaskIcon src={AlertIcon} className="admin-page__empty-icon" />
+            <p className="admin-page__empty-title">
+              No pudimos cargar los cursos
+            </p>
+            <p className="admin-page__empty-text">
+              Revisa tu conexión e inténtalo de nuevo.
+            </p>
+            <button
+              type="button"
+              className="admin-button admin-button--secondary"
+              onClick={table.reload}
+            >
+              Reintentar
+            </button>
+          </div>
+        ) : table.rows.length > 0 ? (
           <CourseTable
             rows={table.rows}
             sort={table.sort}
@@ -145,16 +192,13 @@ export function AdminCourses() {
         </footer>
       </section>
 
-      <p className="admin-page__note">
-        Los cursos son de demostración: los cambios se pierden al recargar la
-        página.
-      </p>
-
       <Notice notice={notice} onDismiss={dismissNotice} />
 
       {formTarget && (
         <CourseFormModal
           course={formTarget.mode === "edit" ? formTarget.course : null}
+          categories={categories}
+          teachers={teachersQuery.data ?? []}
           onClose={() => setFormTarget(null)}
           onSave={handleSave}
         />
@@ -162,6 +206,7 @@ export function AdminCourses() {
       {deleteTarget && (
         <DeleteCourseModal
           course={deleteTarget}
+          isDeleting={isDeleting}
           onClose={() => setDeleteTarget(null)}
           onConfirm={handleDelete}
         />

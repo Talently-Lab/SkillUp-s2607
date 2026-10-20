@@ -1,15 +1,22 @@
-import type { Course, CourseLevel } from "../types/course";
+import { courseImages } from "../constants/course";
+import type { Course } from "../types/course";
 
-import DataAnalysisImage from "../../assets/images/courses/data-analysis.jpg";
-import UxUiImage from "../../assets/images/courses/ux-ui.jpg";
-import PythonImage from "../../assets/images/courses/python.jpg";
-import MarketingImage from "../../assets/images/courses/marketing.jpg";
-import FinanceImage from "../../assets/images/courses/finance.jpg";
-import EnglishImage from "../../assets/images/courses/english.jpg";
-import LeadershipImage from "../../assets/images/courses/leadership.jpg";
-import CloudImage from "../../assets/images/courses/cloud.jpg";
+const categories = [
+  "Datos",
+  "Diseño",
+  "Programación",
+  "Marketing",
+  "Finanzas",
+  "Idiomas",
+  "Liderazgo",
+  "Cloud",
+];
 
-export const courses: Course[] = [
+// The mock ids are the slugs of the seeded courses
+const mockCourses: Omit<
+  Course,
+  "slug" | "description" | "categoryId" | "instructorId"
+>[] = [
   {
     id: "analisis-datos-excel-powerbi",
     title: "Análisis de Datos con Excel y Power BI",
@@ -20,7 +27,7 @@ export const courses: Course[] = [
     price: 49,
     rating: 4.8,
     students: 3420,
-    image: DataAnalysisImage,
+    image: courseImages.dataAnalysis,
     instructor: "Lucía Fernández",
     featured: true,
   },
@@ -34,7 +41,7 @@ export const courses: Course[] = [
     price: 39,
     rating: 4.9,
     students: 2870,
-    image: UxUiImage,
+    image: courseImages.uxUi,
     instructor: "Martín Rojas",
     featured: true,
   },
@@ -48,7 +55,7 @@ export const courses: Course[] = [
     price: null,
     rating: 4.7,
     students: 5210,
-    image: PythonImage,
+    image: courseImages.python,
     instructor: "Andrés Castillo",
     featured: true,
   },
@@ -62,7 +69,7 @@ export const courses: Course[] = [
     price: 45,
     rating: 4.6,
     students: 1980,
-    image: MarketingImage,
+    image: courseImages.marketing,
     instructor: "Valentina Ortiz",
     featured: true,
   },
@@ -76,7 +83,7 @@ export const courses: Course[] = [
     price: null,
     rating: 4.5,
     students: 4100,
-    image: FinanceImage,
+    image: courseImages.finance,
     instructor: "Carlos Méndez",
     featured: false,
   },
@@ -90,7 +97,7 @@ export const courses: Course[] = [
     price: 59,
     rating: 4.7,
     students: 2650,
-    image: EnglishImage,
+    image: courseImages.english,
     instructor: "Emily Carter",
     featured: false,
   },
@@ -104,7 +111,7 @@ export const courses: Course[] = [
     price: 35,
     rating: 4.8,
     students: 1540,
-    image: LeadershipImage,
+    image: courseImages.leadership,
     instructor: "Sofía Herrera",
     featured: false,
   },
@@ -118,7 +125,7 @@ export const courses: Course[] = [
     price: 55,
     rating: 4.6,
     students: 1320,
-    image: CloudImage,
+    image: courseImages.cloud,
     instructor: "Diego Navarro",
     featured: false,
   },
@@ -132,7 +139,7 @@ export const courses: Course[] = [
     price: 29,
     rating: 4.8,
     students: 2210,
-    image: PythonImage,
+    image: courseImages.python,
     instructor: "Lucía Fernández",
     featured: false,
   },
@@ -146,7 +153,7 @@ export const courses: Course[] = [
     price: 42,
     rating: 4.7,
     students: 890,
-    image: UxUiImage,
+    image: courseImages.uxUi,
     instructor: "Martín Rojas",
     featured: false,
   },
@@ -160,7 +167,7 @@ export const courses: Course[] = [
     price: 69,
     rating: 4.9,
     students: 1760,
-    image: DataAnalysisImage,
+    image: courseImages.dataAnalysis,
     instructor: "Andrés Castillo",
     featured: false,
   },
@@ -174,35 +181,16 @@ export const courses: Course[] = [
     price: null,
     rating: 4.4,
     students: 3050,
-    image: MarketingImage,
+    image: courseImages.marketing,
     instructor: "Sofía Herrera",
     featured: false,
   },
 ];
 
-export const featuredCourses = courses.filter((course) => course.featured);
-
-export const categories = [
-  "Datos",
-  "Diseño",
-  "Programación",
-  "Marketing",
-  "Finanzas",
-  "Idiomas",
-  "Liderazgo",
-  "Cloud",
-];
-
-export const levels: CourseLevel[] = ["Principiante", "Intermedio", "Avanzado"];
-
-/** Cover images to pick from when creating a course */
-export const courseImages = [
-  DataAnalysisImage,
-  UxUiImage,
-  PythonImage,
-  MarketingImage,
-  FinanceImage,
-  EnglishImage,
-  LeadershipImage,
-  CloudImage,
-];
+export const courses: Course[] = mockCourses.map((course) => ({
+  ...course,
+  slug: course.id,
+  description: null,
+  categoryId: categories.indexOf(course.category) + 1,
+  instructorId: null,
+}));

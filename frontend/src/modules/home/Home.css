@@ -169,6 +169,23 @@
   height: 1rem;
 }
 
+.featured__status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
+  justify-content: center;
+  min-height: 12rem;
+  margin-top: 2.5rem;
+  color: var(--text-muted);
+}
+
+.featured__status-link {
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
 .featured__grid {
   display: grid;
   gap: 1.5rem;

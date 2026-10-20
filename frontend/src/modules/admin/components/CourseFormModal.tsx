@@ -2,69 +2,104 @@ import { useState, type FormEvent } from "react";
 
 import { Modal } from "@/modules/admin/components/Modal";
 import { SegmentedControl } from "@/modules/admin/components/SegmentedControl";
+import { courseErrorMessage } from "@/modules/admin/utils/courseErrorMessage";
 import { toForm, validate } from "@/modules/admin/utils/formValidations";
 import type { FormErrors, FormState } from "@/modules/admin/types";
+import { ApiError } from "@/shared/api/http";
 import { FormField } from "@/shared/components/FormField";
-import { categories, courseImages, levels } from "@/shared/mocks/courses";
+import { Loader } from "@/shared/components/Loader";
+import { coverOptions, levels } from "@/shared/constants/course";
+import type { Teacher } from "@/shared/services/adminUsersService";
+import type { Category } from "@/shared/types/category";
 import type { Course, CourseInput, CourseStatus } from "@/shared/types/course";
 import "./Button.css";
 import "./CourseFormModal.css";
 
-const emptyForm: FormState = {
+const emptyForm = (categories: Category[]): FormState => ({
   title: "",
-  category: categories[0],
-  instructor: "",
+  categoryId: categories[0] ? String(categories[0].id) : "",
+  instructorId: "",
   level: "Principiante",
   status: "draft",
   durationHours: "",
   lessons: "",
   price: "",
   isFree: false,
-  image: courseImages[0],
+  image: coverOptions[0],
   featured: false,
-};
+});
+
+/** Covers can come back from the API as absolute URLs */
+const sameImage = (a: string, b: string) =>
+  new URL(a, window.location.origin).href ===
+  new URL(b, window.location.origin).href;
 
 type CourseFormModalProps = {
   /** null creates a new course */
   course: Course | null;
+  categories: Category[];
+  teachers: Teacher[];
   onClose: () => void;
-  onSave: (input: CourseInput) => void;
+  /** Rejects with the API error, which is shown in the form */
+  onSave: (input: CourseInput) => Promise<void>;
 };
 
 export function CourseFormModal({
   course,
+  categories,
+  teachers,
   onClose,
   onSave,
 }: CourseFormModalProps) {
   const isEdit = course !== null;
   const [form, setForm] = useState<FormState>(() =>
-    course ? toForm(course) : emptyForm,
+    course ? toForm(course) : emptyForm(categories),
   );
   const [errors, setErrors] = useState<FormErrors>({});
+  const [formError, setFormError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Keeps the current teacher selectable if they are not in the list
+  const teacherOptions =
+    course?.instructorId &&
+    !teachers.some((teacher) => teacher.id === course.instructorId)
+      ? [...teachers, { id: course.instructorId, name: course.instructor }]
+      : teachers;
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
     setErrors((prev) => ({ ...prev, [key]: undefined }));
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (isSaving) return;
+
     const next = validate(form);
     setErrors(next);
+    setFormError(null);
     if (Object.values(next).some(Boolean)) return;
 
-    onSave({
-      title: form.title.trim(),
-      category: form.category,
-      instructor: form.instructor.trim(),
-      level: form.level,
-      status: form.status,
-      durationHours: Number(form.durationHours),
-      lessons: Number(form.lessons),
-      price: form.isFree ? null : Number(form.price),
-      image: form.image,
-      featured: form.featured,
-    });
+    setIsSaving(true);
+    try {
+      await onSave({
+        title: form.title.trim(),
+        categoryId: Number(form.categoryId),
+        instructorId: form.instructorId || null,
+        level: form.level,
+        status: form.status,
+        durationHours: Number(form.durationHours),
+        lessons: Number(form.lessons),
+        price: form.isFree ? null : Number(form.price),
+        image: form.image,
+        featured: form.featured,
+      });
+    } catch (error) {
+      if (error instanceof ApiError && error.code === "SLUG_TAKEN")
+        setErrors({ title: courseErrorMessage(error) });
+      else setFormError(courseErrorMessage(error));
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -89,8 +124,14 @@ export function CourseFormModal({
             type="submit"
             form="course-form"
             className="admin-button admin-button--primary"
+            disabled={isSaving}
           >
-            {isEdit ? "Guardar cambios" : "Crear curso"}
+            {isSaving && <Loader size={16} />}
+            {isSaving
+              ? "Guardando…"
+              : isEdit
+                ? "Guardar cambios"
+                : "Crear curso"}
           </button>
         </>
       }
@@ -101,6 +142,12 @@ export function CourseFormModal({
         noValidate
         onSubmit={handleSubmit}
       >
+        {formError && (
+          <p className="course-form__wide course-form__error" role="alert">
+            {formError}
+          </p>
+        )}
+
         <div className="course-form__wide">
           <FormField
             id="course-title"
@@ -121,24 +168,50 @@ export function CourseFormModal({
           <select
             id="course-form-category"
             className="course-form__select"
-            value={form.category}
-            onChange={(event) => set("category", event.target.value)}
+            value={form.categoryId}
+            onChange={(event) => set("categoryId", event.target.value)}
+            aria-invalid={Boolean(errors.categoryId)}
+            aria-describedby={
+              errors.categoryId ? "course-form-category-error" : undefined
+            }
           >
-            {categories.map((name) => (
-              <option key={name}>{name}</option>
+            {categories.length === 0 && (
+              <option value="">No hay categorías disponibles</option>
+            )}
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+          {errors.categoryId && (
+            <p
+              id="course-form-category-error"
+              className="course-form__field-error"
+            >
+              {errors.categoryId}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="course-form-teacher" className="course-form__label">
+            Docente
+          </label>
+          <select
+            id="course-form-teacher"
+            className="course-form__select"
+            value={form.instructorId}
+            onChange={(event) => set("instructorId", event.target.value)}
+          >
+            <option value="">Sin asignar</option>
+            {teacherOptions.map((teacher) => (
+              <option key={teacher.id} value={teacher.id}>
+                {teacher.name}
+              </option>
             ))}
           </select>
         </div>
-
-        <FormField
-          id="course-instructor"
-          label="Docente"
-          placeholder="Nombre y apellido"
-          required
-          value={form.instructor}
-          onChange={(event) => set("instructor", event.target.value)}
-          error={errors.instructor}
-        />
 
         <div>
           <p className="course-form__label">Nivel</p>
@@ -222,13 +295,13 @@ export function CourseFormModal({
         <fieldset className="course-form__wide course-form__images">
           <legend className="course-form__label">Imagen de portada</legend>
           <div className="course-form__image-grid">
-            {courseImages.map((src, index) => (
+            {coverOptions.map((src, index) => (
               <label key={src} className="course-form__image">
                 <input
                   type="radio"
                   name="course-image"
                   className="visually-hidden"
-                  checked={form.image === src}
+                  checked={sameImage(form.image, src)}
                   onChange={() => set("image", src)}
                   aria-label={`Imagen ${index + 1}`}
                 />

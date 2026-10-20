@@ -1,6 +1,5 @@
 import type { StatusFilter } from "@/modules/admin/hooks/useAdminCourses";
 import { MaskIcon } from "@/modules/admin/components/MaskIcon";
-import { categories } from "@/shared/mocks/courses";
 import CloseIcon from "@/assets/icons/close.svg";
 import SearchIcon from "@/assets/icons/search.svg";
 import "./TableToolbar.css";
@@ -12,6 +11,7 @@ const statusTabs: { value: StatusFilter; label: string }[] = [
 ];
 
 type CourseTableToolbarProps = {
+  categories: string[];
   query: string;
   category: string;
   status: StatusFilter;
@@ -22,6 +22,7 @@ type CourseTableToolbarProps = {
 };
 
 export function CourseTableToolbar({
+  categories,
   query,
   category,
   status,

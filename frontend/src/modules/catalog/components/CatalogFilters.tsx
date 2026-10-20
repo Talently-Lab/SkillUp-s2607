@@ -1,4 +1,3 @@
-import { categories, courses } from "../../../shared/mocks/courses";
 import type { CourseLevel } from "../../../shared/types/course";
 import {
   durationOptions,
@@ -11,6 +10,9 @@ import type { CatalogFilterState } from "../hooks/useCatalogFilters";
 import "./CatalogFilters.css";
 
 type CatalogFiltersProps = {
+  categories: string[];
+  /** Published courses per category name */
+  categoryCounts: Record<string, number>;
   filters: CatalogFilterState;
   activeCount: number;
   onToggleCategory: (category: string) => void;
@@ -22,15 +24,9 @@ type CatalogFiltersProps = {
   idPrefix: string;
 };
 
-const categoryCounts = courses.reduce<Record<string, number>>(
-  (acc, course) => {
-    acc[course.category] = (acc[course.category] ?? 0) + 1;
-    return acc;
-  },
-  {},
-);
-
 export function CatalogFilters({
+  categories,
+  categoryCounts,
   filters,
   activeCount,
   onToggleCategory,

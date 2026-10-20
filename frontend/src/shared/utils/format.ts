@@ -29,6 +29,13 @@ export function normalizeText(value: string): string {
   return value.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 }
 
+/** "Diseño UX/UI" → "diseno-ux-ui" */
+export function toSlug(value: string): string {
+  return normalizeText(value)
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 const moneyRounded = new Intl.NumberFormat("es-AR", {
   style: "currency",
   currency: "USD",

@@ -2,9 +2,20 @@ import { syllabi } from "@/shared/mocks/syllabi";
 import type { Course } from "@/shared/types/course";
 import type { CourseSyllabus } from "@/shared/types/syllabus";
 
-/** Courses without a written syllabus get a generic one built from their data. */
+/**
+ * Courses without a written syllabus get a generic one built from their data.
+ * The API has no syllabus yet, so the mocks are matched by slug, and the
+ * course description replaces the mock one when there is one.
+ */
 export function getSyllabus(course: Course): CourseSyllabus {
-  const found = syllabi.find((s) => s.courseId === course.id);
+  const syllabus = findSyllabus(course);
+  return course.description
+    ? { ...syllabus, description: [course.description] }
+    : syllabus;
+}
+
+function findSyllabus(course: Course): CourseSyllabus {
+  const found = syllabi.find((s) => s.courseId === course.slug);
   if (found) return found;
 
   const topic = course.category.toLowerCase();

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router";
 
-import { courses } from "../../../shared/mocks/courses";
 import type { Course, CourseLevel } from "../../../shared/types/course";
 import { normalizeText } from "../../../shared/utils/format";
 import type {
@@ -74,7 +73,7 @@ function toggle<T>(list: T[], value: T): T[] {
 }
 
 /** The search query lives in the URL (?q=) so it can be shared or linked. */
-export function useCatalogFilters() {
+export function useCatalogFilters(courses: Course[]) {
   const [params, setParams] = useSearchParams();
   const [filters, setFilters] = useState<CatalogFilterState>(initialFilters);
   const [sort, setSort] = useState<SortOption>("popular");

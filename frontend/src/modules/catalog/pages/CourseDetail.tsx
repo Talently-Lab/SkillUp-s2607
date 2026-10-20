@@ -1,7 +1,10 @@
 import { useEffect } from "react";
 import { Link, useParams } from "react-router";
 
-import { courses } from "../../../shared/mocks/courses";
+import { ApiError } from "../../../shared/api/http";
+import { PageLoader } from "../../../shared/components/Loader";
+import { useFetch } from "../../../shared/hooks/useFetch";
+import { coursesService } from "../../../shared/services/coursesService";
 import { formatNumber } from "../../../shared/utils/format";
 import { CourseReviews } from "../components/CourseReviews";
 import { EnrollCard } from "../components/EnrollCard";
@@ -19,13 +22,40 @@ import StarFilledIcon from "../../../assets/icons/star-filled.svg";
 import "./CourseDetail.css";
 
 export function CourseDetail() {
-  const { courseId } = useParams();
-  const course = courses.find((item) => item.id === courseId);
+  const { slug = "" } = useParams();
+  const {
+    data: course,
+    error,
+    isLoading,
+    retry,
+  } = useFetch(`course-${slug}`, () => coursesService.getBySlug(slug));
 
   // Coming from the catalog the page would keep its scroll position
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [courseId]);
+  }, [slug]);
+
+  if (isLoading) return <PageLoader label="Cargando curso…" />;
+
+  if (error && !(error instanceof ApiError && error.status === 404)) {
+    return (
+      <div className="course-not-found container" role="alert">
+        <h1 className="course-not-found__title">
+          No pudimos cargar este curso
+        </h1>
+        <p className="course-not-found__text">
+          Revisa tu conexión e inténtalo de nuevo en unos segundos.
+        </p>
+        <button
+          type="button"
+          className="course-not-found__btn"
+          onClick={retry}
+        >
+          Reintentar
+        </button>
+      </div>
+    );
+  }
 
   if (!course) {
     return (

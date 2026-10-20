@@ -2,8 +2,9 @@ import type { CourseLevel, CourseStatus } from "@/shared/types/course";
 
 export type FormState = {
   title: string;
-  category: string;
-  instructor: string;
+  categoryId: string;
+  /** Empty when the course has no teacher */
+  instructorId: string;
   level: CourseLevel;
   status: CourseStatus;
   durationHours: string;
@@ -15,5 +16,5 @@ export type FormState = {
 };
 
 export type FormErrors = Partial<
-  Record<"title" | "instructor" | "durationHours" | "lessons" | "price", string>
+  Record<"title" | "categoryId" | "durationHours" | "lessons" | "price", string>
 >;
