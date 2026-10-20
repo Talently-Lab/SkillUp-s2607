@@ -19,7 +19,7 @@ function App() {
       <Route element=<PublicLayout />>
         <Route path="/" element=<Home /> />
         <Route path="/catalog" element=<Catalog /> />
-        <Route path="/catalog/:courseId" element=<CourseDetail /> />
+        <Route path="/catalog/:slug" element=<CourseDetail /> />
         {/* The student panel keeps the site header, so it lives in the public layout */}
         <Route
           path="/student"
