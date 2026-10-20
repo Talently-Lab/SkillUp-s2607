@@ -1,7 +1,7 @@
 import { courseImages } from "../constants/course";
 import type { Course } from "../types/course";
 
-export const categories = [
+const categories = [
   "Datos",
   "Diseño",
   "Programación",
@@ -194,5 +194,3 @@ export const courses: Course[] = mockCourses.map((course) => ({
   categoryId: categories.indexOf(course.category) + 1,
   instructorId: null,
 }));
-
-export const featuredCourses = courses.filter((course) => course.featured);
