@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { courseRevenue } from "@/modules/admin/utils/metrics";
-import { courses as mockCourses } from "@/shared/mocks/courses";
+import { adminCoursesService } from "@/shared/services/coursesService";
 import type { Course, CourseInput, CourseStatus } from "@/shared/types/course";
 import { normalizeText } from "@/shared/utils/format";
 
@@ -14,15 +14,9 @@ export type SortKey =
   | "students"
   | "revenue";
 export type SortState = { key: SortKey; dir: "asc" | "desc" };
+type LoadStatus = "loading" | "ready" | "error";
 
 export const isDraft = (course: Course) => course.status === "draft";
-
-function createId(title: string): string {
-  const slug = normalizeText(title)
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-  return `${slug}-${Math.random().toString(36).slice(2, 6)}`;
-}
 
 function sortValue(course: Course, key: SortKey): string | number {
   if (key === "price") return course.price ?? 0;
@@ -30,12 +24,40 @@ function sortValue(course: Course, key: SortKey): string | number {
   return course[key];
 }
 
+/**
+ * Loads every course once and filters and sorts them here. The mutations
+ * throw the API error so the caller can show it.
+ */
 export function useAdminCourses() {
-  const [courses, setCourses] = useState<Course[]>(mockCourses);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loadStatus, setLoadStatus] = useState<LoadStatus>("loading");
+  const [attempt, setAttempt] = useState(0);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [status, setStatus] = useState<StatusFilter>("all");
   const [sort, setSort] = useState<SortState>({ key: "title", dir: "asc" });
+
+  useEffect(() => {
+    let ignore = false;
+    adminCoursesService.list().then(
+      (data) => {
+        if (ignore) return;
+        setCourses(data);
+        setLoadStatus("ready");
+      },
+      () => {
+        if (!ignore) setLoadStatus("error");
+      },
+    );
+    return () => {
+      ignore = true;
+    };
+  }, [attempt]);
+
+  const reload = () => {
+    setLoadStatus("loading");
+    setAttempt((prev) => prev + 1);
+  };
 
   const counts: Record<StatusFilter, number> = {
     all: courses.length,
@@ -78,33 +100,39 @@ export function useAdminCourses() {
     setStatus("all");
   };
 
-  const createCourse = (input: CourseInput) =>
-    setCourses((prev) => [
-      { ...input, id: createId(input.title), rating: 0, students: 0 },
-      ...prev,
-    ]);
-
-  const updateCourse = (id: string, input: CourseInput) =>
+  const replaceCourse = (updated: Course) =>
     setCourses((prev) =>
-      prev.map((course) =>
-        course.id === id ? { ...course, ...input } : course,
-      ),
+      prev.map((course) => (course.id === updated.id ? updated : course)),
     );
 
-  const deleteCourse = (id: string) =>
+  const createCourse = async (input: CourseInput) => {
+    const created = await adminCoursesService.create(input);
+    setCourses((prev) => [created, ...prev]);
+  };
+
+  const updateCourse = async (id: string, input: CourseInput) => {
+    replaceCourse(await adminCoursesService.update(id, input));
+  };
+
+  const deleteCourse = async (id: string) => {
+    await adminCoursesService.remove(id);
     setCourses((prev) => prev.filter((course) => course.id !== id));
+  };
 
-  const toggleStatus = (id: string) =>
-    setCourses((prev) =>
-      prev.map((course) =>
-        course.id === id
-          ? { ...course, status: isDraft(course) ? "published" : "draft" }
-          : course,
+  const toggleStatus = async (course: Course) => {
+    replaceCourse(
+      await adminCoursesService.setStatus(
+        course.id,
+        isDraft(course) ? "published" : "draft",
       ),
     );
+  };
 
   return {
     courses,
+    isLoading: loadStatus === "loading",
+    hasError: loadStatus === "error",
+    reload,
     rows,
     counts,
     query,

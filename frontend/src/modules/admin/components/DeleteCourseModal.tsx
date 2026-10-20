@@ -1,5 +1,6 @@
 import { MaskIcon } from "@/modules/admin/components/MaskIcon";
 import { Modal } from "@/modules/admin/components/Modal";
+import { Loader } from "@/shared/components/Loader";
 import type { Course } from "@/shared/types/course";
 import { formatNumber } from "@/shared/utils/format";
 import AlertIcon from "@/assets/icons/alert-triangle.svg";
@@ -9,12 +10,15 @@ import "./ConfirmMessage.css";
 
 type DeleteCourseModalProps = {
   course: Course;
+  /** True while the delete request is running */
+  isDeleting: boolean;
   onClose: () => void;
   onConfirm: () => void;
 };
 
 export function DeleteCourseModal({
   course,
+  isDeleting,
   onClose,
   onConfirm,
 }: DeleteCourseModalProps) {
@@ -37,9 +41,10 @@ export function DeleteCourseModal({
             type="button"
             className="admin-button admin-button--danger"
             onClick={onConfirm}
+            disabled={isDeleting}
           >
-            <MaskIcon src={TrashIcon} />
-            Eliminar curso
+            {isDeleting ? <Loader size={16} /> : <MaskIcon src={TrashIcon} />}
+            {isDeleting ? "Eliminando…" : "Eliminar curso"}
           </button>
         </>
       }

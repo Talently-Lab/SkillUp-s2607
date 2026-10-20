@@ -1,7 +1,22 @@
 import { courseImages } from "../constants/course";
 import type { Course } from "../types/course";
 
-export const courses: Course[] = [
+export const categories = [
+  "Datos",
+  "Diseño",
+  "Programación",
+  "Marketing",
+  "Finanzas",
+  "Idiomas",
+  "Liderazgo",
+  "Cloud",
+];
+
+// The mock ids are the slugs of the seeded courses
+const mockCourses: Omit<
+  Course,
+  "slug" | "description" | "categoryId" | "instructorId"
+>[] = [
   {
     id: "analisis-datos-excel-powerbi",
     title: "Análisis de Datos con Excel y Power BI",
@@ -172,15 +187,12 @@ export const courses: Course[] = [
   },
 ];
 
-export const featuredCourses = courses.filter((course) => course.featured);
+export const courses: Course[] = mockCourses.map((course) => ({
+  ...course,
+  slug: course.id,
+  description: null,
+  categoryId: categories.indexOf(course.category) + 1,
+  instructorId: null,
+}));
 
-export const categories = [
-  "Datos",
-  "Diseño",
-  "Programación",
-  "Marketing",
-  "Finanzas",
-  "Idiomas",
-  "Liderazgo",
-  "Cloud",
-];
+export const featuredCourses = courses.filter((course) => course.featured);
