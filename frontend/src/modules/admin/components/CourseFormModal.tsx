@@ -5,7 +5,8 @@ import { SegmentedControl } from "@/modules/admin/components/SegmentedControl";
 import { toForm, validate } from "@/modules/admin/utils/formValidations";
 import type { FormErrors, FormState } from "@/modules/admin/types";
 import { FormField } from "@/shared/components/FormField";
-import { categories, courseImages, levels } from "@/shared/mocks/courses";
+import { coverOptions, levels } from "@/shared/constants/course";
+import { categories } from "@/shared/mocks/courses";
 import type { Course, CourseInput, CourseStatus } from "@/shared/types/course";
 import "./Button.css";
 import "./CourseFormModal.css";
@@ -20,7 +21,7 @@ const emptyForm: FormState = {
   lessons: "",
   price: "",
   isFree: false,
-  image: courseImages[0],
+  image: coverOptions[0],
   featured: false,
 };
 
@@ -222,7 +223,7 @@ export function CourseFormModal({
         <fieldset className="course-form__wide course-form__images">
           <legend className="course-form__label">Imagen de portada</legend>
           <div className="course-form__image-grid">
-            {courseImages.map((src, index) => (
+            {coverOptions.map((src, index) => (
               <label key={src} className="course-form__image">
                 <input
                   type="radio"

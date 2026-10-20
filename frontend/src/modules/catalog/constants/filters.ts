@@ -1,10 +1,8 @@
-import type { CourseLevel } from "../../../shared/types/course";
-
 export type PriceFilter = "all" | "free" | "paid";
 export type DurationFilter = "all" | "short" | "medium" | "long";
 export type SortOption = "popular" | "rating" | "shortest" | "price";
 
-export const levels: CourseLevel[] = ["Principiante", "Intermedio", "Avanzado"];
+export { levels } from "../../../shared/constants/course";
 
 export const priceOptions: { value: PriceFilter; label: string }[] = [
   { value: "all", label: "Todos" },
