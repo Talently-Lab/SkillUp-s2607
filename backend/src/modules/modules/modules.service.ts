@@ -4,6 +4,7 @@ import {
 } from "../../shared/errors/app-error.ts";
 import { isUniqueViolation } from "../../shared/errors/db-errors.ts";
 import { coursesRepository } from "../courses/courses.repository.ts";
+import { progressRepository } from "../enrollments/progress.repository.ts";
 import { modulesRepository } from "./modules.repository.ts";
 import type {
   CreateLessonInput,
@@ -66,6 +67,8 @@ export const modulesService = {
     if (!existing) throw new NotFoundError("Module not found");
     const removed = await modulesRepository.deleteModule(moduleId);
     if (!removed) throw new NotFoundError("Module not found");
+    // Deleting a module cascades to its lessons and their progress; recompute affected enrollments
+    await progressRepository.recalcCourseProgress(courseId);
   },
   // ── Lessons ───────────────────────────────────────────────────────────────
   async createLesson(
@@ -122,5 +125,7 @@ export const modulesService = {
     if (!existing) throw new NotFoundError("Lesson not found");
     const removed = await modulesRepository.deleteLesson(lessonId);
     if (!removed) throw new NotFoundError("Lesson not found");
+    // Deleting a lesson cascades to its progress rows; recompute affected enrollments
+    await progressRepository.recalcCourseProgress(courseId);
   },
 };

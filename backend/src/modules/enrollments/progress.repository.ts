@@ -68,4 +68,16 @@ export const progressRepository = {
       })
       .where(eq(enrollments.id, enrollmentId));
   },
+  /** Recalculates progressPercent for every enrollment of a course (e.g. after a lesson or module is deleted) */
+  async recalcCourseProgress(courseId: string) {
+    const rows = await db
+      .select({ id: enrollments.id })
+      .from(enrollments)
+      .where(eq(enrollments.courseId, courseId));
+    for (const { id } of rows) {
+      const { total, completed } = await this.getProgress(id, courseId);
+      const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+      await this.updateProgressPercent(id, percent);
+    }
+  },
 };
