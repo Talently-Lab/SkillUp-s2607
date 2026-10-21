@@ -23,6 +23,14 @@ import {
   createCourseSchema,
   updateCourseSchema,
 } from "../modules/courses/courses.schemas.ts";
+import {
+  createLessonSchema,
+  createModuleSchema,
+  lessonSchema,
+  moduleSchema,
+  updateLessonSchema,
+  updateModuleSchema,
+} from "../modules/modules/modules.schemas.ts";
 
 const errorSchema = z
   .object({
@@ -109,7 +117,16 @@ Todos los errores tienen la forma \`{ "error": { "code", "message", "details"? }
     { name: "Courses", description: "Catálogo público de cursos" },
     { name: "Admin — Courses", description: "CRUD de cursos (solo admin)" },
     { name: "Enrollments", description: "Inscripciones del estudiante" },
+    {
+      name: "Modules & Lessons",
+      description: "Módulos y lecciones de un curso",
+    },
+    { name: "Progress", description: "Progreso del estudiante en un curso" },
     { name: "Admin — Users", description: "Gestión de usuarios (solo admin)" },
+    {
+      name: "Admin — Stats",
+      description: "Estadísticas de la plataforma (solo admin)",
+    },
   ],
   components: {
     securitySchemes: {
@@ -626,6 +643,431 @@ Todos los errores tienen la forma \`{ "error": { "code", "message", "details"? }
             "`FORBIDDEN`: no es admin, intenta suspender a un admin, o se auto-suspende.",
           ),
           "404": errorResponse("`NOT_FOUND`: usuario no existe."),
+          ...commonErrors,
+        },
+      },
+    },
+    [`/courses/{courseId}/modules`]: {
+      get: {
+        tags: ["Modules & Lessons"],
+        summary: "Listar módulos y lecciones de un curso",
+        description:
+          "Devuelve los módulos (con sus lecciones) de un curso publicado, ordenados por posición. Disponible para todos sin autenticación.",
+        parameters: [
+          {
+            name: "courseId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Lista de módulos con sus lecciones.",
+            content: {
+              "application/json": {
+                schema: z
+                  .object({ modules: z.array(moduleSchema) })
+                  .meta({ id: "ModulesListResponse" }),
+              },
+            },
+          },
+          "400": errorResponse(
+            "`VALIDATION_ERROR`: courseId no es un UUID válido.",
+          ),
+          "404": errorResponse(
+            "`NOT_FOUND`: el curso no existe o no está publicado.",
+          ),
+          ...commonErrors,
+        },
+      },
+    },
+    [`/admin/courses/{courseId}/modules`]: {
+      post: {
+        tags: ["Modules & Lessons"],
+        summary: "Crear un módulo (admin)",
+        description:
+          "Crea un módulo en un curso. Solo admins. La posición es única por curso; repetirla devuelve 409 `POSITION_TAKEN`.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "courseId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: { "application/json": { schema: createModuleSchema } },
+        },
+        responses: {
+          "201": {
+            description: "Módulo creado.",
+            content: {
+              "application/json": {
+                schema: z
+                  .object({ module: moduleSchema })
+                  .meta({ id: "ModuleCreatedResponse" }),
+              },
+            },
+          },
+          "400": validationError,
+          "401": errorResponse("`UNAUTHORIZED`: falta el token."),
+          "403": errorResponse("`FORBIDDEN`: el usuario no es admin."),
+          "404": errorResponse("`NOT_FOUND`: el curso no existe."),
+          "409": errorResponse(
+            "`POSITION_TAKEN`: ya existe un módulo con esa posición.",
+          ),
+          ...commonErrors,
+        },
+      },
+    },
+    [`/admin/courses/{courseId}/modules/{moduleId}`]: {
+      put: {
+        tags: ["Modules & Lessons"],
+        summary: "Actualizar un módulo (admin)",
+        description:
+          "Actualiza los campos enviados del módulo. El módulo debe pertenecer al curso de la URL.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "courseId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+          {
+            name: "moduleId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: { "application/json": { schema: updateModuleSchema } },
+        },
+        responses: {
+          "200": {
+            description: "Módulo actualizado.",
+            content: {
+              "application/json": {
+                schema: z
+                  .object({ module: moduleSchema })
+                  .meta({ id: "ModuleUpdatedResponse" }),
+              },
+            },
+          },
+          "400": validationError,
+          "401": errorResponse("`UNAUTHORIZED`"),
+          "403": errorResponse("`FORBIDDEN`"),
+          "404": errorResponse(
+            "`NOT_FOUND`: el módulo no existe o no pertenece al curso.",
+          ),
+          "409": errorResponse("`POSITION_TAKEN`."),
+          ...commonErrors,
+        },
+      },
+      delete: {
+        tags: ["Modules & Lessons"],
+        summary: "Eliminar un módulo (admin)",
+        description:
+          "Elimina un módulo y, en cascada, sus lecciones. El módulo debe pertenecer al curso de la URL.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "courseId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+          {
+            name: "moduleId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: {
+          "204": { description: "Módulo eliminado." },
+          "401": errorResponse("`UNAUTHORIZED`"),
+          "403": errorResponse("`FORBIDDEN`"),
+          "404": errorResponse("`NOT_FOUND`: el módulo no existe."),
+          ...commonErrors,
+        },
+      },
+    },
+    [`/admin/courses/{courseId}/modules/{moduleId}/lessons`]: {
+      post: {
+        tags: ["Modules & Lessons"],
+        summary: "Crear una lección (admin)",
+        description:
+          "Crea una lección dentro de un módulo. La posición es única por módulo; repetirla devuelve 409 `POSITION_TAKEN`.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "courseId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+          {
+            name: "moduleId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: { "application/json": { schema: createLessonSchema } },
+        },
+        responses: {
+          "201": {
+            description: "Lección creada.",
+            content: {
+              "application/json": {
+                schema: z
+                  .object({ lesson: lessonSchema })
+                  .meta({ id: "LessonCreatedResponse" }),
+              },
+            },
+          },
+          "400": validationError,
+          "401": errorResponse("`UNAUTHORIZED`"),
+          "403": errorResponse("`FORBIDDEN`"),
+          "404": errorResponse(
+            "`NOT_FOUND`: el módulo no existe o no pertenece al curso.",
+          ),
+          "409": errorResponse("`POSITION_TAKEN`."),
+          ...commonErrors,
+        },
+      },
+    },
+    [`/admin/courses/{courseId}/modules/{moduleId}/lessons/{lessonId}`]: {
+      put: {
+        tags: ["Modules & Lessons"],
+        summary: "Actualizar una lección (admin)",
+        description:
+          "Actualiza los campos enviados de la lección. La lección debe pertenecer al módulo y curso de la URL.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "courseId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+          {
+            name: "moduleId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+          {
+            name: "lessonId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: { "application/json": { schema: updateLessonSchema } },
+        },
+        responses: {
+          "200": {
+            description: "Lección actualizada.",
+            content: {
+              "application/json": {
+                schema: z
+                  .object({ lesson: lessonSchema })
+                  .meta({ id: "LessonUpdatedResponse" }),
+              },
+            },
+          },
+          "400": validationError,
+          "401": errorResponse("`UNAUTHORIZED`"),
+          "403": errorResponse("`FORBIDDEN`"),
+          "404": errorResponse(
+            "`NOT_FOUND`: la lección no existe o no pertenece al módulo.",
+          ),
+          "409": errorResponse("`POSITION_TAKEN`."),
+          ...commonErrors,
+        },
+      },
+      delete: {
+        tags: ["Modules & Lessons"],
+        summary: "Eliminar una lección (admin)",
+        description:
+          "Elimina una lección. La lección debe pertenecer al módulo y curso de la URL.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "courseId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+          {
+            name: "moduleId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+          {
+            name: "lessonId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: {
+          "204": { description: "Lección eliminada." },
+          "401": errorResponse("`UNAUTHORIZED`"),
+          "403": errorResponse("`FORBIDDEN`"),
+          "404": errorResponse("`NOT_FOUND`: la lección no existe."),
+          ...commonErrors,
+        },
+      },
+    },
+    [`/enrollments/{enrollmentId}/progress`]: {
+      get: {
+        tags: ["Progress"],
+        summary: "Obtener el progreso de una inscripción",
+        description:
+          "Devuelve el progreso del estudiante autenticado en la inscripción indicada. Solo el dueño de la inscripción puede consultarlo.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "enrollmentId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Progreso de la inscripción.",
+            content: {
+              "application/json": {
+                schema: z
+                  .object({
+                    enrollmentId: z.uuid(),
+                    progressPercent: z.number().int().min(0).max(100),
+                    status: z.enum(["active", "completed"]),
+                    total: z.number().int(),
+                    completedLessons: z.array(
+                      z.object({
+                        lessonId: z.uuid(),
+                        completedAt: z.iso.datetime(),
+                      }),
+                    ),
+                  })
+                  .meta({ id: "ProgressResponse" }),
+              },
+            },
+          },
+          "400": errorResponse(
+            "`VALIDATION_ERROR`: enrollmentId no es un UUID válido.",
+          ),
+          "401": errorResponse("`UNAUTHORIZED`."),
+          "403": errorResponse("`FORBIDDEN`: el usuario no es estudiante."),
+          "404": errorResponse("`NOT_FOUND`: la inscripción no existe."),
+          ...commonErrors,
+        },
+      },
+    },
+    [`/enrollments/{enrollmentId}/progress/lessons/{lessonId}/complete`]: {
+      post: {
+        tags: ["Progress"],
+        summary: "Marcar una lección como completada",
+        description:
+          "Registra la lección como completada para la inscripción y recalcula el porcentaje. La lección debe pertenecer al curso de la inscripción. Si ya estaba completada devuelve 409 `ALREADY_COMPLETED`.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "enrollmentId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+          {
+            name: "lessonId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: {
+          "201": {
+            description: "Lección marcada como completada.",
+            content: {
+              "application/json": {
+                schema: z
+                  .object({
+                    lessonId: z.uuid(),
+                    completedAt: z.iso.datetime(),
+                    progressPercent: z.number().int().min(0).max(100),
+                  })
+                  .meta({ id: "CompleteLessonResponse" }),
+              },
+            },
+          },
+          "400": errorResponse("`VALIDATION_ERROR`."),
+          "401": errorResponse("`UNAUTHORIZED`."),
+          "403": errorResponse("`FORBIDDEN`: el usuario no es estudiante."),
+          "404": errorResponse(
+            "`NOT_FOUND`: la inscripción o la lección no existen, o la lección no pertenece al curso.",
+          ),
+          "409": errorResponse("`ALREADY_COMPLETED`."),
+          ...commonErrors,
+        },
+      },
+    },
+    [`/admin/stats`]: {
+      get: {
+        tags: ["Admin — Stats"],
+        summary: "Estadísticas de la plataforma (admin)",
+        description:
+          "Devuelve métricas generales: total de cursos (y publicados), estudiantes, inscripciones (y completadas), tasa de finalización y top 5 cursos por estudiantes.",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          "200": {
+            description: "Estadísticas de la plataforma.",
+            content: {
+              "application/json": {
+                schema: z
+                  .object({
+                    courses: z.object({
+                      total: z.number().int(),
+                      published: z.number().int(),
+                    }),
+                    students: z.object({ total: z.number().int() }),
+                    enrollments: z.object({
+                      total: z.number().int(),
+                      completed: z.number().int(),
+                    }),
+                    completionRate: z.number(),
+                    topCourses: z.array(
+                      z.object({
+                        id: z.uuid(),
+                        slug: z.string(),
+                        title: z.string(),
+                        studentsCount: z.number().int(),
+                        ratingAvg: z.number().nullable(),
+                        priceCents: z.number().int(),
+                        currency: z.string().length(3),
+                      }),
+                    ),
+                  })
+                  .meta({ id: "StatsResponse" }),
+              },
+            },
+          },
+          "401": errorResponse("`UNAUTHORIZED`: falta el token."),
+          "403": errorResponse("`FORBIDDEN`: el usuario no es admin."),
           ...commonErrors,
         },
       },
