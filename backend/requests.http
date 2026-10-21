@@ -231,7 +231,7 @@ Authorization: Bearer {{loginAdmin.response.body.accessToken}}
 
 ### ---------- Student — Progress ----------
 
-### Get enrollment id first
+### Get enrollment id first — response includes category, instructor, lessonsCount, durationMinutes
 # @name myEnrollments
 GET {{api}}/enrollments/me
 Authorization: Bearer {{loginStudent.response.body.accessToken}}

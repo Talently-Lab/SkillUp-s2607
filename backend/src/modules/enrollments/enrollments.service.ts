@@ -27,6 +27,37 @@ export const enrollmentsService = {
   },
 
   async getMyEnrollments(userId: string) {
-    return enrollmentsRepository.findManyByUser(userId);
+    const rows = await enrollmentsRepository.findManyByUser(userId);
+    // Reshape the flat select into the nested { course: { ..., category, instructor } } shape
+    return rows.map(
+      ({
+        courseSlug,
+        courseTitle,
+        courseCoverUrl,
+        courseLevel,
+        coursePriceCents,
+        courseCurrency,
+        courseLessonsCount,
+        courseDurationMinutes,
+        category,
+        instructor,
+        ...enrollment
+      }) => ({
+        ...enrollment,
+        course: {
+          id: enrollment.courseId,
+          slug: courseSlug,
+          title: courseTitle,
+          coverUrl: courseCoverUrl,
+          level: courseLevel,
+          priceCents: coursePriceCents,
+          currency: courseCurrency,
+          lessonsCount: courseLessonsCount,
+          durationMinutes: courseDurationMinutes,
+          category,
+          instructor,
+        },
+      }),
+    );
   },
 };
