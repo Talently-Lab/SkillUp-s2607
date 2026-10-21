@@ -12,51 +12,35 @@ import {
   updateModuleSchema,
 } from "./modules.schemas.ts";
 
+// Public: list modules (with lessons) for a published course
 export const modulesRouter = Router({ mergeParams: true });
-
-// ── Public: list modules with lessons for a course ────────────────────────────
 modulesRouter.get("/", modulesController.list);
 
-// ── Admin: CRUD modules ───────────────────────────────────────────────────────
-modulesRouter.post(
+// Admin: CRUD modules and lessons within a course
+export const modulesAdminRouter = Router({ mergeParams: true });
+modulesAdminRouter.use(requireAuth, requireRole("admin"));
+modulesAdminRouter.post(
   "/",
-  requireAuth,
-  requireRole("admin"),
   validateBody(createModuleSchema),
   modulesController.create,
 );
-modulesRouter.put(
+modulesAdminRouter.put(
   "/:moduleId",
-  requireAuth,
-  requireRole("admin"),
   validateBody(updateModuleSchema),
   modulesController.update,
 );
-modulesRouter.delete(
-  "/:moduleId",
-  requireAuth,
-  requireRole("admin"),
-  modulesController.remove,
-);
-
-// ── Admin: CRUD lessons within a module ───────────────────────────────────────
-modulesRouter.post(
+modulesAdminRouter.delete("/:moduleId", modulesController.remove);
+modulesAdminRouter.post(
   "/:moduleId/lessons",
-  requireAuth,
-  requireRole("admin"),
   validateBody(createLessonSchema),
   modulesController.createLesson,
 );
-modulesRouter.put(
+modulesAdminRouter.put(
   "/:moduleId/lessons/:lessonId",
-  requireAuth,
-  requireRole("admin"),
   validateBody(updateLessonSchema),
   modulesController.updateLesson,
 );
-modulesRouter.delete(
+modulesAdminRouter.delete(
   "/:moduleId/lessons/:lessonId",
-  requireAuth,
-  requireRole("admin"),
   modulesController.removeLesson,
 );

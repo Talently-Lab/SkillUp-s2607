@@ -22,6 +22,7 @@ import { usersAdminRouter } from "./modules/users/users-admin.routes.ts";
 import { progressRouter } from "./modules/enrollments/progress.routes.ts";
 import { statsRouter } from "./modules/users/stats.routes.ts";
 import { modulesRouter } from "./modules/modules/modules.routes.ts";
+import { modulesAdminRouter } from "./modules/modules/modules.routes.ts";
 import { notFound } from "./shared/errors/not-found.ts";
 import { logger } from "./shared/logger.ts";
 import { errorHandler } from "./shared/middlewares/error-handler.ts";
@@ -57,8 +58,10 @@ app.use(USERS_ADMIN_BASE_PATH, usersAdminRouter);
 app.use(`${ENROLLMENTS_BASE_PATH}/:enrollmentId/progress`, progressRouter);
 // Admin platform stats
 app.use("/api/v1/admin/stats", statsRouter);
-// Modules & lessons: /api/v1/courses/:courseId/modules
+// Public: list modules (with lessons) for a published course
 app.use(`${COURSES_BASE_PATH}/:courseId/modules`, modulesRouter);
+// Admin: manage modules and lessons of a course
+app.use(`${COURSES_ADMIN_BASE_PATH}/:courseId/modules`, modulesAdminRouter);
 
 app.use(notFound);
 app.use(errorHandler);

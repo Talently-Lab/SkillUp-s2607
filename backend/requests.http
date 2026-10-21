@@ -171,7 +171,7 @@ GET {{api}}/courses/{{createCourse.response.body.course.id}}/modules
 
 ### Create a module (admin only)
 # @name createModule
-POST {{api}}/courses/{{createCourse.response.body.course.id}}/modules
+POST {{api}}/admin/courses/{{createCourse.response.body.course.id}}/modules
 Content-Type: application/json
 Authorization: Bearer {{loginAdmin.response.body.accessToken}}
 
@@ -181,7 +181,7 @@ Authorization: Bearer {{loginAdmin.response.body.accessToken}}
 }
 
 ### Update a module
-# PUT {{api}}/courses/{{createCourse.response.body.course.id}}/modules/{{createModule.response.body.module.id}}
+# PUT {{api}}/admin/courses/{{createCourse.response.body.course.id}}/modules/{{createModule.response.body.module.id}}
 # Content-Type: application/json
 # Authorization: Bearer {{loginAdmin.response.body.accessToken}}
 #
@@ -190,14 +190,14 @@ Authorization: Bearer {{loginAdmin.response.body.accessToken}}
 # }
 
 ### Delete a module
-# DELETE {{api}}/courses/{{createCourse.response.body.course.id}}/modules/{{createModule.response.body.module.id}}
+# DELETE {{api}}/admin/courses/{{createCourse.response.body.course.id}}/modules/{{createModule.response.body.module.id}}
 # Authorization: Bearer {{loginAdmin.response.body.accessToken}}
 
 ### ---------- Admin — Lessons ----------
 
 ### Create a lesson inside a module
 # @name createLesson
-POST {{api}}/courses/{{createCourse.response.body.course.id}}/modules/{{createModule.response.body.module.id}}/lessons
+POST {{api}}/admin/courses/{{createCourse.response.body.course.id}}/modules/{{createModule.response.body.module.id}}/lessons
 Content-Type: application/json
 Authorization: Bearer {{loginAdmin.response.body.accessToken}}
 
@@ -207,7 +207,7 @@ Authorization: Bearer {{loginAdmin.response.body.accessToken}}
 }
 
 ### Create second lesson
-# POST {{api}}/courses/{{createCourse.response.body.course.id}}/modules/{{createModule.response.body.module.id}}/lessons
+# POST {{api}}/admin/courses/{{createCourse.response.body.course.id}}/modules/{{createModule.response.body.module.id}}/lessons
 # Content-Type: application/json
 # Authorization: Bearer {{loginAdmin.response.body.accessToken}}
 #
@@ -215,6 +215,19 @@ Authorization: Bearer {{loginAdmin.response.body.accessToken}}
 #   "title": "Clase 2: Funciones",
 #   "position": 2
 # }
+
+### Update a lesson
+# PUT {{api}}/admin/courses/{{createCourse.response.body.course.id}}/modules/{{createModule.response.body.module.id}}/lessons/{{createLesson.response.body.lesson.id}}
+# Content-Type: application/json
+# Authorization: Bearer {{loginAdmin.response.body.accessToken}}
+#
+# {
+#   "title": "Clase 1: Variables y tipos"
+# }
+
+### Delete a lesson
+# DELETE {{api}}/admin/courses/{{createCourse.response.body.course.id}}/modules/{{createModule.response.body.module.id}}/lessons/{{createLesson.response.body.lesson.id}}
+# Authorization: Bearer {{loginAdmin.response.body.accessToken}}
 
 ### ---------- Student — Progress ----------
 
