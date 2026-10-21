@@ -1,4 +1,4 @@
-import { and, count, eq } from "drizzle-orm";
+import { and, count, eq, sql } from "drizzle-orm";
 import { db } from "../../db/client.ts";
 import {
   enrollments,
@@ -64,7 +64,9 @@ export const progressRepository = {
       .set({
         progressPercent: percent,
         status: isComplete ? "completed" : "active",
-        completedAt: isComplete ? new Date() : null,
+        completedAt: isComplete
+          ? sql`coalesce(${enrollments.completedAt}, now())`
+          : null,
       })
       .where(eq(enrollments.id, enrollmentId));
   },
