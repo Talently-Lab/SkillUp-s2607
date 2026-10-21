@@ -16,6 +16,16 @@ export const enrollmentsRepository = {
     });
   },
 
+  /** Returns the enrollment only if it belongs to the user (object-level auth) */
+  async findByIdForUser(userId: string, enrollmentId: string) {
+    return db.query.enrollments.findFirst({
+      where: and(
+        eq(enrollments.id, enrollmentId),
+        eq(enrollments.userId, userId),
+      ),
+    });
+  },
+
   async create(data: NewEnrollment) {
     const [enrollment] = await db.insert(enrollments).values(data).returning();
     return enrollment!;

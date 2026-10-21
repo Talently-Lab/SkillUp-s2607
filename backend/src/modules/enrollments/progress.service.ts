@@ -1,17 +1,14 @@
-import { eq } from "drizzle-orm";
-import { db } from "../../db/client.ts";
-import { enrollments } from "../../db/schema/index.ts";
 import { ConflictError, NotFoundError } from "../../shared/errors/app-error.ts";
 import { modulesRepository } from "../modules/modules.repository.ts";
+import { enrollmentsRepository } from "./enrollments.repository.ts";
 import { progressRepository } from "./progress.repository.ts";
 
 async function findEnrollmentForUser(userId: string, enrollmentId: string) {
-  const found = await db.query.enrollments.findFirst({
-    where: eq(enrollments.id, enrollmentId),
-  });
+  const found = await enrollmentsRepository.findByIdForUser(
+    userId,
+    enrollmentId,
+  );
   if (!found) throw new NotFoundError("Enrollment not found");
-  // Object-level auth: never trust a client-supplied id; scope by user
-  if (found.userId !== userId) throw new NotFoundError("Enrollment not found");
   return found;
 }
 
