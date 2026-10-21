@@ -117,10 +117,16 @@ Todos los errores tienen la forma \`{ "error": { "code", "message", "details"? }
     { name: "Courses", description: "Catálogo público de cursos" },
     { name: "Admin — Courses", description: "CRUD de cursos (solo admin)" },
     { name: "Enrollments", description: "Inscripciones del estudiante" },
-    { name: "Modules & Lessons", description: "Módulos y lecciones de un curso" },
+    {
+      name: "Modules & Lessons",
+      description: "Módulos y lecciones de un curso",
+    },
     { name: "Progress", description: "Progreso del estudiante en un curso" },
     { name: "Admin — Users", description: "Gestión de usuarios (solo admin)" },
-    { name: "Admin — Stats", description: "Estadísticas de la plataforma (solo admin)" },
+    {
+      name: "Admin — Stats",
+      description: "Estadísticas de la plataforma (solo admin)",
+    },
   ],
   components: {
     securitySchemes: {

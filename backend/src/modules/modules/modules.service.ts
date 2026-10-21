@@ -1,7 +1,4 @@
-import {
-  ConflictError,
-  NotFoundError,
-} from "../../shared/errors/app-error.ts";
+import { ConflictError, NotFoundError } from "../../shared/errors/app-error.ts";
 import { isUniqueViolation } from "../../shared/errors/db-errors.ts";
 import { coursesRepository } from "../courses/courses.repository.ts";
 import { progressRepository } from "../enrollments/progress.repository.ts";
