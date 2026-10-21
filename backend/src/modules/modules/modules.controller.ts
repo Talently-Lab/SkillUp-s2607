@@ -11,7 +11,9 @@ export const modulesController = {
   // ── Modules ──────────────────────────────────────────────────────────────
   list: (async (req, res) => {
     const courseId = req.params["courseId"] as string;
-    const modules = await modulesService.listByCourse(courseId);
+    // Vary: Authorization so caches serve the right version per auth state
+    res.setHeader("Vary", "Authorization");
+    const modules = await modulesService.listByCourse(courseId, req.auth);
     res.json({ modules });
   }) satisfies RequestHandler,
 

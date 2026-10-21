@@ -1,6 +1,7 @@
 import { ConflictError, NotFoundError } from "../../shared/errors/app-error.ts";
 import { isUniqueViolation } from "../../shared/errors/db-errors.ts";
 import { coursesRepository } from "../courses/courses.repository.ts";
+import { enrollmentsRepository } from "../enrollments/enrollments.repository.ts";
 import { progressRepository } from "../enrollments/progress.repository.ts";
 import { modulesRepository } from "./modules.repository.ts";
 import type {
@@ -9,14 +10,52 @@ import type {
   UpdateLessonInput,
   UpdateModuleInput,
 } from "./modules.schemas.ts";
+import type { AccessTokenClaims } from "../../shared/security/jwt.ts";
+
+/** Lecciones desbloqueadas gratis para todos (contadas en orden global del curso) */
+const FREE_PREVIEW_LESSONS = 2;
 
 export const modulesService = {
   // ── Modules ──────────────────────────────────────────────────────────────
-  async listByCourse(courseId: string) {
-    // Public catalog: only modules of published courses are exposed
+  async listByCourse(courseId: string, user?: AccessTokenClaims) {
+    // Public catalog: only modules of published courses are exposed (also for admin)
     const course = await coursesRepository.findPublishedById(courseId);
     if (!course) throw new NotFoundError("Course not found");
-    return modulesRepository.findByCourse(courseId);
+
+    const rawModules = await modulesRepository.findByCourse(courseId);
+
+    // Decide if this user sees all videos unlocked:
+    //   - admin always sees everything
+    //   - a student (or any role) with an active/completed enrollment in this course
+    let seeAll = false;
+    if (user?.role === "admin") {
+      seeAll = true;
+    } else if (user) {
+      const enrollment = await enrollmentsRepository.findByUserAndCourse(
+        user.userId,
+        courseId,
+      );
+      seeAll = !!enrollment;
+    }
+
+    // Apply locked / videoUrl masking.
+    // Iterate lessons in global order (modules already asc by position,
+    // lessons already asc by position inside each module) to identify the
+    // FREE_PREVIEW_LESSONS free slots.
+    let globalIndex = 0;
+    return rawModules.map((mod) => ({
+      ...mod,
+      lessons: (mod.lessons ?? []).map((lesson) => {
+        const isPreview = globalIndex < FREE_PREVIEW_LESSONS;
+        globalIndex++;
+        const locked = !seeAll && !isPreview;
+        return {
+          ...lesson,
+          videoUrl: locked ? null : lesson.videoUrl,
+          locked,
+        };
+      }),
+    }));
   },
   async createModule(courseId: string, input: CreateModuleInput) {
     // Admin may manage draft courses too

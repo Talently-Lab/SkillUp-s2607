@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { Router } from "express";
 import {
+  optionalAuth,
   requireAuth,
   requireRole,
 } from "../../shared/middlewares/authenticate.ts";
@@ -29,7 +30,12 @@ const courseModuleLessonParams = z.object({
 
 // Public: list modules (with lessons) for a published course
 export const modulesRouter = Router({ mergeParams: true });
-modulesRouter.get("/", validateParams(courseParams), modulesController.list);
+modulesRouter.get(
+  "/",
+  optionalAuth,
+  validateParams(courseParams),
+  modulesController.list,
+);
 
 // Admin: CRUD modules and lessons within a course
 export const modulesAdminRouter = Router({ mergeParams: true });

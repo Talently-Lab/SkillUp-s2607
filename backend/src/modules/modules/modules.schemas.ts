@@ -71,3 +71,17 @@ export const moduleSchema = z
     lessons: z.array(lessonSchema).optional(),
   })
   .meta({ id: "Module" });
+
+// ── Public response schemas (include `locked` field) ─────────────────────────
+// Used only by GET /courses/:courseId/modules. Admin endpoints keep using
+// lessonSchema / moduleSchema to avoid adding `locked` to their responses.
+
+/** Lesson as returned by the public module list: includes `locked` and may have videoUrl=null */
+export const lessonPublicSchema = lessonSchema
+  .extend({ locked: z.boolean() })
+  .meta({ id: "LessonPublic" });
+
+/** Module as returned by the public module list: lessons carry `locked` */
+export const modulePublicSchema = moduleSchema
+  .extend({ lessons: z.array(lessonPublicSchema).optional() })
+  .meta({ id: "ModulePublic" });
