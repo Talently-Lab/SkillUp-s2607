@@ -17,10 +17,7 @@ export const statsRepository = {
         .select({ value: count() })
         .from(courses)
         .where(eq(courses.status, "published")),
-      db
-        .select({ value: count() })
-        .from(users)
-        .where(eq(users.role, "student")),
+      db.select({ value: count() }).from(users).where(eq(users.role, "student")),
       db.select({ value: count() }).from(enrollments),
       db
         .select({ value: count() })
@@ -41,18 +38,15 @@ export const statsRepository = {
         .orderBy(desc(courses.studentsCount))
         .limit(5),
     ]);
-
     const totalCourses = totalCoursesResult[0]?.value ?? 0;
     const publishedCourses = publishedCoursesResult[0]?.value ?? 0;
     const totalStudents = totalStudentsResult[0]?.value ?? 0;
     const totalEnrollments = totalEnrollmentsResult[0]?.value ?? 0;
     const completedEnrollments = completedEnrollmentsResult[0]?.value ?? 0;
-
     const completionRate =
       totalEnrollments > 0
         ? Math.round((completedEnrollments / totalEnrollments) * 100 * 10) / 10
         : 0;
-
     return {
       courses: { total: totalCourses, published: publishedCourses },
       students: { total: totalStudents },

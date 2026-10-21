@@ -20,7 +20,8 @@ import { enrollmentsRouter } from "./modules/enrollments/enrollments.routes.ts";
 import { USERS_ADMIN_BASE_PATH } from "./modules/users/users-admin.controller.ts";
 import { usersAdminRouter } from "./modules/users/users-admin.routes.ts";
 import { progressRouter } from "./modules/enrollments/progress.routes.ts";
-import { statsRouter } from "./modules/users/stats.routes.ts";
+import { STATS_BASE_PATH } from "./modules/stats/stats.controller.ts";
+import { statsRouter } from "./modules/stats/stats.routes.ts";
 import { modulesRouter } from "./modules/modules/modules.routes.ts";
 import { modulesAdminRouter } from "./modules/modules/modules.routes.ts";
 import { notFound } from "./shared/errors/not-found.ts";
@@ -57,7 +58,7 @@ app.use(USERS_ADMIN_BASE_PATH, usersAdminRouter);
 // Progress routes: /api/v1/enrollments/:enrollmentId/progress
 app.use(`${ENROLLMENTS_BASE_PATH}/:enrollmentId/progress`, progressRouter);
 // Admin platform stats
-app.use("/api/v1/admin/stats", statsRouter);
+app.use(STATS_BASE_PATH, statsRouter);
 // Public: list modules (with lessons) for a published course
 app.use(`${COURSES_BASE_PATH}/:courseId/modules`, modulesRouter);
 // Admin: manage modules and lessons of a course

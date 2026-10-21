@@ -6,7 +6,6 @@ import {
 import { statsController } from "./stats.controller.ts";
 
 export const statsRouter = Router();
-
 statsRouter.get(
   "/",
   requireAuth,
