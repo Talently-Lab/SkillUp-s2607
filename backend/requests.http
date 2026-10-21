@@ -160,4 +160,77 @@ Content-Type: application/json
 # Authorization: Bearer {{loginStudent.response.body.accessToken}}
 #
 # { "title": "Test", "slug": "test", "categoryId": 1 }
-### ---------- Modules (public) ----------### List modules for a course (replace courseId)# @name listModulesGET {{api}}/courses/{{createCourse.response.body.course.id}}/modules### ---------- Admin — Modules ----------### Create a module (admin only)# @name createModulePOST {{api}}/courses/{{createCourse.response.body.course.id}}/modulesContent-Type: application/jsonAuthorization: Bearer {{loginAdmin.response.body.accessToken}}{  "title": "Introducción",  "position": 1}### Update a module# PUT {{api}}/courses/{{createCourse.response.body.course.id}}/modules/{{createModule.response.body.module.id}}# Content-Type: application/json# Authorization: Bearer {{loginAdmin.response.body.accessToken}}## {#   "title": "Introducción actualizada"# }### Delete a module# DELETE {{api}}/courses/{{createCourse.response.body.course.id}}/modules/{{createModule.response.body.module.id}}# Authorization: Bearer {{loginAdmin.response.body.accessToken}}### ---------- Admin — Lessons ----------### Create a lesson inside a module# @name createLessonPOST {{api}}/courses/{{createCourse.response.body.course.id}}/modules/{{createModule.response.body.module.id}}/lessonsContent-Type: application/jsonAuthorization: Bearer {{loginAdmin.response.body.accessToken}}{  "title": "Clase 1: Variables",  "position": 1}### Create second lesson# POST {{api}}/courses/{{createCourse.response.body.course.id}}/modules/{{createModule.response.body.module.id}}/lessons# Content-Type: application/json# Authorization: Bearer {{loginAdmin.response.body.accessToken}}## {#   "title": "Clase 2: Funciones",#   "position": 2# }### ---------- Student — Progress ----------### Get enrollment id first# @name myEnrollmentsGET {{api}}/enrollments/meAuthorization: Bearer {{loginStudent.response.body.accessToken}}### Get progress for an enrollmentGET {{api}}/enrollments/{{myEnrollments.response.body.enrollments[0].id}}/progressAuthorization: Bearer {{loginStudent.response.body.accessToken}}### Complete a lessonPOST {{api}}/enrollments/{{myEnrollments.response.body.enrollments[0].id}}/progress/lessons/{{createLesson.response.body.lesson.id}}/completeAuthorization: Bearer {{loginStudent.response.body.accessToken}}### Try to complete same lesson again -> 409 ALREADY_COMPLETEDPOST {{api}}/enrollments/{{myEnrollments.response.body.enrollments[0].id}}/progress/lessons/{{createLesson.response.body.lesson.id}}/completeAuthorization: Bearer {{loginStudent.response.body.accessToken}}
+
+### ---------- Modules (public) ----------
+
+### List modules for a course (replace courseId)
+# @name listModules
+GET {{api}}/courses/{{createCourse.response.body.course.id}}/modules
+
+### ---------- Admin — Modules ----------
+
+### Create a module (admin only)
+# @name createModule
+POST {{api}}/courses/{{createCourse.response.body.course.id}}/modules
+Content-Type: application/json
+Authorization: Bearer {{loginAdmin.response.body.accessToken}}
+
+{
+  "title": "Introducción",
+  "position": 1
+}
+
+### Update a module
+# PUT {{api}}/courses/{{createCourse.response.body.course.id}}/modules/{{createModule.response.body.module.id}}
+# Content-Type: application/json
+# Authorization: Bearer {{loginAdmin.response.body.accessToken}}
+#
+# {
+#   "title": "Introducción actualizada"
+# }
+
+### Delete a module
+# DELETE {{api}}/courses/{{createCourse.response.body.course.id}}/modules/{{createModule.response.body.module.id}}
+# Authorization: Bearer {{loginAdmin.response.body.accessToken}}
+
+### ---------- Admin — Lessons ----------
+
+### Create a lesson inside a module
+# @name createLesson
+POST {{api}}/courses/{{createCourse.response.body.course.id}}/modules/{{createModule.response.body.module.id}}/lessons
+Content-Type: application/json
+Authorization: Bearer {{loginAdmin.response.body.accessToken}}
+
+{
+  "title": "Clase 1: Variables",
+  "position": 1
+}
+
+### Create second lesson
+# POST {{api}}/courses/{{createCourse.response.body.course.id}}/modules/{{createModule.response.body.module.id}}/lessons
+# Content-Type: application/json
+# Authorization: Bearer {{loginAdmin.response.body.accessToken}}
+#
+# {
+#   "title": "Clase 2: Funciones",
+#   "position": 2
+# }
+
+### ---------- Student — Progress ----------
+
+### Get enrollment id first
+# @name myEnrollments
+GET {{api}}/enrollments/me
+Authorization: Bearer {{loginStudent.response.body.accessToken}}
+
+### Get progress for an enrollment
+GET {{api}}/enrollments/{{myEnrollments.response.body.enrollments[0].id}}/progress
+Authorization: Bearer {{loginStudent.response.body.accessToken}}
+
+### Complete a lesson
+POST {{api}}/enrollments/{{myEnrollments.response.body.enrollments[0].id}}/progress/lessons/{{createLesson.response.body.lesson.id}}/complete
+Authorization: Bearer {{loginStudent.response.body.accessToken}}
+
+### Try to complete same lesson again -> 409 ALREADY_COMPLETED
+POST {{api}}/enrollments/{{myEnrollments.response.body.enrollments[0].id}}/progress/lessons/{{createLesson.response.body.lesson.id}}/complete
+Authorization: Bearer {{loginStudent.response.body.accessToken}}
