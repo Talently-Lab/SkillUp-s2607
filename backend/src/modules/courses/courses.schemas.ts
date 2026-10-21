@@ -73,6 +73,13 @@ export const courseSchema = z
     publishedAt: z.iso.datetime().nullable(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
+    category: categorySchema,
+    instructor: z
+      .object({
+        id: z.uuid(),
+        fullName: z.string(),
+      })
+      .nullable(),
   })
   .meta({ id: "Course" });
 
@@ -119,6 +126,8 @@ const courseFieldsSchema = z.object({
   currency: z.string().length(3),
   status: z.enum(["draft", "published"]),
   featured: z.boolean(),
+  lessonsCount: z.number().int().min(0),
+  durationMinutes: z.number().int().min(0),
 });
 
 // Create: required fields with sensible defaults
@@ -129,6 +138,8 @@ export const createCourseSchema = courseFieldsSchema
     currency: courseFieldsSchema.shape.currency.default("USD"),
     status: courseFieldsSchema.shape.status.default("draft"),
     featured: courseFieldsSchema.shape.featured.default(false),
+    lessonsCount: courseFieldsSchema.shape.lessonsCount.default(0),
+    durationMinutes: courseFieldsSchema.shape.durationMinutes.default(0),
   })
   .meta({ id: "CreateCourseRequest" });
 
