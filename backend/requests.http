@@ -229,6 +229,39 @@ Authorization: Bearer {{loginAdmin.response.body.accessToken}}
 # DELETE {{api}}/admin/courses/{{createCourse.response.body.course.id}}/modules/{{createModule.response.body.module.id}}/lessons/{{createLesson.response.body.lesson.id}}
 # Authorization: Bearer {{loginAdmin.response.body.accessToken}}
 
+### ---------- Enrollments ----------
+
+### Enroll in a free course (201)
+# @name enroll
+POST {{api}}/enrollments
+Content-Type: application/json
+Authorization: Bearer {{loginStudent.response.body.accessToken}}
+
+{
+  "courseId": "{{createCourse.response.body.course.id}}"
+}
+
+### Enroll in a paid course -> 403 COURSE_NOT_FREE
+# POST {{api}}/enrollments
+# Content-Type: application/json
+# Authorization: Bearer {{loginStudent.response.body.accessToken}}
+#
+# { "courseId": "<id-of-paid-course>" }
+
+### Enroll in the same course again -> 409 ALREADY_ENROLLED
+# POST {{api}}/enrollments
+# Content-Type: application/json
+# Authorization: Bearer {{loginStudent.response.body.accessToken}}
+#
+# { "courseId": "{{createCourse.response.body.course.id}}" }
+
+### Enroll in nonexistent course -> 404 NOT_FOUND
+# POST {{api}}/enrollments
+# Content-Type: application/json
+# Authorization: Bearer {{loginStudent.response.body.accessToken}}
+#
+# { "courseId": "00000000-0000-4000-8000-000000000000" }
+
 ### ---------- Student — Progress ----------
 
 ### Get enrollment id first — response includes category, instructor, lessonsCount, durationMinutes

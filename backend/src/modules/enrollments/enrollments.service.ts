@@ -1,4 +1,8 @@
-import { ConflictError, NotFoundError } from "../../shared/errors/app-error.ts";
+import {
+  ConflictError,
+  ForbiddenError,
+  NotFoundError,
+} from "../../shared/errors/app-error.ts";
 import { coursesRepository } from "../courses/courses.repository.ts";
 import { enrollmentsRepository } from "./enrollments.repository.ts";
 import type { EnrollInput } from "./enrollments.schemas.ts";
@@ -9,6 +13,14 @@ export const enrollmentsService = {
     const course = await coursesRepository.findById(courseId);
     if (!course || course.status !== "published") {
       throw new NotFoundError("Course not found");
+    }
+
+    // Only free courses can be enrolled in; treat null as free
+    if ((course.priceCents ?? 0) > 0) {
+      throw new ForbiddenError(
+        "COURSE_NOT_FREE",
+        "Enrollment is only available for free courses",
+      );
     }
 
     // Prevent duplicate enrollment — enforced in DB too via unique index

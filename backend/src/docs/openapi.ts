@@ -464,7 +464,7 @@ Todos los errores tienen la forma \`{ "error": { "code", "message", "details"? }
         tags: ["Enrollments"],
         summary: "Inscribirse a un curso",
         description:
-          "Inscribe al estudiante autenticado en un curso publicado.",
+          "Inscribe al estudiante autenticado en un curso publicado y gratuito (priceCents = 0).",
         security: [{ bearerAuth: [] }],
         requestBody: {
           required: true,
@@ -488,7 +488,9 @@ Todos los errores tienen la forma \`{ "error": { "code", "message", "details"? }
             },
           },
           "401": errorResponse("`UNAUTHORIZED`"),
-          "403": errorResponse("`FORBIDDEN`: el usuario no es estudiante."),
+          "403": errorResponse(
+            "`FORBIDDEN`: el usuario no es estudiante. `COURSE_NOT_FREE`: el curso tiene un precio mayor a 0.",
+          ),
           "404": errorResponse(
             "`NOT_FOUND`: el curso no existe o no está publicado.",
           ),
