@@ -1,4 +1,4 @@
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { db } from "../../db/client.ts";
 import {
   lessons,
@@ -31,6 +31,13 @@ export const modulesRepository = {
     });
   },
 
+  /** Finds a module only if it belongs to the given course (ownership check) */
+  async findModuleInCourse(courseId: string, moduleId: string) {
+    return db.query.modules.findFirst({
+      where: and(eq(modules.id, moduleId), eq(modules.courseId, courseId)),
+    });
+  },
+
   async createModule(data: NewModule) {
     const [m] = await db.insert(modules).values(data).returning();
     return m!;
@@ -57,6 +64,13 @@ export const modulesRepository = {
 
   async findLessonById(id: string) {
     return db.query.lessons.findFirst({ where: eq(lessons.id, id) });
+  },
+
+  /** Finds a lesson only if it belongs to the given module (ownership check) */
+  async findLessonInModule(moduleId: string, lessonId: string) {
+    return db.query.lessons.findFirst({
+      where: and(eq(lessons.id, lessonId), eq(lessons.moduleId, moduleId)),
+    });
   },
 
   async createLesson(data: NewLesson) {
