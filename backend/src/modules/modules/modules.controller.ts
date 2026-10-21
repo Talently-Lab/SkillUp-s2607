@@ -9,8 +9,6 @@ import type {
   UpdateModuleInput,
 } from "./modules.schemas.ts";
 
-export const MODULES_BASE_PATH = "/api/v1/courses/:courseId/modules";
-
 function validateUuid(id: string, field = "id") {
   if (!z.uuid().safeParse(id).success) {
     throw new ValidationError({ [field]: ["Must be a valid UUID"] });

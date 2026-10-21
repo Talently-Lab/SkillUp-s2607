@@ -20,11 +20,6 @@ export const modulesService = {
     if (!course) throw new NotFoundError("Course not found");
     return modulesRepository.findByCourse(courseId);
   },
-  async getModule(moduleId: string) {
-    const m = await modulesRepository.findById(moduleId);
-    if (!m) throw new NotFoundError("Module not found");
-    return m;
-  },
   async createModule(courseId: string, input: CreateModuleInput) {
     // Admin may manage draft courses too
     const course = await coursesRepository.findById(courseId);
