@@ -32,9 +32,8 @@ export const createLessonSchema = z
       .max(255),
     position: z.number({ error: "Position is required" }).int().min(1),
     videoUrl: z
-      .string()
-      .trim()
       .url({ error: "videoUrl must be a valid URL" })
+      .trim()
       .optional()
       .nullable(),
   })
