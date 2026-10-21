@@ -163,9 +163,17 @@ Content-Type: application/json
 
 ### ---------- Modules (public) ----------
 
-### List modules for a course (replace courseId)
+### List modules — anonymous (first 2 lessons unlocked, rest locked=true, videoUrl=null)
 # @name listModules
 GET {{api}}/courses/{{createCourse.response.body.course.id}}/modules
+
+### List modules — enrolled student (all lessons unlocked, locked=false)
+GET {{api}}/courses/{{createCourse.response.body.course.id}}/modules
+Authorization: Bearer {{loginStudent.response.body.accessToken}}
+
+### List modules — token invalido tratado como anónimo (200, no 401)
+GET {{api}}/courses/{{createCourse.response.body.course.id}}/modules
+Authorization: Bearer token-invalido
 
 ### ---------- Admin — Modules ----------
 
