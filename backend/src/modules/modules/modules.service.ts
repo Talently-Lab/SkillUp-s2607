@@ -1,5 +1,6 @@
 import { ConflictError, NotFoundError } from "../../shared/errors/app-error.ts";
 import { isUniqueViolation } from "../../shared/errors/db-errors.ts";
+import { runInTransaction } from "../../db/client.ts";
 import { coursesRepository } from "../courses/courses.repository.ts";
 import { enrollmentsRepository } from "../enrollments/enrollments.repository.ts";
 import { progressRepository } from "../progress/progress.repository.ts";
@@ -12,12 +13,13 @@ import {
   type UpdateModuleInput,
 } from "./modules.schemas.ts";
 import type { AccessTokenClaims } from "../../shared/security/jwt.ts";
+import type { DbOrTx } from "../../db/client.ts";
 
 /** Keeps the course's lessonsCount and every enrollment's progress in line with its real lessons */
-async function syncCourseLessons(courseId: string) {
-  const total = await modulesRepository.countLessonsByCourse(courseId);
-  await coursesRepository.updateLessonsCount(courseId, total);
-  await progressRepository.recalcCourseProgress(courseId);
+async function syncCourseLessons(courseId: string, tx: DbOrTx) {
+  const total = await modulesRepository.countLessonsByCourse(courseId, tx);
+  await coursesRepository.updateLessonsCount(courseId, total, tx);
+  await progressRepository.recalcCourseProgress(courseId, tx);
 }
 
 export const modulesService = {
@@ -106,10 +108,15 @@ export const modulesService = {
       moduleId,
     );
     if (!existing) throw new NotFoundError("Module not found");
-    const removed = await modulesRepository.deleteModule(moduleId);
-    if (!removed) throw new NotFoundError("Module not found");
-    // Deleting a module cascades to its lessons and their progress; recompute affected enrollments
-    await syncCourseLessons(courseId);
+    // Validations above run outside the tx (read-only); the mutation is atomic.
+    await runInTransaction(async (tx) => {
+      // Serialise concurrent mutations of the same course.
+      await coursesRepository.lockForUpdate(courseId, tx);
+      const removed = await modulesRepository.deleteModule(moduleId, tx);
+      if (!removed) throw new NotFoundError("Module not found");
+      // Cascades to lessons + lesson_progress; recompute affected enrollments.
+      await syncCourseLessons(courseId, tx);
+    });
   },
   // ── Lessons ───────────────────────────────────────────────────────────────
   async createLesson(
@@ -119,9 +126,20 @@ export const modulesService = {
   ) {
     const m = await modulesRepository.findModuleInCourse(courseId, moduleId);
     if (!m) throw new NotFoundError("Module not found");
-    let lesson;
+    // isUniqueViolation wraps runInTransaction from outside so the violation
+    // error propagates cleanly (Postgres aborts the tx on constraint errors;
+    // catching inside the callback would leave it in an aborted state).
     try {
-      lesson = await modulesRepository.createLesson({ ...input, moduleId });
+      return await runInTransaction(async (tx) => {
+        await coursesRepository.lockForUpdate(courseId, tx);
+        const lesson = await modulesRepository.createLesson(
+          { ...input, moduleId },
+          tx,
+        );
+        // A new lesson lowers every enrollment's percent (and reopens completed ones).
+        await syncCourseLessons(courseId, tx);
+        return lesson;
+      });
     } catch (err) {
       if (isUniqueViolation(err))
         throw new ConflictError(
@@ -130,9 +148,6 @@ export const modulesService = {
         );
       throw err;
     }
-    // A new lesson lowers every enrollment's percent (and reopens completed ones)
-    await syncCourseLessons(courseId);
-    return lesson;
   },
   async updateLesson(
     courseId: string,
@@ -168,9 +183,12 @@ export const modulesService = {
       lessonId,
     );
     if (!existing) throw new NotFoundError("Lesson not found");
-    const removed = await modulesRepository.deleteLesson(lessonId);
-    if (!removed) throw new NotFoundError("Lesson not found");
-    // Deleting a lesson cascades to its progress rows; recompute affected enrollments
-    await syncCourseLessons(courseId);
+    await runInTransaction(async (tx) => {
+      await coursesRepository.lockForUpdate(courseId, tx);
+      const removed = await modulesRepository.deleteLesson(lessonId, tx);
+      if (!removed) throw new NotFoundError("Lesson not found");
+      // Deleting a lesson cascades to its progress rows; recompute affected enrollments.
+      await syncCourseLessons(courseId, tx);
+    });
   },
 };

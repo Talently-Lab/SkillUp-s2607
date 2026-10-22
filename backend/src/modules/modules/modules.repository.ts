@@ -1,5 +1,5 @@
 import { and, asc, count, eq } from "drizzle-orm";
-import { db } from "../../db/client.ts";
+import { db, type DbOrTx } from "../../db/client.ts";
 import {
   lessons,
   modules,
@@ -45,8 +45,8 @@ export const modulesRepository = {
     return m ?? null;
   },
 
-  async deleteModule(id: string) {
-    const [m] = await db
+  async deleteModule(id: string, executor: DbOrTx = db) {
+    const [m] = await executor
       .delete(modules)
       .where(eq(modules.id, id))
       .returning({ id: modules.id });
@@ -55,8 +55,8 @@ export const modulesRepository = {
 
   // ── Lessons ───────────────────────────────────────────────────────────────
 
-  async countLessonsByCourse(courseId: string) {
-    const [result] = await db
+  async countLessonsByCourse(courseId: string, executor: DbOrTx = db) {
+    const [result] = await executor
       .select({ total: count() })
       .from(lessons)
       .innerJoin(modules, eq(lessons.moduleId, modules.id))
@@ -75,8 +75,8 @@ export const modulesRepository = {
     });
   },
 
-  async createLesson(data: NewLesson) {
-    const [l] = await db.insert(lessons).values(data).returning();
+  async createLesson(data: NewLesson, executor: DbOrTx = db) {
+    const [l] = await executor.insert(lessons).values(data).returning();
     return l!;
   },
 
@@ -89,8 +89,8 @@ export const modulesRepository = {
     return l ?? null;
   },
 
-  async deleteLesson(id: string) {
-    const [l] = await db
+  async deleteLesson(id: string, executor: DbOrTx = db) {
+    const [l] = await executor
       .delete(lessons)
       .where(eq(lessons.id, id))
       .returning({ id: lessons.id });
