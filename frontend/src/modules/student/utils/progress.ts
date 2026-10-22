@@ -1,37 +1,38 @@
-import type { Course } from "@/shared/types/course";
-import type { Enrollment } from "@/shared/types/enrollment";
-import { getSyllabus } from "@/shared/utils/syllabus";
+import type { EnrollmentProgress } from "@/shared/types/enrollment";
+import type { CourseModule } from "@/shared/types/lesson";
 
 export interface CourseProgress {
   completed: number;
   total: number;
   percent: number;
-  /** First lesson not completed yet, null when the course is finished */
-  next: { moduleIndex: number; title: string } | null;
 }
 
-export function getCourseProgress(
-  course: Course,
-  enrollment: Enrollment,
-): CourseProgress {
-  const lessons = getSyllabus(course).modules.flatMap((module, moduleIndex) =>
-    module.lessons.map((lesson, lessonIndex) => ({
-      moduleIndex,
-      title: lesson.title,
-      done: enrollment.completedLessonIds.includes(
-        `${moduleIndex}-${lessonIndex}`,
-      ),
-    })),
-  );
-  const completed = lessons.filter((lesson) => lesson.done).length;
-  const next = lessons.find((lesson) => !lesson.done);
+export interface NextLesson {
+  id: string;
+  moduleIndex: number;
+  title: string;
+}
 
+export function toCourseProgress(progress: EnrollmentProgress): CourseProgress {
   return {
-    completed,
-    total: lessons.length,
-    percent: lessons.length
-      ? Math.round((completed / lessons.length) * 100)
-      : 0,
-    next: next ? { moduleIndex: next.moduleIndex, title: next.title } : null,
+    completed: progress.completedLessonIds.length,
+    total: progress.total,
+    percent: progress.percent,
   };
+}
+
+export const isCourseFinished = (progress: CourseProgress) =>
+  progress.total > 0 && progress.percent === 100;
+
+/** First lesson not completed yet, in course order. null when all are done */
+export function findNextLesson(
+  modules: CourseModule[],
+  completedIds: string[],
+): NextLesson | null {
+  const done = new Set(completedIds);
+  for (const [moduleIndex, module] of modules.entries()) {
+    const lesson = module.lessons.find((item) => !done.has(item.id));
+    if (lesson) return { id: lesson.id, moduleIndex, title: lesson.title };
+  }
+  return null;
 }

@@ -1,7 +1,11 @@
 import { Link } from "react-router";
 
-import type { Course } from "@/shared/types/course";
-import type { CourseProgress } from "@/modules/student/utils/progress";
+import type { EnrolledCourse } from "@/shared/types/enrollment";
+import { coursePath, learnPath } from "@/shared/utils/paths";
+import {
+  isCourseFinished,
+  type CourseProgress,
+} from "@/modules/student/utils/progress";
 import { ProgressBar } from "./ProgressBar";
 import CheckCircleIcon from "@/assets/icons/check-circle.svg";
 import PlayFilledIcon from "@/assets/icons/play-filled.svg";
@@ -9,7 +13,7 @@ import PlayFilledDarkIcon from "@/assets/icons/play-filled-dark.svg";
 import "./EnrolledCourseRow.css";
 
 type EnrolledCourseRowProps = {
-  course: Course;
+  course: EnrolledCourse;
   progress: CourseProgress;
 };
 
@@ -17,7 +21,7 @@ export function EnrolledCourseRow({
   course,
   progress,
 }: EnrolledCourseRowProps) {
-  const complete = progress.next === null;
+  const complete = isCourseFinished(progress);
 
   return (
     <li className="enrolled-row">
@@ -44,7 +48,7 @@ export function EnrolledCourseRow({
             <span className="enrolled-row__badge">Inscrito · Activo</span>
           )}
         </div>
-        <Link to={`/catalog/${course.id}`} className="enrolled-row__title">
+        <Link to={coursePath(course.slug)} className="enrolled-row__title">
           {course.title}
         </Link>
         <div className="enrolled-row__progress">
@@ -62,9 +66,8 @@ export function EnrolledCourseRow({
         </div>
       </div>
 
-      {/* TODO: apuntar al aula del curso cuando esté desarrollada */}
       <Link
-        to={`/catalog/${course.id}`}
+        to={learnPath(course.slug)}
         className={
           complete
             ? "enrolled-row__btn enrolled-row__btn--outline"
