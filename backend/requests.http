@@ -163,9 +163,17 @@ Content-Type: application/json
 
 ### ---------- Modules (public) ----------
 
-### List modules for a course (replace courseId)
+### List modules — anonymous (first 2 lessons unlocked, rest locked=true, videoUrl=null)
 # @name listModules
 GET {{api}}/courses/{{createCourse.response.body.course.id}}/modules
+
+### List modules — enrolled student (all lessons unlocked, locked=false)
+GET {{api}}/courses/{{createCourse.response.body.course.id}}/modules
+Authorization: Bearer {{loginStudent.response.body.accessToken}}
+
+### List modules — token invalido tratado como anónimo (200, no 401)
+GET {{api}}/courses/{{createCourse.response.body.course.id}}/modules
+Authorization: Bearer token-invalido
 
 ### ---------- Admin — Modules ----------
 
@@ -229,9 +237,42 @@ Authorization: Bearer {{loginAdmin.response.body.accessToken}}
 # DELETE {{api}}/admin/courses/{{createCourse.response.body.course.id}}/modules/{{createModule.response.body.module.id}}/lessons/{{createLesson.response.body.lesson.id}}
 # Authorization: Bearer {{loginAdmin.response.body.accessToken}}
 
+### ---------- Enrollments ----------
+
+### Enroll in a free course (201)
+# @name enroll
+POST {{api}}/enrollments
+Content-Type: application/json
+Authorization: Bearer {{loginStudent.response.body.accessToken}}
+
+{
+  "courseId": "{{createCourse.response.body.course.id}}"
+}
+
+### Enroll in a paid course -> 403 COURSE_NOT_FREE
+# POST {{api}}/enrollments
+# Content-Type: application/json
+# Authorization: Bearer {{loginStudent.response.body.accessToken}}
+#
+# { "courseId": "<id-of-paid-course>" }
+
+### Enroll in the same course again -> 409 ALREADY_ENROLLED
+# POST {{api}}/enrollments
+# Content-Type: application/json
+# Authorization: Bearer {{loginStudent.response.body.accessToken}}
+#
+# { "courseId": "{{createCourse.response.body.course.id}}" }
+
+### Enroll in nonexistent course -> 404 NOT_FOUND
+# POST {{api}}/enrollments
+# Content-Type: application/json
+# Authorization: Bearer {{loginStudent.response.body.accessToken}}
+#
+# { "courseId": "00000000-0000-4000-8000-000000000000" }
+
 ### ---------- Student — Progress ----------
 
-### Get enrollment id first
+### Get enrollment id first — response includes category, instructor, lessonsCount, durationMinutes
 # @name myEnrollments
 GET {{api}}/enrollments/me
 Authorization: Bearer {{loginStudent.response.body.accessToken}}

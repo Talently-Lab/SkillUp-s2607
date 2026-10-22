@@ -12,10 +12,16 @@ declare global {
   }
 }
 
+/** Returns the token of an `Authorization: Bearer <token>` header, or undefined if absent or malformed */
+function parseBearer(header: string | undefined) {
+  const [scheme, token] = header?.split(" ") ?? [];
+  return scheme === "Bearer" && token ? token : undefined;
+}
+
 /** Requires a valid `Authorization: Bearer <access token>` header */
 export const requireAuth: RequestHandler = async (req, _res, next) => {
-  const [scheme, token] = req.headers.authorization?.split(" ") ?? [];
-  if (scheme !== "Bearer" || !token) throw new UnauthorizedError();
+  const token = parseBearer(req.headers.authorization);
+  if (!token) throw new UnauthorizedError();
 
   req.auth = await verifyAccessToken(token);
   next();
@@ -28,3 +34,19 @@ export function requireRole(...roles: UserRole[]): RequestHandler {
     next();
   };
 }
+
+/**
+ * Optional authentication: populates `req.auth` when a valid Bearer token is
+ * present. A missing, invalid or expired token is treated as anonymous.
+ */
+export const optionalAuth: RequestHandler = async (req, _res, next) => {
+  const token = parseBearer(req.headers.authorization);
+  if (token) {
+    try {
+      req.auth = await verifyAccessToken(token);
+    } catch {
+      // invalid or expired: continue as anonymous
+    }
+  }
+  next();
+};

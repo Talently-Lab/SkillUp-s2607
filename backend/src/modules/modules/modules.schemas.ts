@@ -1,6 +1,16 @@
 import { z } from "zod";
 import "zod-openapi";
 
+// ── Route params ──────────────────────────────────────────────────────────────
+
+export const courseParamsSchema = z.object({ courseId: z.uuid() });
+export const courseModuleParamsSchema = courseParamsSchema.extend({
+  moduleId: z.uuid(),
+});
+export const courseModuleLessonParamsSchema = courseModuleParamsSchema.extend({
+  lessonId: z.uuid(),
+});
+
 // ── Module schemas ────────────────────────────────────────────────────────────
 
 export const createModuleSchema = z
@@ -71,3 +81,20 @@ export const moduleSchema = z
     lessons: z.array(lessonSchema).optional(),
   })
   .meta({ id: "Module" });
+
+/** Lessons unlocked for everyone, counted in the course's global order */
+export const FREE_PREVIEW_LESSONS = 2;
+
+// ── Public response schemas (include `locked` field) ─────────────────────────
+// Used only by GET /courses/:courseId/modules. Admin endpoints keep using
+// lessonSchema / moduleSchema to avoid adding `locked` to their responses.
+
+/** Lesson as returned by the public module list: includes `locked` and may have videoUrl=null */
+export const lessonPublicSchema = lessonSchema
+  .extend({ locked: z.boolean() })
+  .meta({ id: "LessonPublic" });
+
+/** Module as returned by the public module list: lessons carry `locked` */
+export const modulePublicSchema = moduleSchema
+  .extend({ lessons: z.array(lessonPublicSchema).optional() })
+  .meta({ id: "ModulePublic" });

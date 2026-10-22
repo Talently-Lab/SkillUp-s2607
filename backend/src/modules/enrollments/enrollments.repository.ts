@@ -1,9 +1,11 @@
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "../../db/client.ts";
 import {
+  categories,
   courses,
   enrollments,
   type NewEnrollment,
+  users,
 } from "../../db/schema/index.ts";
 
 export const enrollmentsRepository = {
@@ -33,6 +35,9 @@ export const enrollmentsRepository = {
 
   /** Returns all enrollments for a user with course data joined, ordered by most recent */
   async findManyByUser(userId: string) {
+    // Replicates the courseSelect + join pattern from courses.repository.ts (findPage/findOneCourse)
+    // so that category and instructor have the same shape as in GET /courses responses.
+    // Drizzle requires a flat select; category and instructor are top-level groups like in courseSelect.
     return db
       .select({
         id: enrollments.id,
@@ -42,18 +47,31 @@ export const enrollmentsRepository = {
         progressPercent: enrollments.progressPercent,
         enrolledAt: enrollments.enrolledAt,
         completedAt: enrollments.completedAt,
-        course: {
-          id: courses.id,
-          slug: courses.slug,
-          title: courses.title,
-          coverUrl: courses.coverUrl,
-          level: courses.level,
-          priceCents: courses.priceCents,
-          currency: courses.currency,
+        // course fields
+        courseSlug: courses.slug,
+        courseTitle: courses.title,
+        courseCoverUrl: courses.coverUrl,
+        courseLevel: courses.level,
+        coursePriceCents: courses.priceCents,
+        courseCurrency: courses.currency,
+        courseLessonsCount: courses.lessonsCount,
+        courseDurationMinutes: courses.durationMinutes,
+        // category (same shape as in courses.repository.ts courseSelect)
+        category: {
+          id: categories.id,
+          slug: categories.slug,
+          name: categories.name,
+        },
+        // instructor (same shape; leftJoin returns null when no instructor)
+        instructor: {
+          id: users.id,
+          fullName: users.fullName,
         },
       })
       .from(enrollments)
       .innerJoin(courses, eq(enrollments.courseId, courses.id))
+      .innerJoin(categories, eq(courses.categoryId, categories.id))
+      .leftJoin(users, eq(courses.instructorId, users.id))
       .where(eq(enrollments.userId, userId))
       .orderBy(desc(enrollments.enrolledAt));
   },

@@ -1,6 +1,8 @@
 import type { RequestHandler } from "express";
 import { progressService } from "./progress.service.ts";
 
+export const PROGRESS_BASE_PATH = "/api/v1/enrollments/:enrollmentId/progress";
+
 export const progressController = {
   complete: (async (req, res) => {
     const enrollmentId = req.params["enrollmentId"] as string;

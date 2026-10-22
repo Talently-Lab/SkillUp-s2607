@@ -1,4 +1,4 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, count, eq } from "drizzle-orm";
 import { db } from "../../db/client.ts";
 import {
   lessons,
@@ -21,13 +21,6 @@ export const modulesRepository = {
       with: {
         lessons: { orderBy: [asc(lessons.position)] },
       },
-    });
-  },
-
-  async findById(id: string) {
-    return db.query.modules.findFirst({
-      where: eq(modules.id, id),
-      with: { lessons: { orderBy: [asc(lessons.position)] } },
     });
   },
 
@@ -61,6 +54,15 @@ export const modulesRepository = {
   },
 
   // ── Lessons ───────────────────────────────────────────────────────────────
+
+  async countLessonsByCourse(courseId: string) {
+    const [result] = await db
+      .select({ total: count() })
+      .from(lessons)
+      .innerJoin(modules, eq(lessons.moduleId, modules.id))
+      .where(eq(modules.courseId, courseId));
+    return result?.total ?? 0;
+  },
 
   async findLessonById(id: string) {
     return db.query.lessons.findFirst({ where: eq(lessons.id, id) });

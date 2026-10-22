@@ -26,7 +26,9 @@ import {
 import {
   createLessonSchema,
   createModuleSchema,
+  FREE_PREVIEW_LESSONS,
   lessonSchema,
+  modulePublicSchema,
   moduleSchema,
   updateLessonSchema,
   updateModuleSchema,
@@ -464,7 +466,7 @@ Todos los errores tienen la forma \`{ "error": { "code", "message", "details"? }
         tags: ["Enrollments"],
         summary: "Inscribirse a un curso",
         description:
-          "Inscribe al estudiante autenticado en un curso publicado.",
+          "Inscribe al estudiante autenticado en un curso publicado y gratuito (priceCents = 0).",
         security: [{ bearerAuth: [] }],
         requestBody: {
           required: true,
@@ -488,7 +490,9 @@ Todos los errores tienen la forma \`{ "error": { "code", "message", "details"? }
             },
           },
           "401": errorResponse("`UNAUTHORIZED`"),
-          "403": errorResponse("`FORBIDDEN`: el usuario no es estudiante."),
+          "403": errorResponse(
+            "`FORBIDDEN`: el usuario no es estudiante. `COURSE_NOT_FREE`: el curso tiene un precio mayor a 0.",
+          ),
           "404": errorResponse(
             "`NOT_FOUND`: el curso no existe o no está publicado.",
           ),
@@ -651,8 +655,18 @@ Todos los errores tienen la forma \`{ "error": { "code", "message", "details"? }
       get: {
         tags: ["Modules & Lessons"],
         summary: "Listar módulos y lecciones de un curso",
-        description:
-          "Devuelve los módulos (con sus lecciones) de un curso publicado, ordenados por posición. Disponible para todos sin autenticación.",
+        description: `Devuelve todos los módulos y lecciones de un curso publicado, ordenados por posición. Disponible para todos sin autenticación.
+
+Cada lección incluye \`locked: boolean\`. Cuando \`locked\` es \`true\`, \`videoUrl\` viene en \`null\` para no exponer el contenido de pago.
+
+**Regla de desbloqueo:**
+- Las ${FREE_PREVIEW_LESSONS} primeras lecciones del curso (en orden global: módulo por posición ascendente, luego lección por posición ascendente) siempre tienen \`locked: false\`.
+- Un alumno con inscripción activa o completada en este curso (cualquier estado) ve todas las lecciones desbloqueadas.
+- Un admin ve todas las lecciones desbloqueadas.
+- Anónimos y usuarios sin inscripción solo ven las ${FREE_PREVIEW_LESSONS} primeras.
+
+Acepta un \`Authorization: Bearer <token>\` opcional. Si el token es inválido o vencido, se trata como anónimo (no devuelve 401).`,
+        security: [{ bearerAuth: [] }, {}],
         parameters: [
           {
             name: "courseId",
@@ -663,11 +677,19 @@ Todos los errores tienen la forma \`{ "error": { "code", "message", "details"? }
         ],
         responses: {
           "200": {
-            description: "Lista de módulos con sus lecciones.",
+            description:
+              "Lista de módulos con sus lecciones. Lecciones con `locked: true` tienen `videoUrl: null`.",
+            headers: {
+              Vary: {
+                description:
+                  "Always `Authorization` — caches must serve different responses per auth state.",
+                schema: { type: "string" },
+              },
+            },
             content: {
               "application/json": {
                 schema: z
-                  .object({ modules: z.array(moduleSchema) })
+                  .object({ modules: z.array(modulePublicSchema) })
                   .meta({ id: "ModulesListResponse" }),
               },
             },

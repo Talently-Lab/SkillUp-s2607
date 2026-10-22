@@ -1,4 +1,8 @@
-import { ConflictError, NotFoundError } from "../../shared/errors/app-error.ts";
+import {
+  ConflictError,
+  ForbiddenError,
+  NotFoundError,
+} from "../../shared/errors/app-error.ts";
 import { coursesRepository } from "../courses/courses.repository.ts";
 import { enrollmentsRepository } from "./enrollments.repository.ts";
 import type { EnrollInput } from "./enrollments.schemas.ts";
@@ -9,6 +13,14 @@ export const enrollmentsService = {
     const course = await coursesRepository.findById(courseId);
     if (!course || course.status !== "published") {
       throw new NotFoundError("Course not found");
+    }
+
+    // Only free courses can be enrolled in
+    if (course.priceCents > 0) {
+      throw new ForbiddenError(
+        "COURSE_NOT_FREE",
+        "Enrollment is only available for free courses",
+      );
     }
 
     // Prevent duplicate enrollment — enforced in DB too via unique index
@@ -27,6 +39,37 @@ export const enrollmentsService = {
   },
 
   async getMyEnrollments(userId: string) {
-    return enrollmentsRepository.findManyByUser(userId);
+    const rows = await enrollmentsRepository.findManyByUser(userId);
+    // Reshape the flat select into the nested { course: { ..., category, instructor } } shape
+    return rows.map(
+      ({
+        courseSlug,
+        courseTitle,
+        courseCoverUrl,
+        courseLevel,
+        coursePriceCents,
+        courseCurrency,
+        courseLessonsCount,
+        courseDurationMinutes,
+        category,
+        instructor,
+        ...enrollment
+      }) => ({
+        ...enrollment,
+        course: {
+          id: enrollment.courseId,
+          slug: courseSlug,
+          title: courseTitle,
+          coverUrl: courseCoverUrl,
+          level: courseLevel,
+          priceCents: coursePriceCents,
+          currency: courseCurrency,
+          lessonsCount: courseLessonsCount,
+          durationMinutes: courseDurationMinutes,
+          category,
+          instructor,
+        },
+      }),
+    );
   },
 };

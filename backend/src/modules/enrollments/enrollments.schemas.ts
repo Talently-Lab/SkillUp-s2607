@@ -1,5 +1,6 @@
 import { z } from "zod";
 import "zod-openapi";
+import { categorySchema } from "../courses/courses.schemas.ts";
 
 export const enrollSchema = z
   .object({
@@ -33,6 +34,10 @@ export const enrollmentWithCourseSchema = enrollmentSchema
       level: z.enum(["beginner", "intermediate", "advanced"]),
       priceCents: z.number().int(),
       currency: z.string(),
+      lessonsCount: z.number().int(),
+      durationMinutes: z.number().int(),
+      category: categorySchema,
+      instructor: z.object({ id: z.uuid(), fullName: z.string() }).nullable(),
     }),
   })
   .meta({ id: "EnrollmentWithCourse" });
