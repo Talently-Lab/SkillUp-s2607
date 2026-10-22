@@ -15,6 +15,13 @@ import type { AccessTokenClaims } from "../../shared/security/jwt.ts";
 /** Lecciones desbloqueadas gratis para todos (contadas en orden global del curso) */
 const FREE_PREVIEW_LESSONS = 2;
 
+/** Keeps the course's lessonsCount and every enrollment's progress in line with its real lessons */
+async function syncCourseLessons(courseId: string) {
+  const total = await modulesRepository.countLessonsByCourse(courseId);
+  await coursesRepository.updateLessonsCount(courseId, total);
+  await progressRepository.recalcCourseProgress(courseId);
+}
+
 export const modulesService = {
   // ── Modules ──────────────────────────────────────────────────────────────
   async listByCourse(courseId: string, user?: AccessTokenClaims) {
@@ -104,7 +111,7 @@ export const modulesService = {
     const removed = await modulesRepository.deleteModule(moduleId);
     if (!removed) throw new NotFoundError("Module not found");
     // Deleting a module cascades to its lessons and their progress; recompute affected enrollments
-    await progressRepository.recalcCourseProgress(courseId);
+    await syncCourseLessons(courseId);
   },
   // ── Lessons ───────────────────────────────────────────────────────────────
   async createLesson(
@@ -126,7 +133,7 @@ export const modulesService = {
       throw err;
     }
     // A new lesson lowers every enrollment's percent (and reopens completed ones)
-    await progressRepository.recalcCourseProgress(courseId);
+    await syncCourseLessons(courseId);
     return lesson;
   },
   async updateLesson(
@@ -166,6 +173,6 @@ export const modulesService = {
     const removed = await modulesRepository.deleteLesson(lessonId);
     if (!removed) throw new NotFoundError("Lesson not found");
     // Deleting a lesson cascades to its progress rows; recompute affected enrollments
-    await progressRepository.recalcCourseProgress(courseId);
+    await syncCourseLessons(courseId);
   },
 };

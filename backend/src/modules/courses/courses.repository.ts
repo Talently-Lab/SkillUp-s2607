@@ -110,6 +110,10 @@ export const coursesRepository = {
     return updated ? findOneCourse(eq(courses.id, updated.id)) : null;
   },
 
+  async updateLessonsCount(id: string, lessonsCount: number) {
+    await db.update(courses).set({ lessonsCount }).where(eq(courses.id, id));
+  },
+
   async remove(id: string) {
     const [course] = await db
       .delete(courses)
