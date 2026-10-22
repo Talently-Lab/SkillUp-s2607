@@ -1,18 +1,32 @@
-import type { Course } from "../../../shared/types/course";
-import { formatPrice } from "../../../shared/utils/format";
-import CartShoppingIcon from "../../../assets/icons/cart-shopping.svg";
-import CertificateIcon from "../../../assets/icons/certificate-ssl.svg";
-import ClockIcon from "../../../assets/icons/clock.svg";
-import LockIcon from "../../../assets/icons/lock.svg";
-import MonitorSmartphoneIcon from "../../../assets/icons/monitor-smartphone.svg";
-import PlayIcon from "../../../assets/icons/play.svg";
+import { Link } from "react-router";
+
+import type { Course } from "@/shared/types/course";
+import { formatPrice } from "@/shared/utils/format";
+import { learnPath } from "@/shared/utils/paths";
+import CartShoppingIcon from "@/assets/icons/cart-shopping.svg";
+import CertificateIcon from "@/assets/icons/certificate-ssl.svg";
+import ClockIcon from "@/assets/icons/clock.svg";
+import LockIcon from "@/assets/icons/lock.svg";
+import MonitorSmartphoneIcon from "@/assets/icons/monitor-smartphone.svg";
+import PlayIcon from "@/assets/icons/play.svg";
 import "./EnrollCard.css";
 
 type EnrollCardProps = {
   course: Course;
+  enrolled: boolean;
+  /** False for admin and teacher accounts */
+  canEnroll: boolean;
+  enrolling: boolean;
+  onEnroll: () => void;
 };
 
-export function EnrollCard({ course }: EnrollCardProps) {
+export function EnrollCard({
+  course,
+  enrolled,
+  canEnroll,
+  enrolling,
+  onEnroll,
+}: EnrollCardProps) {
   const isFree = course.price === null;
   const includes = [
     { icon: ClockIcon, label: `${course.durationHours} horas de contenido` },
@@ -28,12 +42,29 @@ export function EnrollCard({ course }: EnrollCardProps) {
         {isFree ? (
           <>
             <p className="enroll-card__price enroll-card__price--free">Gratis</p>
-            {/* TODO: la inscripción está pendiente de ser desarrollada */}
-            <button type="button" className="enroll-card__btn enroll-card__btn--primary">
-              Inscribirme
-            </button>
+            {enrolled ? (
+              <Link
+                to={learnPath(course.slug)}
+                className="enroll-card__btn enroll-card__btn--primary"
+              >
+                Ir al curso
+              </Link>
+            ) : (
+              <button
+                type="button"
+                className="enroll-card__btn enroll-card__btn--primary"
+                onClick={onEnroll}
+                disabled={!canEnroll || enrolling}
+              >
+                {enrolling ? "Inscribiendo…" : "Inscribirme"}
+              </button>
+            )}
             <p className="enroll-card__note">
-              Acceso inmediato tras la inscripción
+              {enrolled
+                ? "Ya estás inscrito en este curso"
+                : canEnroll
+                  ? "Acceso inmediato tras la inscripción"
+                  : "Solo las cuentas de alumno pueden inscribirse"}
             </p>
           </>
         ) : (

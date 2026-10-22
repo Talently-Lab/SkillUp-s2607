@@ -1,13 +1,27 @@
-import type { Course } from "../../../shared/types/course";
-import { formatPrice } from "../../../shared/utils/format";
-import CartShoppingIcon from "../../../assets/icons/cart-shopping.svg";
+import { Link } from "react-router";
+
+import type { Course } from "@/shared/types/course";
+import { formatPrice } from "@/shared/utils/format";
+import { learnPath } from "@/shared/utils/paths";
+import CartShoppingIcon from "@/assets/icons/cart-shopping.svg";
 import "./MobileEnrollBar.css";
 
 type MobileEnrollBarProps = {
   course: Course;
+  enrolled: boolean;
+  /** False for admin and teacher accounts */
+  canEnroll: boolean;
+  enrolling: boolean;
+  onEnroll: () => void;
 };
 
-export function MobileEnrollBar({ course }: MobileEnrollBarProps) {
+export function MobileEnrollBar({
+  course,
+  enrolled,
+  canEnroll,
+  enrolling,
+  onEnroll,
+}: MobileEnrollBarProps) {
   const isFree = course.price === null;
 
   return (
@@ -25,10 +39,18 @@ export function MobileEnrollBar({ course }: MobileEnrollBarProps) {
             {formatPrice(course.price)}
           </p>
         </div>
-        {isFree ? (
-          // TODO: la inscripción está pendiente de ser desarrollada
-          <button type="button" className="mobile-enroll__btn">
-            Inscribirme
+        {isFree && enrolled ? (
+          <Link to={learnPath(course.slug)} className="mobile-enroll__btn">
+            Ir al curso
+          </Link>
+        ) : isFree ? (
+          <button
+            type="button"
+            className="mobile-enroll__btn"
+            onClick={onEnroll}
+            disabled={!canEnroll || enrolling}
+          >
+            {enrolling ? "Inscribiendo…" : "Inscribirme"}
           </button>
         ) : (
           <>

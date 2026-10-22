@@ -51,8 +51,13 @@
   background-color: var(--color-accent);
   color: var(--fg);
 
-  &:hover {
+  &:hover:not(:disabled) {
     background-color: var(--color-accent-hover);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
   }
 }
 

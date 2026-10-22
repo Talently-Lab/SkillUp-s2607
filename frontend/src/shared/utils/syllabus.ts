@@ -65,7 +65,3 @@ function findSyllabus(course: Course): CourseSyllabus {
     ],
   };
 }
-
-export function getModuleMinutes(lessons: { minutes: number }[]): number {
-  return lessons.reduce((total, lesson) => total + lesson.minutes, 0);
-}
