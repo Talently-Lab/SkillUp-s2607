@@ -7,6 +7,7 @@ import { AdminCourses } from "./modules/admin/pages/AdminCourses";
 import { AdminUsers } from "./modules/admin/pages/AdminUsers";
 import { adminNav } from "./modules/admin/constants/nav";
 import { Student } from "./modules/student/pages/Student";
+import { Learn } from "./modules/student/pages/Learn";
 import { Register } from "./modules/auth/pages/Register";
 import { Login } from "./modules/auth/pages/Login";
 import { DashboardLayout } from "./layouts/DashboardLayout";
@@ -28,6 +29,13 @@ function App() {
           </RequireAuth>
         />
       </Route>
+      {/* The classroom has its own header, so it lives outside the layouts */}
+      <Route
+        path="/student/courses/:slug"
+        element=<RequireAuth role="student">
+          <Learn />
+        </RequireAuth>
+      />
       <Route path="/register" element=<Register /> />
       <Route path="/login" element=<Login /> />
       <Route

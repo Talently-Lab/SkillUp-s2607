@@ -86,7 +86,7 @@ function toApiBody(input: CourseInput) {
     status: input.status,
     featured: input.featured,
     durationMinutes: Math.round(input.durationHours * 60),
-    lessonsCount: input.lessons,
+    // lessonsCount is not sent, the API counts the course's lessons itself
     priceCents: input.price === null ? 0 : Math.round(input.price * 100),
     // The API only takes absolute URLs, covers are paths in /public
     coverUrl: new URL(input.image, window.location.origin).href,

@@ -2,6 +2,7 @@ import { Link } from "react-router";
 
 import type { Course } from "@/shared/types/course";
 import { formatPrice } from "@/shared/utils/format";
+import { coursePath } from "@/shared/utils/paths";
 import ClockIcon from "@/assets/icons/clock.svg";
 import "./RecommendedCourses.css";
 
@@ -18,7 +19,7 @@ export function RecommendedCourses({ courses }: RecommendedCoursesProps) {
       <ul className="recommended__list">
         {courses.map((course) => (
           <li key={course.id}>
-            <Link to={`/catalog/${course.id}`} className="recommended__item">
+            <Link to={coursePath(course.slug)} className="recommended__item">
               <img
                 className="recommended__image"
                 src={course.image}

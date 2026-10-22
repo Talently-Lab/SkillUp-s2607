@@ -1,21 +1,27 @@
 import { Link } from "react-router";
 
-import type { Course } from "../types/course";
-import { formatPrice } from "../utils/format";
+import type { Course } from "@/shared/types/course";
+import type { Enrollment } from "@/shared/types/enrollment";
+import { formatPrice } from "@/shared/utils/format";
+import { learnPath } from "@/shared/utils/paths";
 
-import ArrowRightIcon from "../../assets/icons/arrow-right.svg";
-import BarChartIcon from "../../assets/icons/bar-chart.svg";
-import CartShoppingIcon from "../../assets/icons/cart-shopping.svg";
-import ClockIcon from "../../assets/icons/clock.svg";
-import StarIcon from "../../assets/icons/star.svg";
+import ArrowRightIcon from "@/assets/icons/arrow-right.svg";
+import BarChartIcon from "@/assets/icons/bar-chart.svg";
+import CheckCircleIcon from "@/assets/icons/check-circle.svg";
+import CartShoppingIcon from "@/assets/icons/cart-shopping.svg";
+import ClockIcon from "@/assets/icons/clock.svg";
+import StarIcon from "@/assets/icons/star.svg";
 import "./CourseCard.css";
 
 type CourseCardProps = {
   course: Course;
+  /** The signed-in student's enrollment in this course, if any */
+  enrollment?: Pick<Enrollment, "status" | "progressPercent">;
 };
 
-export function CourseCard({ course }: CourseCardProps) {
+export function CourseCard({ course, enrollment }: CourseCardProps) {
   const isFree = course.price === null;
+  const isCompleted = enrollment?.status === "completed";
 
   return (
     <article className="course-card">
@@ -26,6 +32,26 @@ export function CourseCard({ course }: CourseCardProps) {
           alt=""
           loading="lazy"
         />
+        {enrollment && (
+          <span
+            className={
+              isCompleted
+                ? "course-card__badge course-card__badge--completed"
+                : "course-card__badge"
+            }
+          >
+            {isCompleted && (
+              <img
+                className="course-card__badge-icon"
+                src={CheckCircleIcon}
+                alt=""
+              />
+            )}
+            {isCompleted
+              ? "Completado"
+              : `En curso · ${enrollment.progressPercent}%`}
+          </span>
+        )}
       </div>
 
       <div className="course-card__body">
@@ -56,44 +82,60 @@ export function CourseCard({ course }: CourseCardProps) {
         </dl>
 
         <div className="course-card__footer">
-          <span
-            className={
-              isFree
-                ? "course-card__price course-card__price--free"
-                : "course-card__price"
-            }
-          >
-            {formatPrice(course.price)}
-          </span>
-
-          {isFree ? (
-            <span className="course-card__see-more">
-              Ver curso
-              <img
-                className="course-card__see-more-icon"
-                src={ArrowRightIcon}
-                alt=""
-              />
-            </span>
+          {enrollment ? (
+            <>
+              <span className="course-card__enrolled">Ya estás inscrito</span>
+              <div className="course-card__actions">
+                <Link
+                  to={learnPath(course.slug)}
+                  className="course-card__continue-btn"
+                >
+                  {isCompleted ? "Repasar" : "Continuar"}
+                </Link>
+              </div>
+            </>
           ) : (
-            <div className="course-card__actions">
-              {/* TODO: el carrito está pendiente de ser desarrollado */}
-              <button
-                type="button"
-                className="course-card__cart-btn"
-                aria-label="Añadir al carrito"
-                title="Añadir al carrito"
+            <>
+              <span
+                className={
+                  isFree
+                    ? "course-card__price course-card__price--free"
+                    : "course-card__price"
+                }
               >
-                <img
-                  className="course-card__cart-icon"
-                  src={CartShoppingIcon}
-                  alt=""
-                />
-              </button>
-              <button type="button" className="course-card__buy-btn">
-                Comprar ahora
-              </button>
-            </div>
+                {formatPrice(course.price)}
+              </span>
+
+              {isFree ? (
+                <span className="course-card__see-more">
+                  Ver curso
+                  <img
+                    className="course-card__see-more-icon"
+                    src={ArrowRightIcon}
+                    alt=""
+                  />
+                </span>
+              ) : (
+                <div className="course-card__actions">
+                  {/* TODO: el carrito está pendiente de ser desarrollado */}
+                  <button
+                    type="button"
+                    className="course-card__cart-btn"
+                    aria-label="Añadir al carrito"
+                    title="Añadir al carrito"
+                  >
+                    <img
+                      className="course-card__cart-icon"
+                      src={CartShoppingIcon}
+                      alt=""
+                    />
+                  </button>
+                  <button type="button" className="course-card__buy-btn">
+                    Comprar ahora
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

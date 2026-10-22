@@ -63,16 +63,8 @@
 
 .course-form__numbers {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
-
-  @media (max-width: 479px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-
-    > :last-child {
-      grid-column: 1 / -1;
-    }
-  }
 
   .form-field__input:disabled {
     background-color: var(--bg);

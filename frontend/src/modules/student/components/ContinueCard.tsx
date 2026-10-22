@@ -1,19 +1,25 @@
 import { Link } from "react-router";
 
-import type { Course } from "@/shared/types/course";
-import type { CourseProgress } from "@/modules/student/utils/progress";
+import type { EnrolledCourse } from "@/shared/types/enrollment";
+import { coursePath, learnPath } from "@/shared/utils/paths";
+import {
+  isCourseFinished,
+  type CourseProgress,
+  type NextLesson,
+} from "@/modules/student/utils/progress";
 import { ProgressBar } from "./ProgressBar";
 import PlayFilledIcon from "@/assets/icons/play-filled.svg";
 import "./ContinueCard.css";
 
 type ContinueCardProps = {
-  course: Course;
+  course: EnrolledCourse;
   progress: CourseProgress;
+  next: NextLesson | null;
 };
 
-export function ContinueCard({ course, progress }: ContinueCardProps) {
+export function ContinueCard({ course, progress, next }: ContinueCardProps) {
   const notStarted = progress.completed === 0;
-  const finished = progress.next === null;
+  const finished = isCourseFinished(progress);
 
   return (
     <section className="continue-card" aria-labelledby="continue-heading">
@@ -27,12 +33,12 @@ export function ContinueCard({ course, progress }: ContinueCardProps) {
         <h2 id="continue-heading" className="continue-card__title">
           {course.title}
         </h2>
-        {progress.next && (
+        {next && (
           <p className="continue-card__next">
             <span className="continue-card__next-label">
-              Siguiente · Módulo {progress.next.moduleIndex + 1}:
+              Siguiente · Módulo {next.moduleIndex + 1}:
             </span>{" "}
-            {progress.next.title}
+            {next.title}
           </p>
         )}
 
@@ -48,9 +54,8 @@ export function ContinueCard({ course, progress }: ContinueCardProps) {
             label={`Progreso en ${course.title}`}
           />
           <div className="continue-card__actions">
-            {/* TODO: apuntar al aula del curso cuando esté desarrollada */}
             <Link
-              to={`/catalog/${course.id}`}
+              to={learnPath(course.slug, next?.id)}
               className="continue-card__btn continue-card__btn--primary"
             >
               <img
@@ -65,7 +70,7 @@ export function ContinueCard({ course, progress }: ContinueCardProps) {
                   : "Continuar aprendiendo"}
             </Link>
             <Link
-              to={`/catalog/${course.id}`}
+              to={coursePath(course.slug)}
               className="continue-card__btn continue-card__btn--ghost"
             >
               Ver temario

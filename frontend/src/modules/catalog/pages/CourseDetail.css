@@ -202,6 +202,31 @@
   height: 1.125rem;
 }
 
+.course-detail__syllabus-state {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background-color: var(--fg);
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.course-detail__syllabus-retry {
+  padding: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-primary);
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 /* What you'll learn */
 .course-outcomes {
   padding: 1.5rem;

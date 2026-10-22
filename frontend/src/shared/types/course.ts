@@ -34,7 +34,6 @@ export interface CourseInput {
   level: CourseLevel;
   status: CourseStatus;
   durationHours: number;
-  lessons: number;
   price: number | null;
   image: string;
   featured: boolean;

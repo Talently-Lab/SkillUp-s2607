@@ -1,24 +1,29 @@
-import { useEffect } from "react";
-import { Link, useParams } from "react-router";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router";
 
-import { ApiError } from "../../../shared/api/http";
-import { PageLoader } from "../../../shared/components/Loader";
-import { useFetch } from "../../../shared/hooks/useFetch";
-import { coursesService } from "../../../shared/services/coursesService";
-import { formatNumber } from "../../../shared/utils/format";
-import { CourseReviews } from "../components/CourseReviews";
-import { EnrollCard } from "../components/EnrollCard";
-import { MobileEnrollBar } from "../components/MobileEnrollBar";
-import { SyllabusAccordion } from "../components/SyllabusAccordion";
-import { getReviewSummary } from "../utils/reviews";
-import { getModuleMinutes, getSyllabus } from "../../../shared/utils/syllabus";
-import BarChartIcon from "../../../assets/icons/bar-chart.svg";
-import CheckIcon from "../../../assets/icons/check.svg";
-import ChevronRightIcon from "../../../assets/icons/chevron-right.svg";
-import ClockIcon from "../../../assets/icons/clock.svg";
-import PeopleIcon from "../../../assets/icons/people.svg";
-import PlayIcon from "../../../assets/icons/play.svg";
-import StarFilledIcon from "../../../assets/icons/star-filled.svg";
+import { ApiError } from "@/shared/api/http";
+import { Loader, PageLoader } from "@/shared/components/Loader";
+import { useFetch } from "@/shared/hooks/useFetch";
+import { coursesService } from "@/shared/services/coursesService";
+import type { Course } from "@/shared/types/course";
+import type { Lesson } from "@/shared/types/lesson";
+import { formatNumber } from "@/shared/utils/format";
+import { learnPath } from "@/shared/utils/paths";
+import { getSyllabus } from "@/shared/utils/syllabus";
+import { CourseReviews } from "@/modules/catalog/components/CourseReviews";
+import { EnrollCard } from "@/modules/catalog/components/EnrollCard";
+import { LessonPreviewModal } from "@/modules/catalog/components/LessonPreviewModal";
+import { MobileEnrollBar } from "@/modules/catalog/components/MobileEnrollBar";
+import { SyllabusAccordion } from "@/modules/catalog/components/SyllabusAccordion";
+import { useCourseAccess } from "@/modules/catalog/hooks/useCourseAccess";
+import { getReviewSummary } from "@/modules/catalog/utils/reviews";
+import BarChartIcon from "@/assets/icons/bar-chart.svg";
+import CheckIcon from "@/assets/icons/check.svg";
+import ChevronRightIcon from "@/assets/icons/chevron-right.svg";
+import ClockIcon from "@/assets/icons/clock.svg";
+import PeopleIcon from "@/assets/icons/people.svg";
+import PlayIcon from "@/assets/icons/play.svg";
+import StarFilledIcon from "@/assets/icons/star-filled.svg";
 import "./CourseDetail.css";
 
 export function CourseDetail() {
@@ -71,16 +76,33 @@ export function CourseDetail() {
     );
   }
 
+  return <CourseDetailView course={course} />;
+}
+
+function CourseDetailView({ course }: { course: Course }) {
+  const navigate = useNavigate();
+  const access = useCourseAccess(course);
+  const [preview, setPreview] = useState<Lesson | null>(null);
+  // The API has no description paragraphs or outcomes yet, they come from the mocks
   const syllabus = getSyllabus(course);
   const summary = getReviewSummary(course);
-  const totalMinutes = syllabus.modules.reduce(
-    (total, module) => total + getModuleMinutes(module.lessons),
+  const lessonsTotal = access.modules.reduce(
+    (total, module) => total + module.lessons.length,
     0,
   );
-  const totalHours = Math.max(
-    Math.round(totalMinutes / 60),
-    course.durationHours,
-  );
+  const enrollProps = {
+    course,
+    enrolled: access.enrolled,
+    canEnroll: access.canEnroll,
+    enrolling: access.enrolling,
+    onEnroll: access.enroll,
+  };
+
+  const play = (lesson: Lesson) => {
+    if (access.enrolled) navigate(learnPath(course.slug, lesson.id));
+    else setPreview(lesson);
+  };
+
   const initials = course.instructor
     .split(" ")
     .map((part) => part[0])
@@ -179,16 +201,45 @@ export function CourseDetail() {
             <h2 id="syllabus-heading" className="course-detail__section-title">
               Temario
             </h2>
-            <p className="course-detail__syllabus-meta">
-              <img
-                className="course-detail__syllabus-icon"
-                src={PlayIcon}
-                alt=""
-              />
-              {syllabus.modules.length} módulos · {course.lessons} lecciones ·{" "}
-              {totalHours} h en total
-            </p>
-            <SyllabusAccordion modules={syllabus.modules} />
+            {access.isLoading ? (
+              <p className="course-detail__syllabus-state">
+                <Loader /> Cargando temario…
+              </p>
+            ) : access.error ? (
+              <div className="course-detail__syllabus-state" role="alert">
+                <p>No pudimos cargar el temario.</p>
+                <button
+                  type="button"
+                  className="course-detail__syllabus-retry"
+                  onClick={access.retry}
+                >
+                  Reintentar
+                </button>
+              </div>
+            ) : access.modules.length === 0 ? (
+              <p className="course-detail__syllabus-state">
+                El docente está preparando el temario. Vuelve pronto.
+              </p>
+            ) : (
+              <>
+                <p className="course-detail__syllabus-meta">
+                  <img
+                    className="course-detail__syllabus-icon"
+                    src={PlayIcon}
+                    alt=""
+                  />
+                  {access.modules.length}{" "}
+                  {access.modules.length === 1 ? "módulo" : "módulos"} ·{" "}
+                  {lessonsTotal} {lessonsTotal === 1 ? "lección" : "lecciones"}{" "}
+                  · {course.durationHours} h en total
+                </p>
+                <SyllabusAccordion
+                  modules={access.modules}
+                  enrolled={access.enrolled}
+                  onPlay={play}
+                />
+              </>
+            )}
           </section>
 
           <CourseReviews key={course.id} course={course} />
@@ -218,12 +269,20 @@ export function CourseDetail() {
 
         <aside className="course-detail__aside" aria-label="Inscripción">
           <div className="course-detail__aside-inner">
-            <EnrollCard course={course} />
+            <EnrollCard {...enrollProps} />
           </div>
         </aside>
       </div>
 
-      <MobileEnrollBar course={course} />
+      <MobileEnrollBar {...enrollProps} />
+
+      {preview && (
+        <LessonPreviewModal
+          lesson={preview}
+          poster={course.image}
+          onClose={() => setPreview(null)}
+        />
+      )}
     </div>
   );
 }

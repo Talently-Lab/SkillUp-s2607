@@ -19,6 +19,7 @@
 }
 
 .course-card__media {
+  position: relative;
   aspect-ratio: 16 / 9;
   overflow: hidden;
   background-color: var(--color-primary-soft);
@@ -33,6 +34,32 @@
   .course-card:hover & {
     transform: scale(1.03);
   }
+}
+
+.course-card__badge {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  background-color: var(--color-primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--fg);
+  box-shadow: 0 4px 12px -4px rgb(22 33 77 / 0.4);
+}
+
+.course-card__badge--completed {
+  background-color: var(--fg);
+  color: var(--color-success);
+}
+
+.course-card__badge-icon {
+  width: 0.875rem;
+  height: 0.875rem;
 }
 
 .course-card__body {
@@ -129,6 +156,30 @@
 
   .course-card:hover & {
     transform: translateX(2px);
+  }
+}
+
+.course-card__enrolled {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.course-card__continue-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 2.25rem;
+  padding: 0 0.875rem;
+  border-radius: var(--radius);
+  background-color: var(--color-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--fg);
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: var(--color-primary-hover);
   }
 }
 
