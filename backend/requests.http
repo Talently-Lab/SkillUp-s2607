@@ -119,6 +119,19 @@ GET {{api}}/courses/not-a-uuid
 
 ### ---------- Admin — Courses ----------
 
+### List all courses (draft + published)
+# @name listAdminCourses
+GET {{api}}/admin/courses
+Authorization: Bearer {{loginAdmin.response.body.accessToken}}
+
+### List only draft courses
+GET {{api}}/admin/courses?status=draft
+Authorization: Bearer {{loginAdmin.response.body.accessToken}}
+
+### Get a course by id (admin, includes draft)
+# GET {{api}}/admin/courses/{{createCourse.response.body.course.id}}
+# Authorization: Bearer {{loginAdmin.response.body.accessToken}}
+
 ### Create a course (admin only)
 # @name createCourse
 POST {{api}}/admin/courses
