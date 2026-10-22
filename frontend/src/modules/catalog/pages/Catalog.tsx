@@ -1,24 +1,36 @@
 import { useState } from "react";
 
-import { CourseCard } from "../../../shared/components/CourseCard";
-import { PageLoader } from "../../../shared/components/Loader";
-import { useFetch } from "../../../shared/hooks/useFetch";
-import { categoriesService } from "../../../shared/services/categoriesService";
-import { coursesService } from "../../../shared/services/coursesService";
-import { CatalogFilters } from "../components/CatalogFilters";
-import { FilterDrawer } from "../components/FilterDrawer";
-import { SortDropdown } from "../components/SortDropdown";
-import { useCatalogFilters } from "../hooks/useCatalogFilters";
-import AlertTriangleIcon from "../../../assets/icons/alert-triangle.svg";
-import CloseIcon from "../../../assets/icons/close.svg";
-import SearchIcon from "../../../assets/icons/search.svg";
-import SearchXIcon from "../../../assets/icons/search-x.svg";
-import SlidersIcon from "../../../assets/icons/sliders.svg";
+import { CourseCard } from "@/shared/components/CourseCard";
+import { PageLoader } from "@/shared/components/Loader";
+import { useFetch } from "@/shared/hooks/useFetch";
+import { categoriesService } from "@/shared/services/categoriesService";
+import { coursesService } from "@/shared/services/coursesService";
+import { enrollmentsService } from "@/shared/services/enrollmentsService";
+import { useAuthStore } from "@/shared/stores/authStore";
+import { CatalogFilters } from "@/modules/catalog/components/CatalogFilters";
+import { FilterDrawer } from "@/modules/catalog/components/FilterDrawer";
+import { SortDropdown } from "@/modules/catalog/components/SortDropdown";
+import { useCatalogFilters } from "@/modules/catalog/hooks/useCatalogFilters";
+import AlertTriangleIcon from "@/assets/icons/alert-triangle.svg";
+import CloseIcon from "@/assets/icons/close.svg";
+import SearchIcon from "@/assets/icons/search.svg";
+import SearchXIcon from "@/assets/icons/search-x.svg";
+import SlidersIcon from "@/assets/icons/sliders.svg";
 import "./Catalog.css";
 
 export function Catalog() {
   const coursesQuery = useFetch("catalog-courses", coursesService.list);
   const categoriesQuery = useFetch("categories", categoriesService.list);
+  const user = useAuthStore((state) => state.user);
+  const isStudent = user?.role === "student";
+  // Not awaited by the page: if it fails the cards just show no enrollment
+  const enrollmentsQuery = useFetch(
+    `catalog-enrollments-${user?.id ?? "guest"}`,
+    async () => (isStudent ? enrollmentsService.listMine() : []),
+  );
+  const enrollmentByCourse = new Map(
+    (enrollmentsQuery.data ?? []).map((item) => [item.courseId, item]),
+  );
   const courses = coursesQuery.data ?? [];
   const catalog = useCatalogFilters(courses);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -164,7 +176,10 @@ export function Catalog() {
             <ul className="catalog__grid">
               {catalog.results.map((course) => (
                 <li key={course.id}>
-                  <CourseCard course={course} />
+                  <CourseCard
+                    course={course}
+                    enrollment={enrollmentByCourse.get(course.id)}
+                  />
                 </li>
               ))}
             </ul>
