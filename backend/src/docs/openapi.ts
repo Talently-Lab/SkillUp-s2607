@@ -26,6 +26,7 @@ import {
 import {
   createLessonSchema,
   createModuleSchema,
+  FREE_PREVIEW_LESSONS,
   lessonSchema,
   modulePublicSchema,
   moduleSchema,
@@ -659,10 +660,10 @@ Todos los errores tienen la forma \`{ "error": { "code", "message", "details"? }
 Cada lección incluye \`locked: boolean\`. Cuando \`locked\` es \`true\`, \`videoUrl\` viene en \`null\` para no exponer el contenido de pago.
 
 **Regla de desbloqueo:**
-- Las ${2} primeras lecciones del curso (en orden global: módulo por posición ascendente, luego lección por posición ascendente) siempre tienen \`locked: false\`.
+- Las ${FREE_PREVIEW_LESSONS} primeras lecciones del curso (en orden global: módulo por posición ascendente, luego lección por posición ascendente) siempre tienen \`locked: false\`.
 - Un alumno con inscripción activa o completada en este curso (cualquier estado) ve todas las lecciones desbloqueadas.
 - Un admin ve todas las lecciones desbloqueadas.
-- Anónimos y usuarios sin inscripción solo ven las ${2} primeras.
+- Anónimos y usuarios sin inscripción solo ven las ${FREE_PREVIEW_LESSONS} primeras.
 
 Acepta un \`Authorization: Bearer <token>\` opcional. Si el token es inválido o vencido, se trata como anónimo (no devuelve 401).`,
         security: [{ bearerAuth: [] }, {}],

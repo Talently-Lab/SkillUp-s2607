@@ -4,16 +4,14 @@ import { coursesRepository } from "../courses/courses.repository.ts";
 import { enrollmentsRepository } from "../enrollments/enrollments.repository.ts";
 import { progressRepository } from "../progress/progress.repository.ts";
 import { modulesRepository } from "./modules.repository.ts";
-import type {
-  CreateLessonInput,
-  CreateModuleInput,
-  UpdateLessonInput,
-  UpdateModuleInput,
+import {
+  FREE_PREVIEW_LESSONS,
+  type CreateLessonInput,
+  type CreateModuleInput,
+  type UpdateLessonInput,
+  type UpdateModuleInput,
 } from "./modules.schemas.ts";
 import type { AccessTokenClaims } from "../../shared/security/jwt.ts";
-
-/** Lecciones desbloqueadas gratis para todos (contadas en orden global del curso) */
-const FREE_PREVIEW_LESSONS = 2;
 
 /** Keeps the course's lessonsCount and every enrollment's progress in line with its real lessons */
 async function syncCourseLessons(courseId: string) {

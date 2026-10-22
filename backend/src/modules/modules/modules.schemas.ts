@@ -82,6 +82,9 @@ export const moduleSchema = z
   })
   .meta({ id: "Module" });
 
+/** Lessons unlocked for everyone, counted in the course's global order */
+export const FREE_PREVIEW_LESSONS = 2;
+
 // ── Public response schemas (include `locked` field) ─────────────────────────
 // Used only by GET /courses/:courseId/modules. Admin endpoints keep using
 // lessonSchema / moduleSchema to avoid adding `locked` to their responses.
