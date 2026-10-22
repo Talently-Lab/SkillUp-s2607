@@ -1,6 +1,16 @@
 import { z } from "zod";
 import "zod-openapi";
 
+// ── Route params ──────────────────────────────────────────────────────────────
+
+export const courseParamsSchema = z.object({ courseId: z.uuid() });
+export const courseModuleParamsSchema = courseParamsSchema.extend({
+  moduleId: z.uuid(),
+});
+export const courseModuleLessonParamsSchema = courseModuleParamsSchema.extend({
+  lessonId: z.uuid(),
+});
+
 // ── Module schemas ────────────────────────────────────────────────────────────
 
 export const createModuleSchema = z
