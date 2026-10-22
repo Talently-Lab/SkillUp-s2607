@@ -22,7 +22,6 @@ const emptyForm = (categories: Category[]): FormState => ({
   level: "Principiante",
   status: "draft",
   durationHours: "",
-  lessons: "",
   price: "",
   isFree: false,
   image: coverOptions[0],
@@ -89,7 +88,6 @@ export function CourseFormModal({
         level: form.level,
         status: form.status,
         durationHours: Number(form.durationHours),
-        lessons: Number(form.lessons),
         price: form.isFree ? null : Number(form.price),
         image: form.image,
         featured: form.featured,
@@ -253,17 +251,6 @@ export function CourseFormModal({
             value={form.durationHours}
             onChange={(event) => set("durationHours", event.target.value)}
             error={errors.durationHours}
-          />
-          <FormField
-            id="course-lessons"
-            label="Lecciones"
-            type="number"
-            min={1}
-            inputMode="numeric"
-            required
-            value={form.lessons}
-            onChange={(event) => set("lessons", event.target.value)}
-            error={errors.lessons}
           />
           <FormField
             id="course-price"

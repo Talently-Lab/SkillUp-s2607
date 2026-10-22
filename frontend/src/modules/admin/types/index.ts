@@ -8,7 +8,6 @@ export type FormState = {
   level: CourseLevel;
   status: CourseStatus;
   durationHours: string;
-  lessons: string;
   price: string;
   isFree: boolean;
   image: string;
@@ -16,5 +15,5 @@ export type FormState = {
 };
 
 export type FormErrors = Partial<
-  Record<"title" | "categoryId" | "durationHours" | "lessons" | "price", string>
+  Record<"title" | "categoryId" | "durationHours" | "price", string>
 >;
