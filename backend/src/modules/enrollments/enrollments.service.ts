@@ -15,8 +15,8 @@ export const enrollmentsService = {
       throw new NotFoundError("Course not found");
     }
 
-    // Only free courses can be enrolled in; treat null as free
-    if ((course.priceCents ?? 0) > 0) {
+    // Only free courses can be enrolled in
+    if (course.priceCents > 0) {
       throw new ForbiddenError(
         "COURSE_NOT_FREE",
         "Enrollment is only available for free courses",
