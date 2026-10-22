@@ -24,13 +24,6 @@ export const modulesRepository = {
     });
   },
 
-  async findById(id: string) {
-    return db.query.modules.findFirst({
-      where: eq(modules.id, id),
-      with: { lessons: { orderBy: [asc(lessons.position)] } },
-    });
-  },
-
   /** Finds a module only if it belongs to the given course (ownership check) */
   async findModuleInCourse(courseId: string, moduleId: string) {
     return db.query.modules.findFirst({
