@@ -114,8 +114,9 @@ export const modulesService = {
   ) {
     const m = await modulesRepository.findModuleInCourse(courseId, moduleId);
     if (!m) throw new NotFoundError("Module not found");
+    let lesson;
     try {
-      return await modulesRepository.createLesson({ ...input, moduleId });
+      lesson = await modulesRepository.createLesson({ ...input, moduleId });
     } catch (err) {
       if (isUniqueViolation(err))
         throw new ConflictError(
@@ -124,6 +125,9 @@ export const modulesService = {
         );
       throw err;
     }
+    // A new lesson lowers every enrollment's percent (and reopens completed ones)
+    await progressRepository.recalcCourseProgress(courseId);
+    return lesson;
   },
   async updateLesson(
     courseId: string,
