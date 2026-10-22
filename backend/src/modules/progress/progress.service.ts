@@ -1,6 +1,6 @@
 import { ConflictError, NotFoundError } from "../../shared/errors/app-error.ts";
 import { modulesRepository } from "../modules/modules.repository.ts";
-import { enrollmentsRepository } from "./enrollments.repository.ts";
+import { enrollmentsRepository } from "../enrollments/enrollments.repository.ts";
 import { progressRepository } from "./progress.repository.ts";
 
 async function findEnrollmentForUser(userId: string, enrollmentId: string) {

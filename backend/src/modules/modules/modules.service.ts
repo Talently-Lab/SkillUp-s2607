@@ -2,7 +2,7 @@ import { ConflictError, NotFoundError } from "../../shared/errors/app-error.ts";
 import { isUniqueViolation } from "../../shared/errors/db-errors.ts";
 import { coursesRepository } from "../courses/courses.repository.ts";
 import { enrollmentsRepository } from "../enrollments/enrollments.repository.ts";
-import { progressRepository } from "../enrollments/progress.repository.ts";
+import { progressRepository } from "../progress/progress.repository.ts";
 import { modulesRepository } from "./modules.repository.ts";
 import type {
   CreateLessonInput,
