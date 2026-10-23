@@ -64,7 +64,7 @@ const courseSelect = {
 } as const;
 
 export const coursesRepository = {
-    /** Public catalog: always restricted to published courses */
+  /** Public catalog: always restricted to published courses */
   async findMany(query: CoursesQuery) {
     return findPage({ ...query, status: "published" });
   },
