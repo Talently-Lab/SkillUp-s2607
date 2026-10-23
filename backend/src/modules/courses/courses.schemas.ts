@@ -105,7 +105,10 @@ const courseFieldsSchema = z.object({
   coverUrl: z
     .string()
     .trim()
-    .url({ error: "Cover URL must be a valid URL" })
+    .url({
+      protocol: /^https?$/,
+      error: "Cover URL must be a valid http(s) URL",
+    })
     .optional()
     .nullable(),
   categoryId: z.number({ error: "Category is required" }).int().positive(),
