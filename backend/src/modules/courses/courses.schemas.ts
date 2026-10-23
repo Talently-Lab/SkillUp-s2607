@@ -3,40 +3,29 @@ import "zod-openapi";
 
 // ── Query params ──────────────────────────────────────────────────────────────
 
-export const coursesQuerySchema = z
-  .object({
-    page: z.coerce.number().int().positive().default(1),
-    limit: z.coerce.number().int().min(1).max(50).default(20),
-    // Public catalog — status is not exposed to users but used internally to force published
-    status: z.enum(["draft", "published"]).optional(),
-    categoryId: z.coerce.number().int().positive().optional(),
-    // strict boolean: only "true" or "false" accepted
-    featured: z
-      .enum(["true", "false"], {
-        error: 'featured must be "true" or "false"',
-      })
-      .optional()
-      .transform((v) => (v === undefined ? undefined : v === "true")),
-  })
-  .meta({ id: "CoursesQuery" });
+// Shared by the public and admin queries
+const queryBase = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().min(1).max(50).default(20),
+  categoryId: z.coerce.number().int().positive().optional(),
+  // strict boolean: only "true" or "false" accepted
+  featured: z
+    .enum(["true", "false"], {
+      error: 'featured must be "true" or "false"',
+    })
+    .optional()
+    .transform((v) => (v === undefined ? undefined : v === "true")),
+});
+
+// Public catalog: no status param, the service forces published
+export const coursesQuerySchema = queryBase.meta({ id: "CoursesQuery" });
 
 export type CoursesQuery = z.infer<typeof coursesQuerySchema>;
 
 // ── Admin query params (status filter respected) ─────────────────────────────
 
-export const adminCoursesQuerySchema = z
-  .object({
-    page: z.coerce.number().int().positive().default(1),
-    limit: z.coerce.number().int().min(1).max(50).default(20),
-    status: z.enum(["draft", "published"]).optional(),
-    categoryId: z.coerce.number().int().positive().optional(),
-    featured: z
-      .enum(["true", "false"], {
-        error: 'featured must be "true" or "false"',
-      })
-      .optional()
-      .transform((v) => (v === undefined ? undefined : v === "true")),
-  })
+export const adminCoursesQuerySchema = queryBase
+  .extend({ status: z.enum(["draft", "published"]).optional() })
   .meta({ id: "AdminCoursesQuery" });
 
 export type AdminCoursesQuery = z.infer<typeof adminCoursesQuerySchema>;
