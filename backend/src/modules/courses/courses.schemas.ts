@@ -152,6 +152,9 @@ export const createCourseSchema = courseFieldsSchema
 // Update: all fields optional, no defaults (missing field = keep existing value in DB)
 export const updateCourseSchema = courseFieldsSchema
   .partial()
+  .refine((data) => Object.keys(data).length > 0, {
+    error: "At least one field must be provided",
+  })
   .meta({ id: "UpdateCourseRequest" });
 
 export type CreateCourseInput = z.infer<typeof createCourseSchema>;
