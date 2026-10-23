@@ -31,13 +31,13 @@ export const progressService = {
     if (inserted.length === 0)
       throw new ConflictError("ALREADY_COMPLETED", "Lesson already completed");
     const completedAt = inserted[0]!.completedAt;
-    const { total, completed } = await progressRepository.getProgress(
+    // The percent is computed by the database at UPDATE time, with the same
+    // formula the admin recalculation uses (no totals read in JS)
+    const progressPercent = await progressRepository.recalcEnrollmentProgress(
       enrollmentId,
       enrollment.courseId,
     );
-    const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
-    await progressRepository.updateProgressPercent(enrollmentId, percent);
-    return { lessonId, completedAt, progressPercent: percent };
+    return { lessonId, completedAt, progressPercent };
   },
   async getProgress(userId: string, enrollmentId: string) {
     const enrollment = await findEnrollmentForUser(userId, enrollmentId);
