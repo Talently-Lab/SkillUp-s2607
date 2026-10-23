@@ -123,7 +123,13 @@ const courseFieldsSchema = z.object({
   instructorId: z.uuid().optional().nullable(),
   level: z.enum(["beginner", "intermediate", "advanced"]),
   priceCents: z.number().int().min(0),
-  currency: z.string().length(3),
+  currency: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(/^[A-Z]{3}$/, {
+      error: "Currency must be a 3-letter ISO code (e.g. USD, CLP)",
+    }),
   status: z.enum(["draft", "published"]),
   featured: z.boolean(),
   lessonsCount: z.number().int().min(0),
