@@ -1,5 +1,5 @@
 import { and, count, eq, sql } from "drizzle-orm";
-import { db } from "../../db/client.ts";
+import { db, type DbOrTx } from "../../db/client.ts";
 import {
   enrollments,
   lessonProgress,
@@ -70,16 +70,63 @@ export const progressRepository = {
       })
       .where(eq(enrollments.id, enrollmentId));
   },
-  /** Recalculates progressPercent for every enrollment of a course (e.g. after a lesson or module is deleted) */
-  async recalcCourseProgress(courseId: string) {
-    const rows = await db
-      .select({ id: enrollments.id })
+  /**
+   * Recalculates progressPercent for every enrollment of a course in a single UPDATE.
+   *
+   * Semantics preserved from the N+1 version:
+   *   total     = lessons in the course (lessons JOIN modules WHERE module.course_id = courseId)
+   *   completed = lesson_progress rows of the enrollment whose lesson belongs to the same course
+   *   pct       = total > 0 ? ROUND(completed*100/total)::int : 0  (half-up, same as Math.round)
+   *   status    = pct = 100 ? 'completed' : 'active'
+   *   completed_at = pct = 100 ? COALESCE(existing, now()) : NULL
+   *
+   * A course with no enrollments: UPDATE affects 0 rows, no error.
+   * A course with no lessons:     all enrollments → pct=0 / active / NULL  (LEFT JOIN guarantees rows).
+   * An enrollment with no lesson_progress: LEFT JOIN + COUNT → completed=0.
+   */
+  async recalcCourseProgress(courseId: string, executor: DbOrTx = db) {
+    // Subquery: one row per enrollment, even when the course has no lessons.
+    //
+    // We start from enrollments (anchored to the course) and LEFT-JOIN to
+    // lessons/modules so that a course with zero lessons still produces a row
+    // per enrollment (with total=0 → pct=0).
+    //
+    // completed is counted via a second LEFT JOIN to lesson_progress, filtered
+    // to lessons that belong to this course.
+    const sub = executor
+      .select({
+        enrollmentId: enrollments.id,
+        pct: sql<number>`
+          case when count(distinct ${lessons.id}) = 0 then 0
+               else cast(round(
+                 count(distinct ${lessonProgress.lessonId})::numeric
+                 * 100
+                 / count(distinct ${lessons.id})::numeric
+               ) as integer)
+          end`.as("pct"),
+      })
       .from(enrollments)
-      .where(eq(enrollments.courseId, courseId));
-    for (const { id } of rows) {
-      const { total, completed } = await this.getProgress(id, courseId);
-      const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
-      await this.updateProgressPercent(id, percent);
-    }
+      .leftJoin(modules, eq(modules.courseId, courseId))
+      .leftJoin(lessons, eq(lessons.moduleId, modules.id))
+      .leftJoin(
+        lessonProgress,
+        and(
+          eq(lessonProgress.enrollmentId, enrollments.id),
+          eq(lessonProgress.lessonId, lessons.id),
+        ),
+      )
+      .where(eq(enrollments.courseId, courseId))
+      .groupBy(enrollments.id)
+      .as("sub");
+
+    await executor
+      .update(enrollments)
+      .set({
+        progressPercent: sql`${sub.pct}`,
+        status: sql`case when ${sub.pct} = 100 then 'completed'::enrollment_status else 'active'::enrollment_status end`,
+        completedAt: sql`case when ${sub.pct} = 100 then coalesce(${enrollments.completedAt}, now()) else null end`,
+      })
+      .from(sub)
+      .where(eq(enrollments.id, sub.enrollmentId));
   },
 };

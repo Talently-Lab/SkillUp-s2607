@@ -115,6 +115,7 @@ Todos los errores tienen la forma \`{ "error": { "code", "message", "details"? }
   servers: [{ url: "/api/v1", description: "Servidor actual" }],
   tags: [
     { name: "Auth", description: "Registro, inicio de sesión y sesión" },
+    { name: "System", description: "Operaciones de sistema (health check)" },
     { name: "Categories", description: "Categorías de cursos" },
     { name: "Courses", description: "Catálogo público de cursos" },
     { name: "Admin — Courses", description: "CRUD de cursos (solo admin)" },
@@ -148,6 +149,39 @@ Todos los errores tienen la forma \`{ "error": { "code", "message", "details"? }
     },
   },
   paths: {
+    "/health": {
+      get: {
+        tags: ["System"],
+        summary: "Health check",
+        description:
+          "Verifica que el servidor y la base de datos estén disponibles. Utilizado por el balanceador de carga y los checks de despliegue en Render.",
+        responses: {
+          "200": {
+            description: "Servicio operativo.",
+            content: {
+              "application/json": {
+                schema: z
+                  .object({ status: z.literal("ok") })
+                  .meta({ id: "HealthOkResponse" }),
+              },
+            },
+          },
+          "503": {
+            description: "Base de datos no disponible.",
+            content: {
+              "application/json": {
+                schema: z
+                  .object({
+                    status: z.literal("error"),
+                    db: z.literal("down"),
+                  })
+                  .meta({ id: "HealthErrorResponse" }),
+              },
+            },
+          },
+        },
+      },
+    },
     "/auth/register": {
       post: {
         tags: ["Auth"],
@@ -368,6 +402,51 @@ Todos los errores tienen la forma \`{ "error": { "code", "message", "details"? }
       },
     },
     [`${COURSES_ADMIN_BASE_PATH.replace("/api/v1", "")}`]: {
+      get: {
+        tags: ["Admin — Courses"],
+        summary: "Listar todos los cursos (admin)",
+        description:
+          "Devuelve el catálogo paginado para el panel de administración. A diferencia del catálogo público, muestra **todos los estados** (`draft` y `published`) salvo que se filtre explícitamente. `courses.total` en `/admin/stats` incluye también los cursos en borrador.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "page",
+            in: "query",
+            schema: { type: "integer", default: 1 },
+          },
+          {
+            name: "limit",
+            in: "query",
+            schema: { type: "integer", default: 20, maximum: 50 },
+          },
+          {
+            name: "status",
+            in: "query",
+            schema: { type: "string", enum: ["draft", "published"] },
+            description: "Filtra por estado. Omitir devuelve ambos.",
+          },
+          {
+            name: "categoryId",
+            in: "query",
+            schema: { type: "integer" },
+          },
+          {
+            name: "featured",
+            in: "query",
+            schema: { type: "string", enum: ["true", "false"] },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Lista paginada de cursos (draft + published).",
+            content: { "application/json": { schema: coursesListSchema } },
+          },
+          "400": validationError,
+          "401": errorResponse("`UNAUTHORIZED`: falta el token."),
+          "403": errorResponse("`FORBIDDEN`: el usuario no es admin."),
+          ...commonErrors,
+        },
+      },
       post: {
         tags: ["Admin — Courses"],
         summary: "Crear un curso",
@@ -399,6 +478,40 @@ Todos los errores tienen la forma \`{ "error": { "code", "message", "details"? }
       },
     },
     [`${COURSES_ADMIN_BASE_PATH.replace("/api/v1", "")}/{id}`]: {
+      get: {
+        tags: ["Admin — Courses"],
+        summary: "Obtener un curso por id (admin)",
+        description:
+          "Devuelve el detalle completo de un curso (incluyendo `draft`). Solo admins.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Curso encontrado.",
+            content: {
+              "application/json": {
+                schema: z
+                  .object({ course: courseSchema })
+                  .meta({ id: "AdminCourseResponse" }),
+              },
+            },
+          },
+          "400": errorResponse(
+            "`VALIDATION_ERROR`: el id no es un UUID válido.",
+          ),
+          "401": errorResponse("`UNAUTHORIZED`"),
+          "403": errorResponse("`FORBIDDEN`"),
+          "404": errorResponse("`NOT_FOUND`: el curso no existe."),
+          ...commonErrors,
+        },
+      },
       put: {
         tags: ["Admin — Courses"],
         summary: "Actualizar un curso",
@@ -1053,7 +1166,7 @@ Acepta un \`Authorization: Bearer <token>\` opcional. Si el token es inválido o
         tags: ["Admin — Stats"],
         summary: "Estadísticas de la plataforma (admin)",
         description:
-          "Devuelve métricas generales: total de cursos (y publicados), estudiantes, inscripciones (y completadas), tasa de finalización y top 5 cursos por estudiantes.",
+          "Devuelve métricas generales: total de cursos (y publicados), estudiantes, inscripciones (y completadas), tasa de finalización y top 5 cursos por estudiantes. `courses.total` incluye los cursos en borrador (`draft`); `courses.published` es el subconjunto publicado.",
         security: [{ bearerAuth: [] }],
         responses: {
           "200": {

@@ -1,5 +1,5 @@
 import { and, asc, count, desc, eq, type SQL } from "drizzle-orm";
-import { db } from "../../db/client.ts";
+import { db, type DbOrTx } from "../../db/client.ts";
 import {
   categories,
   courses,
@@ -110,8 +110,28 @@ export const coursesRepository = {
     return updated ? findOneCourse(eq(courses.id, updated.id)) : null;
   },
 
-  async updateLessonsCount(id: string, lessonsCount: number) {
-    await db.update(courses).set({ lessonsCount }).where(eq(courses.id, id));
+  async updateLessonsCount(
+    id: string,
+    lessonsCount: number,
+    executor: DbOrTx = db,
+  ) {
+    await executor
+      .update(courses)
+      .set({ lessonsCount })
+      .where(eq(courses.id, id));
+  },
+
+  /**
+   * Acquires a FOR NO KEY UPDATE row-level lock on the course.
+   * Must be called inside a transaction (tx). Serialises concurrent lesson
+   * mutations of the same course without blocking enrollment inserts (KEY SHARE).
+   */
+  async lockForUpdate(courseId: string, executor: DbOrTx) {
+    await executor
+      .select({ id: courses.id })
+      .from(courses)
+      .where(eq(courses.id, courseId))
+      .for("no key update");
   },
 
   async remove(id: string) {
