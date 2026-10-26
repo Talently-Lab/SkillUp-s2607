@@ -1,0 +1,270 @@
+.module-editor {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background-color: var(--fg);
+}
+
+.module-editor__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+
+  @media (max-width: 479px) {
+    flex-wrap: wrap;
+    padding-inline: 0.75rem;
+  }
+}
+
+.module-editor__number {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius);
+  background-color: var(--text-h);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.module-editor__heading {
+  flex: 1;
+  min-width: 0;
+}
+
+.module-editor__summary {
+  padding-inline: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-subtle);
+}
+
+.module-editor__input {
+  width: 100%;
+  min-width: 0;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--text-h);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
+
+  &:hover {
+    border-color: var(--border);
+  }
+
+  &:focus {
+    border-color: var(--color-primary);
+    outline: none;
+    background-color: var(--fg);
+    box-shadow: 0 0 0 4px var(--color-primary-soft);
+  }
+
+  &::placeholder {
+    color: var(--text-subtle);
+  }
+}
+
+.module-editor__input--title {
+  font-weight: 600;
+}
+
+.module-editor__input--minutes {
+  width: 3.5rem;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.module-editor__actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.125rem;
+
+  /* Under the title on small phones, so the title keeps its width */
+  @media (max-width: 479px) {
+    justify-content: flex-end;
+    width: 100%;
+  }
+}
+
+.module-editor__icon-button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 6px;
+  color: var(--text-subtle);
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background-color: var(--color-primary-soft);
+    color: var(--color-primary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 1px;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.3;
+  }
+
+  .mask-icon {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+}
+
+.module-editor__icon-button--danger:hover:not(:disabled) {
+  background-color: rgb(235 87 87 / 0.12);
+  color: var(--color-error-text);
+}
+
+.module-editor__delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  height: 2rem;
+  margin-left: 0.25rem;
+  padding: 0 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-error-text);
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: rgb(235 87 87 / 0.12);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-error-text);
+    outline-offset: 1px;
+  }
+
+  .mask-icon {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+}
+
+.module-editor__empty {
+  padding: 1rem;
+  font-size: 0.875rem;
+  color: var(--text-subtle);
+}
+
+.module-editor__lesson {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+  padding: 0.375rem 1rem;
+  border-bottom: 1px solid var(--border);
+  transition: background-color 0.15s ease;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background-color: var(--bg);
+  }
+
+  /* Phones: the minutes and actions go under the title */
+  @media (max-width: 639px) {
+    grid-template-columns: 2rem minmax(0, 1fr) auto;
+    padding: 0.5rem 0.75rem;
+
+    .module-editor__minutes {
+      grid-row: 2;
+      grid-column: 2;
+    }
+
+    .module-editor__lesson-actions {
+      grid-row: 2;
+      grid-column: 3;
+    }
+  }
+}
+
+.module-editor__lesson-number {
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--text-subtle);
+}
+
+.module-editor__lesson-title {
+  font-size: 0.875rem;
+
+  @media (max-width: 639px) {
+    grid-column: 2 / -1;
+  }
+}
+
+.module-editor__minutes {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text-subtle);
+}
+
+.module-editor__lesson-actions {
+  display: flex;
+  align-items: center;
+
+  /* Shown on hover with a mouse, always on touch screens */
+  @media (hover: hover) and (min-width: 640px) {
+    opacity: 0;
+    transition: opacity 0.15s ease;
+
+    .module-editor__lesson:hover &,
+    .module-editor__lesson:focus-within & {
+      opacity: 1;
+    }
+  }
+}
+
+.module-editor__add {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border-top: 1px dashed var(--border);
+
+  @media (max-width: 639px) {
+    padding-inline: 0.75rem;
+  }
+}
+
+.module-editor__add-icon {
+  margin-left: 0.5rem;
+  color: var(--text-subtle);
+}
+
+.module-editor__add-title {
+  flex: 1 1 12rem;
+  font-size: 0.875rem;
+}
+
+.module-editor__add-submit {
+  @media (max-width: 479px) {
+    flex: 1;
+  }
+}
