@@ -78,10 +78,9 @@ export function Login() {
       role="Analista de datos"
     >
       <div className="login__toggle">
-        {/* Teachers are out of the MVP, so their option is hidden */}
         <AccountTypeToggle
           value={accountType}
-          options={["student", "admin"]}
+          options={["student", "teacher", "admin"]}
           onChange={(type) => {
             setAccountType(type);
             setErrors({});
@@ -165,9 +164,10 @@ export function Login() {
         </button>
       </form>
 
-      {isAdmin ? (
+      {accountType !== "student" ? (
         <p className="login__footer">
-          Las cuentas de administrador las crea el equipo académico.
+          Las cuentas {isAdmin ? "de administrador" : "docentes"} las crea el
+          equipo académico.
         </p>
       ) : (
         <p className="login__footer">

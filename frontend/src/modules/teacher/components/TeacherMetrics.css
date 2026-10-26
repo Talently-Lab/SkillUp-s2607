@@ -1,0 +1,95 @@
+.teacher-metrics {
+  display: grid;
+  gap: 1rem;
+
+  @media (min-width: 1024px) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2.25fr);
+  }
+}
+
+.teacher-metrics__hero {
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  border-radius: 12px;
+  background-color: var(--text-h);
+}
+
+.teacher-metrics__hero-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #c9d0ea;
+}
+
+.teacher-metrics__hero-value {
+  margin-top: 0.5rem;
+  font-family: var(--heading);
+  font-size: 2.25rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.5px;
+  color: var(--fg);
+}
+
+.teacher-metrics__hero-hint {
+  margin-top: auto;
+  padding-top: 0.75rem;
+  font-size: 0.875rem;
+  color: #aab4d8;
+}
+
+.teacher-metrics__list {
+  display: grid;
+  gap: 1px;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background-color: var(--border);
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.teacher-metrics__item {
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem;
+  background-color: var(--fg);
+}
+
+.teacher-metrics__label {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.teacher-metrics__value {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0.5rem 0 0;
+  font-family: var(--heading);
+  font-size: 1.875rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.5px;
+  color: var(--text-h);
+}
+
+.teacher-metrics__value--danger {
+  color: var(--color-error-text);
+}
+
+.teacher-metrics__star {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #f59e0b;
+}
+
+.teacher-metrics__hint {
+  margin: auto 0 0;
+  padding-top: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--text-subtle);
+}

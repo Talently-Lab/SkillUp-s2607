@@ -34,7 +34,8 @@ src/
 ├── db/
 │   ├── client.ts        # conexión a PostgreSQL (pool + instancia de Drizzle)
 │   ├── schema/          # tablas de la base de datos, un archivo por dominio
-│   └── seed-admin.ts    # crea el usuario admin inicial
+│   ├── seed-admin.ts    # crea el usuario admin inicial
+│   └── seed-teacher.ts  # crea un docente para desarrollo
 ├── docs/                # documento OpenAPI y Swagger UI
 ├── modules/             # módulos por dominio (auth, courses, orders, etc.)
 │   └── auth/            # registro, login, refresh, logout y usuario actual
@@ -135,6 +136,12 @@ En desarrollo, PostgreSQL corre en un contenedor de Docker definido en `compose.
    pnpm db:seed:admin
    ```
 
+5. (Opcional) Crea un docente para probar el panel docente con las variables `SEED_TEACHER_*` del `.env`. Si ya existe, no hace nada:
+
+   ```bash
+   pnpm db:seed:teacher
+   ```
+
 Comandos útiles:
 
 ```bash
@@ -169,17 +176,18 @@ Nunca edites una migración que ya se aplicó: si hace falta un cambio, modifica
 
 ## Scripts
 
-| Script               | Descripción                                   |
-| -------------------- | --------------------------------------------- |
-| `pnpm dev`           | Servidor de desarrollo con recarga automática |
-| `pnpm build`         | Compila `src/` a `dist/`                      |
-| `pnpm start`         | Ejecuta el build de producción                |
-| `pnpm typecheck`     | Revisa los tipos sin generar archivos         |
-| `pnpm lint`          | Revisa el código con ESLint                   |
-| `pnpm lint:fix`      | Corrige automáticamente lo que ESLint pueda   |
-| `pnpm format`        | Formatea el código con Prettier               |
-| `pnpm format:check`  | Comprueba el formato sin modificar archivos   |
-| `pnpm db:generate`   | Genera una migración a partir del esquema     |
-| `pnpm db:migrate`    | Aplica las migraciones pendientes             |
-| `pnpm db:studio`     | Abre Drizzle Studio para ver los datos        |
-| `pnpm db:seed:admin` | Crea el usuario admin inicial                 |
+| Script                 | Descripción                                   |
+| ---------------------- | --------------------------------------------- |
+| `pnpm dev`             | Servidor de desarrollo con recarga automática |
+| `pnpm build`           | Compila `src/` a `dist/`                      |
+| `pnpm start`           | Ejecuta el build de producción                |
+| `pnpm typecheck`       | Revisa los tipos sin generar archivos         |
+| `pnpm lint`            | Revisa el código con ESLint                   |
+| `pnpm lint:fix`        | Corrige automáticamente lo que ESLint pueda   |
+| `pnpm format`          | Formatea el código con Prettier               |
+| `pnpm format:check`    | Comprueba el formato sin modificar archivos   |
+| `pnpm db:generate`     | Genera una migración a partir del esquema     |
+| `pnpm db:migrate`      | Aplica las migraciones pendientes             |
+| `pnpm db:studio`       | Abre Drizzle Studio para ver los datos        |
+| `pnpm db:seed:admin`   | Crea el usuario admin inicial                 |
+| `pnpm db:seed:teacher` | Crea un docente para desarrollo               |

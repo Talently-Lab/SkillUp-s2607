@@ -1,0 +1,179 @@
+.student-roster {
+  /* Keeps the visually hidden table texts inside the clipped box */
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background-color: var(--fg);
+}
+
+.student-roster__search {
+  width: 14rem;
+}
+
+.student-roster__bell {
+  color: var(--color-error-text);
+}
+
+.student-roster__student-body {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 13rem;
+}
+
+.student-roster__avatar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background-color: var(--color-primary-soft);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.student-roster__identity {
+  min-width: 0;
+}
+
+.student-roster__name {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  color: var(--text-h);
+}
+
+.student-roster__email {
+  overflow: hidden;
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  color: var(--text-subtle);
+}
+
+.student-roster__progress-body {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  width: 11rem;
+}
+
+.student-roster__percent {
+  flex: none;
+  width: 2.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--text-h);
+}
+
+.admin-table td.student-roster__inactive {
+  color: var(--color-error-text);
+}
+
+.student-roster__badge {
+  display: inline-flex;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.student-roster__badge--on-track {
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.student-roster__badge--at-risk {
+  background-color: rgb(235 87 87 / 0.12);
+  color: var(--color-error-text);
+}
+
+.student-roster__badge--completed {
+  background-color: rgb(33 150 83 / 0.12);
+  color: var(--color-success);
+}
+
+.student-roster__empty {
+  padding: 3.5rem 1.5rem;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background-color: var(--fg);
+  text-align: center;
+}
+
+.student-roster__empty-title {
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.student-roster__empty-text {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+/* Tablets: a shorter bar and an icon-only button so the table fits */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .student-roster__progress-body {
+    width: 8rem;
+  }
+
+  .student-roster__message-label {
+    display: none;
+  }
+
+  .student-roster__actions .admin-button {
+    padding-inline: 0.5rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .student-roster__search {
+    flex: 1 1 100%;
+  }
+
+  .student-roster__action {
+    flex: 1 1 auto;
+  }
+
+  .student-roster__table tbody tr {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .student-roster__student {
+    grid-row: 1;
+    grid-column: 1 / -1;
+  }
+
+  /* Leaves room for the status badge, which sits on the same row */
+  .student-roster__student-body {
+    min-width: 0;
+    padding-right: 6rem;
+  }
+
+  .student-roster__name,
+  .student-roster__email {
+    white-space: nowrap;
+  }
+
+  .student-roster__status {
+    grid-row: 1;
+    grid-column: 2;
+    align-self: start;
+    justify-self: end;
+  }
+
+  .student-roster__progress-body {
+    width: 100%;
+  }
+
+  .student-roster__actions {
+    grid-column: 1 / -1;
+  }
+}
