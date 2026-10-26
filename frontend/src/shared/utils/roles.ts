@@ -6,15 +6,16 @@ export const roleName: Record<AccountType, string> = {
   admin: "Admin",
 };
 
-/** Where each role lands after signing in. The teacher panel is out of the MVP. */
+/** Where each role lands after signing in */
 export const roleHome: Record<AccountType, string> = {
   student: "/student",
-  teacher: "/",
+  teacher: "/teacher",
   admin: "/admin",
 };
 
 export const rolePanelLabel: Partial<Record<AccountType, string>> = {
   student: "Mi panel",
+  teacher: "Panel docente",
   admin: "Administración",
 };
 
