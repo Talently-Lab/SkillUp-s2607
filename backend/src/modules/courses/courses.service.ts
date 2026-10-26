@@ -43,10 +43,7 @@ function handleWriteError(err: unknown): never {
 export const coursesService = {
   /** Public catalog: status is always forced to published */
   async listPublished(query: CoursesQuery) {
-    const { data, total } = await coursesRepository.findMany({
-      ...query,
-      status: "published",
-    });
+    const { data, total } = await coursesRepository.findMany(query);
     const totalPages = Math.ceil(total / query.limit);
     return {
       data,
