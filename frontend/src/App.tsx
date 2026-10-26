@@ -8,6 +8,8 @@ import { AdminUsers } from "./modules/admin/pages/AdminUsers";
 import { adminNav } from "./modules/admin/constants/nav";
 import { Student } from "./modules/student/pages/Student";
 import { Learn } from "./modules/student/pages/Learn";
+import { Teacher } from "./modules/teacher/pages/Teacher";
+import { teacherNav } from "./modules/teacher/constants/nav";
 import { Register } from "./modules/auth/pages/Register";
 import { Login } from "./modules/auth/pages/Login";
 import { DashboardLayout } from "./layouts/DashboardLayout";
@@ -51,6 +53,18 @@ function App() {
         <Route index element=<Admin /> />
         <Route path="courses" element=<AdminCourses /> />
         <Route path="users" element=<AdminUsers /> />
+      </Route>
+      <Route
+        path="/teacher"
+        element=<RequireAuth role="teacher">
+          <DashboardLayout
+            title="Panel docente"
+            roleLabel="Docente"
+            nav={teacherNav}
+          />
+        </RequireAuth>
+      >
+        <Route index element=<Teacher /> />
       </Route>
     </Routes>
   );
