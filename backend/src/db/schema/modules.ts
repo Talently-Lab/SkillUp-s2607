@@ -1,5 +1,6 @@
 import {
   index,
+  integer,
   pgTable,
   smallint,
   text,
@@ -44,6 +45,8 @@ export const lessons = pgTable(
     title: varchar({ length: 255 }).notNull(),
     // optional: video URL for future streaming support
     videoUrl: text(),
+    // read from the video by the client; null when it couldn't be read (private video, no video yet)
+    durationSeconds: integer(),
     position: smallint().notNull(),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true })
