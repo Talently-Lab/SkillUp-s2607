@@ -11,6 +11,7 @@ import {
 } from "../../shared/middlewares/validate.ts";
 import { usersAdminController } from "./users-admin.controller.ts";
 import {
+  updateRoleSchema,
   updateUserStatusSchema,
   usersQuerySchema,
 } from "./users-admin.schemas.ts";
@@ -29,4 +30,10 @@ usersAdminRouter.patch(
   validateParams(z.object({ id: z.uuid() })),
   validateBody(updateUserStatusSchema),
   usersAdminController.updateStatus,
+);
+usersAdminRouter.patch(
+  "/:id/role",
+  validateParams(z.object({ id: z.uuid() })),
+  validateBody(updateRoleSchema),
+  usersAdminController.updateRole,
 );

@@ -23,3 +23,14 @@ export const updateUserStatusSchema = z
   .meta({ id: "UpdateUserStatusRequest" });
 
 export type UpdateUserStatusInput = z.infer<typeof updateUserStatusSchema>;
+
+export const updateRoleSchema = z
+  .object({
+    role: z.enum(["student", "teacher", "admin"], {
+      error: 'role must be "student", "teacher" or "admin"',
+    }),
+  })
+  .strict()
+  .meta({ id: "UpdateUserRoleRequest" });
+
+export type UpdateUserRoleInput = z.infer<typeof updateRoleSchema>;

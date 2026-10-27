@@ -1,6 +1,6 @@
 import { and, asc, count, desc, eq, ilike, or, type SQL } from "drizzle-orm";
-import { db } from "../../db/client.ts";
-import { users, type UserStatus } from "../../db/schema/index.ts";
+import { db, type DbOrTx } from "../../db/client.ts";
+import { users } from "../../db/schema/index.ts";
 import type { UsersQuery } from "./users-admin.schemas.ts";
 
 const PUBLIC_COLUMNS = {
@@ -13,6 +13,30 @@ const PUBLIC_COLUMNS = {
 } as const;
 
 export const usersAdminRepository = {
+  /**
+   * Locks the user (FOR SHARE) only if it is a teacher, and returns whether it
+   * is. Assigning a course takes it; changing the role locks the row FOR UPDATE,
+   * so one waits for the other and the role can't change mid-assignment.
+   */
+  async lockIfTeacher(id: string, executor: DbOrTx) {
+    const rows = await executor
+      .select({ id: users.id })
+      .from(users)
+      .where(and(eq(users.id, id), eq(users.role, "teacher")))
+      .for("share");
+    return rows.length > 0;
+  },
+
+  /** Reads the user with a FOR UPDATE lock; must run inside a transaction */
+  async findForUpdate(id: string, executor: DbOrTx) {
+    const [user] = await executor
+      .select()
+      .from(users)
+      .where(eq(users.id, id))
+      .for("update");
+    return user ?? null;
+  },
+
   async findMany({ page, limit, role, status, search }: UsersQuery) {
     const offset = (page - 1) * limit;
     const filters: SQL[] = [];
@@ -43,14 +67,5 @@ export const usersAdminRepository = {
 
     const total = totalResult[0]?.value ?? 0;
     return { data, total };
-  },
-
-  async updateStatus(id: string, status: UserStatus) {
-    const [user] = await db
-      .update(users)
-      .set({ status })
-      .where(eq(users.id, id))
-      .returning(PUBLIC_COLUMNS);
-    return user ?? null;
   },
 };

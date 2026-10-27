@@ -43,6 +43,13 @@
       "when": 1792561680153,
       "tag": "0005_add-modules-lessons-progress",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793130070587,
+      "tag": "0006_add-lesson-duration-and-course-activity",
+      "breakpoints": true
     }
   ]
 }

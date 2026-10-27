@@ -11,6 +11,24 @@ export const courseModuleLessonParamsSchema = courseModuleParamsSchema.extend({
   lessonId: z.uuid(),
 });
 
+// ── Shared fields ─────────────────────────────────────────────────────────────
+
+// The column is a smallint: a bigger value would reach the DB and fail with 500
+export const positionSchema = z
+  .number({ error: "Position is required" })
+  .int()
+  .min(1)
+  .max(32767);
+
+// Read from the video by the client (file metadata, YouTube/Vimeo player); up to 24 h
+export const durationSecondsSchema = z
+  .number({ error: "durationSeconds must be a number" })
+  .int()
+  .min(1)
+  .max(86400)
+  .nullable()
+  .optional();
+
 // ── Module schemas ────────────────────────────────────────────────────────────
 
 export const createModuleSchema = z
@@ -20,12 +38,15 @@ export const createModuleSchema = z
       .trim()
       .min(2, { error: "Title must have at least 2 characters" })
       .max(255),
-    position: z.number({ error: "Position is required" }).int().min(1),
+    position: positionSchema,
   })
   .meta({ id: "CreateModuleRequest" });
 
 export const updateModuleSchema = createModuleSchema
   .partial()
+  .refine((data) => Object.keys(data).length > 0, {
+    error: "At least one field must be provided",
+  })
   .meta({ id: "UpdateModuleRequest" });
 
 export type CreateModuleInput = z.infer<typeof createModuleSchema>;
@@ -40,17 +61,21 @@ export const createLessonSchema = z
       .trim()
       .min(2, { error: "Title must have at least 2 characters" })
       .max(255),
-    position: z.number({ error: "Position is required" }).int().min(1),
+    position: positionSchema,
     videoUrl: z
       .url({ error: "videoUrl must be a valid URL" })
       .trim()
       .optional()
       .nullable(),
+    durationSeconds: durationSecondsSchema,
   })
   .meta({ id: "CreateLessonRequest" });
 
 export const updateLessonSchema = createLessonSchema
   .partial()
+  .refine((data) => Object.keys(data).length > 0, {
+    error: "At least one field must be provided",
+  })
   .meta({ id: "UpdateLessonRequest" });
 
 export type CreateLessonInput = z.infer<typeof createLessonSchema>;
@@ -64,6 +89,7 @@ export const lessonSchema = z
     moduleId: z.uuid(),
     title: z.string(),
     videoUrl: z.string().nullable(),
+    durationSeconds: z.number().int().nullable(),
     position: z.number().int(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),

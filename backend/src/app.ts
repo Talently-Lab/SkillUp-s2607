@@ -27,6 +27,10 @@ import { MODULES_BASE_PATH } from "./modules/modules/modules.controller.ts";
 import { modulesRouter } from "./modules/modules/modules.routes.ts";
 import { MODULES_ADMIN_BASE_PATH } from "./modules/modules/modules-admin.controller.ts";
 import { modulesAdminRouter } from "./modules/modules/modules-admin.routes.ts";
+import { TEACHER_BASE_PATH } from "./modules/teacher/teacher.controller.ts";
+import { teacherRouter } from "./modules/teacher/teacher.routes.ts";
+import { ACTIVITY_ADMIN_BASE_PATH } from "./modules/activity/activity-admin.controller.ts";
+import { activityAdminRouter } from "./modules/activity/activity-admin.routes.ts";
 import { notFound } from "./shared/errors/not-found.ts";
 import { logger } from "./shared/logger.ts";
 import { errorHandler } from "./shared/middlewares/error-handler.ts";
@@ -65,6 +69,10 @@ app.use(STATS_BASE_PATH, statsRouter);
 app.use(MODULES_BASE_PATH, modulesRouter);
 // Admin: manage modules and lessons of a course
 app.use(MODULES_ADMIN_BASE_PATH, modulesAdminRouter);
+// Teacher: manage modules and lessons of own courses
+app.use(TEACHER_BASE_PATH, teacherRouter);
+// Admin: audit log of the teachers' changes to their courses
+app.use(ACTIVITY_ADMIN_BASE_PATH, activityAdminRouter);
 
 app.use(notFound);
 app.use(errorHandler);

@@ -86,8 +86,8 @@ export const coursesListSchema = z
 
 // ── Admin input schemas ───────────────────────────────────────────────────────
 
-// Base fields without defaults — used for partial updates
-const courseFieldsSchema = z.object({
+// Base fields without defaults — used for partial updates (also by the teacher module)
+export const courseFieldsSchema = z.object({
   title: z
     .string({ error: "Title is required" })
     .trim()

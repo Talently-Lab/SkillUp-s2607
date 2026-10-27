@@ -33,6 +33,21 @@ import {
   updateLessonSchema,
   updateModuleSchema,
 } from "../modules/modules/modules.schemas.ts";
+import { TEACHER_BASE_PATH } from "../modules/teacher/teacher.controller.ts";
+import {
+  createTeacherLessonSchema,
+  createTeacherModuleSchema,
+  reorderSchema,
+  teacherEnrollmentSchema,
+  updateTeacherCourseSchema,
+  updateTeacherLessonSchema,
+  updateTeacherModuleSchema,
+} from "../modules/teacher/teacher.schemas.ts";
+import { ACTIVITY_ADMIN_BASE_PATH } from "../modules/activity/activity-admin.controller.ts";
+import {
+  activityListSchema,
+  activityQuerySchema,
+} from "../modules/activity/activity.schemas.ts";
 
 const errorSchema = z
   .object({
@@ -129,6 +144,16 @@ Todos los errores tienen la forma \`{ "error": { "code", "message", "details"? }
     {
       name: "Admin — Stats",
       description: "Estadísticas de la plataforma (solo admin)",
+    },
+    {
+      name: "Teacher",
+      description:
+        "Gestión de los cursos asignados: contenido, publicación, módulos, lecciones y alumnos (solo docente)",
+    },
+    {
+      name: "Admin — Activity",
+      description:
+        "Registro de los cambios en los cursos, hechos por docentes y admins (solo admin)",
     },
   ],
   components: {
@@ -467,7 +492,9 @@ Todos los errores tienen la forma \`{ "error": { "code", "message", "details"? }
               },
             },
           },
-          "400": validationError,
+          "400": errorResponse(
+            "`VALIDATION_ERROR` / `INVALID_JSON`: el body no es válido. `INVALID_REFERENCE`: categoryId o instructorId no existen. `INVALID_INSTRUCTOR`: instructorId no pertenece a un usuario con rol `teacher`.",
+          ),
           "401": errorResponse("`UNAUTHORIZED`: falta el token."),
           "403": errorResponse("`FORBIDDEN`: el usuario no es admin."),
           "409": errorResponse(
@@ -541,7 +568,9 @@ Todos los errores tienen la forma \`{ "error": { "code", "message", "details"? }
               },
             },
           },
-          "400": validationError,
+          "400": errorResponse(
+            "`VALIDATION_ERROR` / `INVALID_JSON`: el body no es válido. `INVALID_REFERENCE`: categoryId o instructorId no existen. `INVALID_INSTRUCTOR`: el nuevo instructorId no pertenece a un usuario con rol `teacher`.",
+          ),
           "401": errorResponse("`UNAUTHORIZED`"),
           "403": errorResponse("`FORBIDDEN`"),
           "404": errorResponse("`NOT_FOUND`: el curso no existe."),
@@ -764,6 +793,70 @@ Todos los errores tienen la forma \`{ "error": { "code", "message", "details"? }
         },
       },
     },
+    "/admin/users/{id}/role": {
+      patch: {
+        tags: ["Admin — Users"],
+        summary: "Cambiar el rol de un usuario",
+        description: `Asigna un nuevo rol a un usuario existente. Solo admins.
+
+**Restricciones:**
+- Un admin no puede cambiar su propio rol (\`SELF_ROLE_FORBIDDEN\`).
+- No se puede cambiar el rol de un usuario suspendido (\`TARGET_SUSPENDED\`); primero debe reactivarse la cuenta.
+- No se puede quitar el rol \`teacher\` a un docente que tiene cursos asignados (\`TEACHER_HAS_COURSES\`); primero hay que reasignarlos.
+
+**Ventana de invalidación:** el cambio de rol no invalida los access tokens en vuelo. El nuevo rol entra en efecto cuando el token actual expire (hasta \`JWT_ACCESS_TTL_SECONDS\`, por defecto 15 min). Los refresh tokens no se revocan, por lo que la próxima llamada a \`/auth/refresh\` emitirá un token con el rol actualizado.`,
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: z
+                .object({ role: z.enum(["student", "teacher", "admin"]) })
+                .meta({ id: "UpdateRoleRequest" }),
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description: "Rol actualizado.",
+            content: {
+              "application/json": {
+                schema: z
+                  .object({
+                    user: z.object({
+                      id: z.uuid(),
+                      email: z.string(),
+                      fullName: z.string(),
+                      role: z.string(),
+                      status: z.string(),
+                      createdAt: z.iso.datetime(),
+                    }),
+                  })
+                  .meta({ id: "UserRoleResponse" }),
+              },
+            },
+          },
+          "400": validationError,
+          "401": errorResponse("`UNAUTHORIZED`"),
+          "403": errorResponse(
+            "`FORBIDDEN`: no es admin. `SELF_ROLE_FORBIDDEN`: intenta cambiar su propio rol. `TARGET_SUSPENDED`: el usuario destino está suspendido.",
+          ),
+          "404": errorResponse("`NOT_FOUND`: usuario no existe."),
+          "409": errorResponse(
+            "`TEACHER_HAS_COURSES`: el docente tiene cursos asignados; hay que reasignarlos antes de cambiarle el rol.",
+          ),
+          ...commonErrors,
+        },
+      },
+    },
     [`/courses/{courseId}/modules`]: {
       get: {
         tags: ["Modules & Lessons"],
@@ -776,6 +869,7 @@ Cada lección incluye \`locked: boolean\`. Cuando \`locked\` es \`true\`, \`vide
 - Las ${FREE_PREVIEW_LESSONS} primeras lecciones del curso (en orden global: módulo por posición ascendente, luego lección por posición ascendente) siempre tienen \`locked: false\`.
 - Un alumno con inscripción activa o completada en este curso (cualquier estado) ve todas las lecciones desbloqueadas.
 - Un admin ve todas las lecciones desbloqueadas.
+- El docente asignado al curso ve todas las lecciones desbloqueadas (para previsualizarlo).
 - Anónimos y usuarios sin inscripción solo ven las ${FREE_PREVIEW_LESSONS} primeras.
 
 Acepta un \`Authorization: Bearer <token>\` opcional. Si el token es inválido o vencido, se trata como anónimo (no devuelve 401).`,
@@ -1161,6 +1255,606 @@ Acepta un \`Authorization: Bearer <token>\` opcional. Si el token es inválido o
         },
       },
     },
+    // ── Teacher ───────────────────────────────────────────────────────────────
+
+    [`${TEACHER_BASE_PATH.replace("/api/v1", "")}/courses`]: {
+      get: {
+        tags: ["Teacher"],
+        summary: "Mis cursos (docente)",
+        description:
+          "Devuelve los cursos asignados al docente autenticado (borradores incluidos), paginados y ordenados por fecha de creación descendente. Misma forma que `GET /admin/courses`.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "page",
+            in: "query",
+            schema: { type: "integer", default: 1 },
+          },
+          {
+            name: "limit",
+            in: "query",
+            schema: { type: "integer", default: 20, maximum: 50 },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Lista paginada de cursos del docente.",
+            content: { "application/json": { schema: coursesListSchema } },
+          },
+          "400": validationError,
+          "401": errorResponse("`UNAUTHORIZED`: falta el token."),
+          "403": errorResponse("`FORBIDDEN`: el usuario no es docente."),
+          ...commonErrors,
+        },
+      },
+    },
+
+    [`${TEACHER_BASE_PATH.replace("/api/v1", "")}/courses/{courseId}`]: {
+      get: {
+        tags: ["Teacher"],
+        summary: "Detalle de un curso propio (docente)",
+        description:
+          "Devuelve el curso completo (cualquier estado) si está asignado al docente autenticado.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "courseId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Curso del docente.",
+            content: {
+              "application/json": {
+                schema: z
+                  .object({ course: courseSchema })
+                  .meta({ id: "TeacherCourseResponse" }),
+              },
+            },
+          },
+          "400": errorResponse(
+            "`VALIDATION_ERROR`: courseId no es un UUID válido.",
+          ),
+          "401": errorResponse("`UNAUTHORIZED`"),
+          "403": errorResponse("`FORBIDDEN`: el usuario no es docente."),
+          "404": errorResponse(
+            "`NOT_FOUND`: el curso no existe o no pertenece al docente.",
+          ),
+          ...commonErrors,
+        },
+      },
+      patch: {
+        tags: ["Teacher"],
+        summary: "Editar o publicar un curso propio (docente)",
+        description: `Edita el contenido del curso y/o lo publica o despublica. Al menos un campo.
+
+- Campos permitidos: \`title\`, \`description\`, \`coverUrl\`, \`categoryId\`, \`level\`, \`status\`. Precio, moneda, slug, destacado e instructor son solo del admin (un campo extra devuelve 400).
+- Para publicar, el curso necesita al menos una lección (\`COURSE_EMPTY\`). Despublicar se permite siempre; los alumnos inscritos conservan el acceso.
+- Cada cambio queda en el registro de actividad que ve el admin (\`GET /admin/activity\`).`,
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "courseId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": { schema: updateTeacherCourseSchema },
+          },
+        },
+        responses: {
+          "200": {
+            description: "Curso actualizado.",
+            content: {
+              "application/json": {
+                schema: z
+                  .object({ course: courseSchema })
+                  .meta({ id: "TeacherCourseUpdatedResponse" }),
+              },
+            },
+          },
+          "400": errorResponse(
+            "`VALIDATION_ERROR` / `INVALID_JSON`: el body no es válido. `COURSE_EMPTY`: se intenta publicar un curso sin lecciones. `INVALID_REFERENCE`: categoryId no existe.",
+          ),
+          "401": errorResponse("`UNAUTHORIZED`"),
+          "403": errorResponse("`FORBIDDEN`: el usuario no es docente."),
+          "404": errorResponse(
+            "`NOT_FOUND`: el curso no existe o no pertenece al docente.",
+          ),
+          ...commonErrors,
+        },
+      },
+    },
+
+    [`${TEACHER_BASE_PATH.replace("/api/v1", "")}/courses/{courseId}/enrollments`]:
+      {
+        get: {
+          tags: ["Teacher"],
+          summary: "Alumnos inscritos en un curso propio (docente)",
+          description:
+            "Devuelve las inscripciones del curso con el alumno, su progreso y `lastActivityAt` (la última lección completada, o `null`). Paginado y ordenado por fecha de inscripción descendente.",
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            {
+              name: "courseId",
+              in: "path",
+              required: true,
+              schema: { type: "string", format: "uuid" },
+            },
+            {
+              name: "page",
+              in: "query",
+              schema: { type: "integer", default: 1 },
+            },
+            {
+              name: "limit",
+              in: "query",
+              schema: { type: "integer", default: 20, maximum: 50 },
+            },
+          ],
+          responses: {
+            "200": {
+              description: "Lista paginada de inscripciones.",
+              content: {
+                "application/json": {
+                  schema: z
+                    .object({
+                      data: z.array(teacherEnrollmentSchema),
+                      pagination: z.object({
+                        page: z.number().int(),
+                        limit: z.number().int(),
+                        total: z.number().int(),
+                        totalPages: z.number().int(),
+                      }),
+                    })
+                    .meta({ id: "TeacherEnrollmentsResponse" }),
+                },
+              },
+            },
+            "400": errorResponse(
+              "`VALIDATION_ERROR`: courseId o la paginación no son válidos.",
+            ),
+            "401": errorResponse("`UNAUTHORIZED`"),
+            "403": errorResponse("`FORBIDDEN`: el usuario no es docente."),
+            "404": errorResponse(
+              "`NOT_FOUND`: el curso no existe o no pertenece al docente.",
+            ),
+            ...commonErrors,
+          },
+        },
+      },
+
+    [`${TEACHER_BASE_PATH.replace("/api/v1", "")}/courses/{courseId}/modules`]:
+      {
+        get: {
+          tags: ["Teacher"],
+          summary: "Listar módulos del curso (docente)",
+          description:
+            "Devuelve los módulos (con sus lecciones) del curso indicado. Solo accesible si el docente es el instructor del curso.",
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            {
+              name: "courseId",
+              in: "path",
+              required: true,
+              schema: { type: "string", format: "uuid" },
+            },
+          ],
+          responses: {
+            "200": {
+              description: "Lista de módulos con sus lecciones.",
+              content: {
+                "application/json": {
+                  schema: z
+                    .object({ modules: z.array(moduleSchema) })
+                    .meta({ id: "TeacherModulesResponse" }),
+                },
+              },
+            },
+            "400": errorResponse(
+              "`VALIDATION_ERROR`: courseId no es un UUID válido.",
+            ),
+            "401": errorResponse("`UNAUTHORIZED`"),
+            "403": errorResponse("`FORBIDDEN`: el usuario no es docente."),
+            "404": errorResponse(
+              "`NOT_FOUND`: el curso no existe o no pertenece al docente.",
+            ),
+            ...commonErrors,
+          },
+        },
+        post: {
+          tags: ["Teacher"],
+          summary: "Crear módulo (docente)",
+          description:
+            "Crea un módulo en el curso indicado. La posición es única por curso; repetirla devuelve 409 `POSITION_TAKEN`.",
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            {
+              name: "courseId",
+              in: "path",
+              required: true,
+              schema: { type: "string", format: "uuid" },
+            },
+          ],
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": { schema: createTeacherModuleSchema },
+            },
+          },
+          responses: {
+            "201": {
+              description: "Módulo creado.",
+              content: {
+                "application/json": {
+                  schema: z
+                    .object({ module: moduleSchema })
+                    .meta({ id: "TeacherModuleCreatedResponse" }),
+                },
+              },
+            },
+            "400": validationError,
+            "401": errorResponse("`UNAUTHORIZED`"),
+            "403": errorResponse("`FORBIDDEN`: el usuario no es docente."),
+            "404": errorResponse(
+              "`NOT_FOUND`: el curso no existe o no pertenece al docente.",
+            ),
+            "409": errorResponse(
+              "`POSITION_TAKEN`: ya existe un módulo con esa posición en el curso.",
+            ),
+            ...commonErrors,
+          },
+        },
+      },
+
+    [`${TEACHER_BASE_PATH.replace("/api/v1", "")}/courses/{courseId}/modules/order`]:
+      {
+        put: {
+          tags: ["Teacher"],
+          summary: "Reordenar módulos (docente)",
+          description:
+            "Recibe en `ids` todos los módulos, cada uno una vez, en el nuevo orden, y les asigna las posiciones 1..n en una sola transacción. Usar este endpoint para subir/bajar en lugar de varios PATCH de `position`.",
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            {
+              name: "courseId",
+              in: "path",
+              required: true,
+              schema: { type: "string", format: "uuid" },
+            },
+          ],
+          requestBody: {
+            required: true,
+            content: { "application/json": { schema: reorderSchema } },
+          },
+          responses: {
+            "200": {
+              description: "Lista en el nuevo orden.",
+              content: {
+                "application/json": {
+                  schema: z
+                    .object({ modules: z.array(moduleSchema) })
+                    .meta({ id: "TeacherModulesReorderedResponse" }),
+                },
+              },
+            },
+            "400": errorResponse(
+              "`VALIDATION_ERROR` / `INVALID_JSON`: el body no es válido. `INVALID_ORDER`: `ids` no contiene exactamente los módulos actuales.",
+            ),
+            "401": errorResponse("`UNAUTHORIZED`"),
+            "403": errorResponse("`FORBIDDEN`: el usuario no es docente."),
+            "404": errorResponse(
+              "`NOT_FOUND`: no existe o no pertenece al docente.",
+            ),
+            ...commonErrors,
+          },
+        },
+      },
+
+    [`${TEACHER_BASE_PATH.replace("/api/v1", "")}/modules/{moduleId}`]: {
+      patch: {
+        tags: ["Teacher"],
+        summary: "Actualizar módulo (docente)",
+        description:
+          "Actualiza título y/o posición del módulo (al menos un campo). El módulo debe pertenecer a un curso del que el docente es instructor. Para reordenar, usar `PUT /teacher/courses/{courseId}/modules/order`.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "moduleId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": { schema: updateTeacherModuleSchema },
+          },
+        },
+        responses: {
+          "200": {
+            description: "Módulo actualizado.",
+            content: {
+              "application/json": {
+                schema: z
+                  .object({ module: moduleSchema })
+                  .meta({ id: "TeacherModuleUpdatedResponse" }),
+              },
+            },
+          },
+          "400": validationError,
+          "401": errorResponse("`UNAUTHORIZED`"),
+          "403": errorResponse("`FORBIDDEN`: el usuario no es docente."),
+          "404": errorResponse(
+            "`NOT_FOUND`: el módulo no existe o no pertenece al docente.",
+          ),
+          "409": errorResponse(
+            "`POSITION_TAKEN`: ya existe un módulo con esa posición.",
+          ),
+          ...commonErrors,
+        },
+      },
+      delete: {
+        tags: ["Teacher"],
+        summary: "Eliminar módulo (docente)",
+        description:
+          "Elimina el módulo y, en cascada, sus lecciones. El módulo debe pertenecer a un curso del docente.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "moduleId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: {
+          "204": { description: "Módulo eliminado." },
+          "400": errorResponse(
+            "`VALIDATION_ERROR`: moduleId no es un UUID válido.",
+          ),
+          "401": errorResponse("`UNAUTHORIZED`"),
+          "403": errorResponse("`FORBIDDEN`: el usuario no es docente."),
+          "404": errorResponse(
+            "`NOT_FOUND`: el módulo no existe o no pertenece al docente.",
+          ),
+          ...commonErrors,
+        },
+      },
+    },
+
+    [`${TEACHER_BASE_PATH.replace("/api/v1", "")}/modules/{moduleId}/lessons`]:
+      {
+        get: {
+          tags: ["Teacher"],
+          summary: "Listar lecciones del módulo (docente)",
+          description:
+            "Devuelve las lecciones del módulo, ordenadas por posición. El módulo debe pertenecer a un curso del docente.",
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            {
+              name: "moduleId",
+              in: "path",
+              required: true,
+              schema: { type: "string", format: "uuid" },
+            },
+          ],
+          responses: {
+            "200": {
+              description: "Lista de lecciones.",
+              content: {
+                "application/json": {
+                  schema: z
+                    .object({ lessons: z.array(lessonSchema) })
+                    .meta({ id: "TeacherLessonsResponse" }),
+                },
+              },
+            },
+            "400": errorResponse(
+              "`VALIDATION_ERROR`: moduleId no es un UUID válido.",
+            ),
+            "401": errorResponse("`UNAUTHORIZED`"),
+            "403": errorResponse("`FORBIDDEN`: el usuario no es docente."),
+            "404": errorResponse(
+              "`NOT_FOUND`: el módulo no existe o no pertenece al docente.",
+            ),
+            ...commonErrors,
+          },
+        },
+        post: {
+          tags: ["Teacher"],
+          summary: "Crear lección (docente)",
+          description:
+            "Crea una lección en el módulo indicado. La posición es única por módulo; repetirla devuelve 409 `POSITION_TAKEN`. `durationSeconds` lo lee el cliente desde el video (metadata del archivo o reproductor de YouTube/Vimeo); el `durationMinutes` del curso pasa a ser la suma de sus lecciones.",
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            {
+              name: "moduleId",
+              in: "path",
+              required: true,
+              schema: { type: "string", format: "uuid" },
+            },
+          ],
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": { schema: createTeacherLessonSchema },
+            },
+          },
+          responses: {
+            "201": {
+              description: "Lección creada.",
+              content: {
+                "application/json": {
+                  schema: z
+                    .object({ lesson: lessonSchema })
+                    .meta({ id: "TeacherLessonCreatedResponse" }),
+                },
+              },
+            },
+            "400": validationError,
+            "401": errorResponse("`UNAUTHORIZED`"),
+            "403": errorResponse("`FORBIDDEN`: el usuario no es docente."),
+            "404": errorResponse(
+              "`NOT_FOUND`: el módulo no existe o no pertenece al docente.",
+            ),
+            "409": errorResponse(
+              "`POSITION_TAKEN`: ya existe una lección con esa posición en el módulo.",
+            ),
+            ...commonErrors,
+          },
+        },
+      },
+
+    [`${TEACHER_BASE_PATH.replace("/api/v1", "")}/modules/{moduleId}/lessons/order`]:
+      {
+        put: {
+          tags: ["Teacher"],
+          summary: "Reordenar lecciones (docente)",
+          description:
+            "Recibe en `ids` todas las lecciones, cada una una vez, en el nuevo orden, y les asigna las posiciones 1..n en una sola transacción. Usar este endpoint para subir/bajar en lugar de varios PATCH de `position`.",
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            {
+              name: "moduleId",
+              in: "path",
+              required: true,
+              schema: { type: "string", format: "uuid" },
+            },
+          ],
+          requestBody: {
+            required: true,
+            content: { "application/json": { schema: reorderSchema } },
+          },
+          responses: {
+            "200": {
+              description: "Lista en el nuevo orden.",
+              content: {
+                "application/json": {
+                  schema: z
+                    .object({ lessons: z.array(lessonSchema) })
+                    .meta({ id: "TeacherLessonsReorderedResponse" }),
+                },
+              },
+            },
+            "400": errorResponse(
+              "`VALIDATION_ERROR` / `INVALID_JSON`: el body no es válido. `INVALID_ORDER`: `ids` no contiene exactamente las lecciones actuales.",
+            ),
+            "401": errorResponse("`UNAUTHORIZED`"),
+            "403": errorResponse("`FORBIDDEN`: el usuario no es docente."),
+            "404": errorResponse(
+              "`NOT_FOUND`: no existe o no pertenece al docente.",
+            ),
+            ...commonErrors,
+          },
+        },
+      },
+
+    [`${TEACHER_BASE_PATH.replace("/api/v1", "")}/lessons/{lessonId}`]: {
+      patch: {
+        tags: ["Teacher"],
+        summary: "Actualizar lección (docente)",
+        description:
+          "Actualiza título, videoUrl y/o posición de la lección (al menos un campo). La lección debe pertenecer a un módulo de un curso del docente. Para reordenar, usar `PUT /teacher/modules/{moduleId}/lessons/order`.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "lessonId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": { schema: updateTeacherLessonSchema },
+          },
+        },
+        responses: {
+          "200": {
+            description: "Lección actualizada.",
+            content: {
+              "application/json": {
+                schema: z
+                  .object({ lesson: lessonSchema })
+                  .meta({ id: "TeacherLessonUpdatedResponse" }),
+              },
+            },
+          },
+          "400": validationError,
+          "401": errorResponse("`UNAUTHORIZED`"),
+          "403": errorResponse("`FORBIDDEN`: el usuario no es docente."),
+          "404": errorResponse(
+            "`NOT_FOUND`: la lección no existe o no pertenece al docente.",
+          ),
+          "409": errorResponse(
+            "`POSITION_TAKEN`: ya existe una lección con esa posición.",
+          ),
+          ...commonErrors,
+        },
+      },
+      delete: {
+        tags: ["Teacher"],
+        summary: "Eliminar lección (docente)",
+        description:
+          "Elimina la lección. Se permite aunque existan filas de `lesson_progress` (cascade). La lección debe pertenecer a un curso del docente.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "lessonId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: {
+          "204": { description: "Lección eliminada." },
+          "400": errorResponse(
+            "`VALIDATION_ERROR`: lessonId no es un UUID válido.",
+          ),
+          "401": errorResponse("`UNAUTHORIZED`"),
+          "403": errorResponse("`FORBIDDEN`: el usuario no es docente."),
+          "404": errorResponse(
+            "`NOT_FOUND`: la lección no existe o no pertenece al docente.",
+          ),
+          ...commonErrors,
+        },
+      },
+    },
+
+    [`${ACTIVITY_ADMIN_BASE_PATH.replace("/api/v1", "")}`]: {
+      get: {
+        tags: ["Admin — Activity"],
+        summary: "Registro de actividad de los cursos",
+        description: `Devuelve los cambios hechos en los cursos y su contenido, del más reciente al más antiguo. Registra tanto lo que hacen los docentes (\`/teacher/*\`) como los admins (\`/admin/courses\` y sus módulos y lecciones); \`actor.role\` indica quién fue. Se puede filtrar por curso, por usuario y por acción.
+
+\`changes\` tiene, por cada campo, \`{ from, to }\`. En las altas solo viene \`to\`, en las bajas solo \`from\`, y en los reordenamientos \`order\` tiene la lista de ids antes y después. \`actor\` es \`null\` si el usuario fue eliminado.`,
+        security: [{ bearerAuth: [] }],
+        requestParams: { query: activityQuerySchema },
+        responses: {
+          "200": {
+            description: "Lista paginada de actividad.",
+            content: { "application/json": { schema: activityListSchema } },
+          },
+          "400": errorResponse(
+            "`VALIDATION_ERROR`: algún parámetro no es válido.",
+          ),
+          "401": errorResponse("`UNAUTHORIZED`"),
+          "403": errorResponse("`FORBIDDEN`: el usuario no es admin."),
+          ...commonErrors,
+        },
+      },
+    },
+
     [`/admin/stats`]: {
       get: {
         tags: ["Admin — Stats"],

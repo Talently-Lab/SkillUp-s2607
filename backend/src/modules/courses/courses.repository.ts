@@ -18,6 +18,7 @@ interface FindManyOptions {
   status?: "draft" | "published" | undefined;
   categoryId?: number | undefined;
   featured?: boolean | undefined;
+  instructorId?: string | undefined;
 }
 
 function buildWhere(opts: FindManyOptions): SQL | undefined {
@@ -27,6 +28,8 @@ function buildWhere(opts: FindManyOptions): SQL | undefined {
     filters.push(eq(courses.categoryId, opts.categoryId));
   if (opts.featured !== undefined)
     filters.push(eq(courses.featured, opts.featured));
+  if (opts.instructorId !== undefined)
+    filters.push(eq(courses.instructorId, opts.instructorId));
   return filters.length > 0 ? and(...filters) : undefined;
 }
 
@@ -73,8 +76,31 @@ export const coursesRepository = {
     return findPage(query);
   },
 
-  async findById(id: string) {
-    return findOneCourse(eq(courses.id, id));
+  /** Teacher panel: the courses assigned to the instructor, any status */
+  async findManyByInstructor(
+    instructorId: string,
+    query: { page: number; limit: number },
+  ) {
+    return findPage({ ...query, instructorId });
+  },
+
+  async findById(id: string, executor: DbOrTx = db) {
+    return findOneCourse(eq(courses.id, id), executor);
+  },
+
+  /** Returns the course only if it is assigned to the instructor, any status */
+  async findByIdForInstructor(id: string, instructorId: string) {
+    return findOneCourse(
+      and(eq(courses.id, id), eq(courses.instructorId, instructorId))!,
+    );
+  },
+
+  async countByInstructor(instructorId: string, executor: DbOrTx = db) {
+    const [result] = await executor
+      .select({ value: count() })
+      .from(courses)
+      .where(eq(courses.instructorId, instructorId));
+    return result?.value ?? 0;
   },
 
   async findPublishedById(id: string) {
@@ -90,36 +116,34 @@ export const coursesRepository = {
   },
 
   /** Returns the created course with category and instructor */
-  async create(data: NewCourse) {
-    const [created] = await db
+  async create(data: NewCourse, executor: DbOrTx = db) {
+    const [created] = await executor
       .insert(courses)
       .values(data)
       .returning({ id: courses.id });
-    return (await findOneCourse(eq(courses.id, created!.id)))!;
+    return (await findOneCourse(eq(courses.id, created!.id), executor))!;
   },
 
   /** Returns the updated course with category and instructor, or null if not found */
   async update(
     id: string,
     data: UpdateCourseInput & { publishedAt?: Date | null | undefined },
+    executor: DbOrTx = db,
   ) {
-    const [updated] = await db
+    const [updated] = await executor
       .update(courses)
       .set(data)
       .where(eq(courses.id, id))
       .returning({ id: courses.id });
-    return updated ? findOneCourse(eq(courses.id, updated.id)) : null;
+    return updated ? findOneCourse(eq(courses.id, updated.id), executor) : null;
   },
 
-  async updateLessonsCount(
+  async updateLessonTotals(
     id: string,
-    lessonsCount: number,
+    totals: { lessonsCount: number; durationMinutes: number },
     executor: DbOrTx = db,
   ) {
-    await executor
-      .update(courses)
-      .set({ lessonsCount })
-      .where(eq(courses.id, id));
+    await executor.update(courses).set(totals).where(eq(courses.id, id));
   },
 
   /**
@@ -163,8 +187,8 @@ async function findPage(opts: FindManyOptions) {
   return { data, total };
 }
 
-async function findOneCourse(condition: SQL) {
-  const rows = await db
+async function findOneCourse(condition: SQL, executor: DbOrTx = db) {
+  const rows = await executor
     .select(courseSelect)
     .from(courses)
     .innerJoin(categories, eq(courses.categoryId, categories.id))
