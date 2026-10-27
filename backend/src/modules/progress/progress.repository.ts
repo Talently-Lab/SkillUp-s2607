@@ -6,6 +6,7 @@ import {
   lessons,
   modules,
 } from "../../db/schema/index.ts";
+import { NotFoundError } from "../../shared/errors/app-error.ts";
 
 /**
  * One row per enrollment of the course (optionally only one enrollment) with
@@ -83,49 +84,21 @@ export const progressRepository = {
       );
   },
   /** Inserts the completion atomically; returns [] if it already existed */
-  async markComplete(enrollmentId: string, lessonId: string) {
-    return db
+  async markComplete(enrollmentId: string, lessonId: string, executor: DbOrTx = db) {
+    return executor
       .insert(lessonProgress)
       .values({ enrollmentId, lessonId })
       .onConflictDoNothing()
       .returning();
   },
-  /** Count total lessons in a course and the completed ones of that course */
-  async getProgress(enrollmentId: string, courseId: string) {
-    const [totalResult, completedResult] = await Promise.all([
-      db
-        .select({ total: count() })
-        .from(lessons)
-        .innerJoin(modules, eq(lessons.moduleId, modules.id))
-        .where(eq(modules.courseId, courseId)),
-      db
-        .select({ completed: count() })
-        .from(lessonProgress)
-        .innerJoin(lessons, eq(lessonProgress.lessonId, lessons.id))
-        .innerJoin(modules, eq(lessons.moduleId, modules.id))
-        .where(
-          and(
-            eq(lessonProgress.enrollmentId, enrollmentId),
-            eq(modules.courseId, courseId),
-          ),
-        ),
-    ]);
-    const total = totalResult[0]?.total ?? 0;
-    const completed = completedResult[0]?.completed ?? 0;
-    return { total, completed };
-  },
-  async updateProgressPercent(enrollmentId: string, percent: number) {
-    const isComplete = percent === 100;
-    await db
-      .update(enrollments)
-      .set({
-        progressPercent: percent,
-        status: isComplete ? "completed" : "active",
-        completedAt: isComplete
-          ? sql`coalesce(${enrollments.completedAt}, now())`
-          : null,
-      })
-      .where(eq(enrollments.id, enrollmentId));
+  /** Count total lessons in a course. */
+  async countLessons(courseId: string) {
+    const [row] = await db
+      .select({ total: count() })
+      .from(lessons)
+      .innerJoin(modules, eq(lessons.moduleId, modules.id))
+      .where(eq(modules.courseId, courseId));
+    return row?.total ?? 0;
   },
   /**
    * Recalculates progressPercent for every enrollment of a course in a single UPDATE.
@@ -152,7 +125,14 @@ export const progressRepository = {
   /**
    * Recalculates progressPercent for a single enrollment in one UPDATE and
    * returns the new percent. Same formula as recalcCourseProgress, computed
-   * by the database at UPDATE time (no stale totals read in JS).
+   * by the database at UPDATE time.
+   *
+   * Must be called inside the same transaction as the preceding markComplete
+   * so that the subquery sees the new lesson_progress row (READ COMMITTED
+   * would otherwise compute the percent from the pre-insert snapshot if the
+   * UPDATE acquires a lock held by a concurrent admin transaction).
+   *
+   * Throws NotFoundError if the enrollment row is missing (inconsistent state).
    */
   async recalcEnrollmentProgress(
     enrollmentId: string,
@@ -166,6 +146,9 @@ export const progressRepository = {
       .from(sub)
       .where(eq(enrollments.id, sub.enrollmentId))
       .returning({ progressPercent: enrollments.progressPercent });
-    return row?.progressPercent ?? 0;
+    if (row === undefined) {
+      throw new NotFoundError("Enrollment not found");
+    }
+    return row.progressPercent;
   },
 };

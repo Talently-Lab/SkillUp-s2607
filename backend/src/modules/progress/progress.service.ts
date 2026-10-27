@@ -1,4 +1,5 @@
 import { ConflictError, NotFoundError } from "../../shared/errors/app-error.ts";
+import { runInTransaction } from "../../db/client.ts";
 import { modulesRepository } from "../modules/modules.repository.ts";
 import { enrollmentsRepository } from "../enrollments/enrollments.repository.ts";
 import { progressRepository } from "./progress.repository.ts";
@@ -23,20 +24,26 @@ export const progressService = {
       lesson.moduleId,
     );
     if (!courseModule) throw new NotFoundError("Lesson not found");
-    // Atomic: insert ... on conflict do nothing ... returning. No row => already completed.
-    const inserted = await progressRepository.markComplete(
-      enrollmentId,
-      lessonId,
-    );
-    if (inserted.length === 0)
-      throw new ConflictError("ALREADY_COMPLETED", "Lesson already completed");
-    const completedAt = inserted[0]!.completedAt;
-    // The percent is computed by the database at UPDATE time, with the same
-    // formula the admin recalculation uses (no totals read in JS)
-    const progressPercent = await progressRepository.recalcEnrollmentProgress(
-      enrollmentId,
-      enrollment.courseId,
-    );
+    // Both statements run in the same transaction so that recalcEnrollmentProgress
+    // sees the new lesson_progress row. Under READ COMMITTED, a standalone UPDATE
+    // would use the pre-insert snapshot if it had to wait for a lock held by a
+    // concurrent admin recalculation, producing a stale percent.
+    const { completedAt, progressPercent } = await runInTransaction(async (tx) => {
+      const inserted = await progressRepository.markComplete(
+        enrollmentId,
+        lessonId,
+        tx,
+      );
+      if (inserted.length === 0)
+        throw new ConflictError("ALREADY_COMPLETED", "Lesson already completed");
+      const completedAt = inserted[0]!.completedAt;
+      const progressPercent = await progressRepository.recalcEnrollmentProgress(
+        enrollmentId,
+        enrollment.courseId,
+        tx,
+      );
+      return { completedAt, progressPercent };
+    });
     return { lessonId, completedAt, progressPercent };
   },
   async getProgress(userId: string, enrollmentId: string) {
@@ -45,10 +52,7 @@ export const progressService = {
       enrollmentId,
       enrollment.courseId,
     );
-    const { total } = await progressRepository.getProgress(
-      enrollmentId,
-      enrollment.courseId,
-    );
+    const total = await progressRepository.countLessons(enrollment.courseId);
     return {
       enrollmentId,
       progressPercent: enrollment.progressPercent,
