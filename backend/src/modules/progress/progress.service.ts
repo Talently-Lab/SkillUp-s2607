@@ -28,22 +28,28 @@ export const progressService = {
     // sees the new lesson_progress row. Under READ COMMITTED, a standalone UPDATE
     // would use the pre-insert snapshot if it had to wait for a lock held by a
     // concurrent admin recalculation, producing a stale percent.
-    const { completedAt, progressPercent } = await runInTransaction(async (tx) => {
-      const inserted = await progressRepository.markComplete(
-        enrollmentId,
-        lessonId,
-        tx,
-      );
-      if (inserted.length === 0)
-        throw new ConflictError("ALREADY_COMPLETED", "Lesson already completed");
-      const completedAt = inserted[0]!.completedAt;
-      const progressPercent = await progressRepository.recalcEnrollmentProgress(
-        enrollmentId,
-        enrollment.courseId,
-        tx,
-      );
-      return { completedAt, progressPercent };
-    });
+    const { completedAt, progressPercent } = await runInTransaction(
+      async (tx) => {
+        const inserted = await progressRepository.markComplete(
+          enrollmentId,
+          lessonId,
+          tx,
+        );
+        if (inserted.length === 0)
+          throw new ConflictError(
+            "ALREADY_COMPLETED",
+            "Lesson already completed",
+          );
+        const completedAt = inserted[0]!.completedAt;
+        const progressPercent =
+          await progressRepository.recalcEnrollmentProgress(
+            enrollmentId,
+            enrollment.courseId,
+            tx,
+          );
+        return { completedAt, progressPercent };
+      },
+    );
     return { lessonId, completedAt, progressPercent };
   },
   async getProgress(userId: string, enrollmentId: string) {

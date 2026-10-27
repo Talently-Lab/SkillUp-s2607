@@ -84,7 +84,11 @@ export const progressRepository = {
       );
   },
   /** Inserts the completion atomically; returns [] if it already existed */
-  async markComplete(enrollmentId: string, lessonId: string, executor: DbOrTx = db) {
+  async markComplete(
+    enrollmentId: string,
+    lessonId: string,
+    executor: DbOrTx = db,
+  ) {
     return executor
       .insert(lessonProgress)
       .values({ enrollmentId, lessonId })
