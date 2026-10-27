@@ -20,6 +20,15 @@ export const positionSchema = z
   .min(1)
   .max(32767);
 
+// Read from the video by the client (file metadata, YouTube/Vimeo player); up to 24 h
+export const durationSecondsSchema = z
+  .number({ error: "durationSeconds must be a number" })
+  .int()
+  .min(1)
+  .max(86400)
+  .nullable()
+  .optional();
+
 // ── Module schemas ────────────────────────────────────────────────────────────
 
 export const createModuleSchema = z
@@ -58,6 +67,7 @@ export const createLessonSchema = z
       .trim()
       .optional()
       .nullable(),
+    durationSeconds: durationSecondsSchema,
   })
   .meta({ id: "CreateLessonRequest" });
 
@@ -79,6 +89,7 @@ export const lessonSchema = z
     moduleId: z.uuid(),
     title: z.string(),
     videoUrl: z.string().nullable(),
+    durationSeconds: z.number().int().nullable(),
     position: z.number().int(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),

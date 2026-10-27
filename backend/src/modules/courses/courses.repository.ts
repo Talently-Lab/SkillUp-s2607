@@ -111,15 +111,12 @@ export const coursesRepository = {
     return updated ? findOneCourse(eq(courses.id, updated.id)) : null;
   },
 
-  async updateLessonsCount(
+  async updateLessonTotals(
     id: string,
-    lessonsCount: number,
+    totals: { lessonsCount: number; durationMinutes: number },
     executor: DbOrTx = db,
   ) {
-    await executor
-      .update(courses)
-      .set({ lessonsCount })
-      .where(eq(courses.id, id));
+    await executor.update(courses).set(totals).where(eq(courses.id, id));
   },
 
   /**

@@ -1,4 +1,4 @@
-import { and, asc, count, eq } from "drizzle-orm";
+import { and, asc, count, eq, sql } from "drizzle-orm";
 import { db, type DbOrTx } from "../../db/client.ts";
 import {
   lessons,
@@ -55,13 +55,23 @@ export const modulesRepository = {
 
   // ── Lessons ───────────────────────────────────────────────────────────────
 
-  async countLessonsByCourse(courseId: string, executor: DbOrTx = db) {
+  /** Number of lessons and sum of their known durations */
+  async lessonTotalsByCourse(courseId: string, executor: DbOrTx = db) {
     const [result] = await executor
-      .select({ total: count() })
+      .select({
+        total: count(),
+        durationSeconds:
+          sql<number>`coalesce(sum(${lessons.durationSeconds}), 0)`.mapWith(
+            Number,
+          ),
+      })
       .from(lessons)
       .innerJoin(modules, eq(lessons.moduleId, modules.id))
       .where(eq(modules.courseId, courseId));
-    return result?.total ?? 0;
+    return {
+      total: result?.total ?? 0,
+      durationSeconds: result?.durationSeconds ?? 0,
+    };
   },
 
   async findLessonById(id: string) {
@@ -80,8 +90,12 @@ export const modulesRepository = {
     return l!;
   },
 
-  async updateLesson(id: string, data: UpdateLessonInput) {
-    const [l] = await db
+  async updateLesson(
+    id: string,
+    data: UpdateLessonInput,
+    executor: DbOrTx = db,
+  ) {
+    const [l] = await executor
       .update(lessons)
       .set(data)
       .where(eq(lessons.id, id))

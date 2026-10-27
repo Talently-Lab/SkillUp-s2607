@@ -15,10 +15,23 @@ import {
 import type { AccessTokenClaims } from "../../shared/security/jwt.ts";
 import type { DbOrTx } from "../../db/client.ts";
 
-/** Keeps the course's lessonsCount and every enrollment's progress in line with its real lessons */
+/**
+ * Keeps the course's lessonsCount and durationMinutes in line with its real
+ * lessons. Runs on every lesson change, so it overwrites a duration set by hand.
+ */
+export async function syncCourseTotals(courseId: string, tx: DbOrTx) {
+  const { total, durationSeconds } =
+    await modulesRepository.lessonTotalsByCourse(courseId, tx);
+  await coursesRepository.updateLessonTotals(
+    courseId,
+    { lessonsCount: total, durationMinutes: Math.round(durationSeconds / 60) },
+    tx,
+  );
+}
+
+/** syncCourseTotals plus every enrollment's progress, after lessons are added or removed */
 export async function syncCourseLessons(courseId: string, tx: DbOrTx) {
-  const total = await modulesRepository.countLessonsByCourse(courseId, tx);
-  await coursesRepository.updateLessonsCount(courseId, total, tx);
+  await syncCourseTotals(courseId, tx);
   await progressRepository.recalcCourseProgress(courseId, tx);
 }
 
@@ -163,9 +176,19 @@ export const modulesService = {
     );
     if (!existing) throw new NotFoundError("Lesson not found");
     try {
-      const updated = await modulesRepository.updateLesson(lessonId, input);
-      if (!updated) throw new NotFoundError("Lesson not found");
-      return updated;
+      return await runInTransaction(async (tx) => {
+        await coursesRepository.lockForUpdate(courseId, tx);
+        const updated = await modulesRepository.updateLesson(
+          lessonId,
+          input,
+          tx,
+        );
+        if (!updated) throw new NotFoundError("Lesson not found");
+        // The course's durationMinutes is the sum of its lessons
+        if (input.durationSeconds !== undefined)
+          await syncCourseTotals(courseId, tx);
+        return updated;
+      });
     } catch (err) {
       if (isUniqueViolation(err))
         throw new ConflictError(
