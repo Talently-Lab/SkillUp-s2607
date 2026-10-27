@@ -6,12 +6,14 @@ import {
 import {
   validateBody,
   validateParams,
+  validateQuery,
 } from "../../shared/middlewares/validate.ts";
 import { teacherController } from "./teacher.controller.ts";
 import {
   createTeacherLessonSchema,
   createTeacherModuleSchema,
   teacherCourseParamsSchema,
+  teacherCoursesQuerySchema,
   teacherLessonParamsSchema,
   teacherModuleParamsSchema,
   updateTeacherLessonSchema,
@@ -25,7 +27,11 @@ teacherRouter.use(requireAuth, requireRole("teacher"));
 
 // ── Courses ───────────────────────────────────────────────────────────────────
 
-teacherRouter.get("/courses", teacherController.listCourses);
+teacherRouter.get(
+  "/courses",
+  validateQuery(teacherCoursesQuerySchema),
+  teacherController.listCourses,
+);
 
 // ── Modules ───────────────────────────────────────────────────────────────────
 

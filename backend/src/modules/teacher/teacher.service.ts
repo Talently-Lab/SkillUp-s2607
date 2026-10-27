@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { ConflictError, ForbiddenError, NotFoundError } from "../../shared/errors/app-error.ts";
+import { ConflictError, NotFoundError } from "../../shared/errors/app-error.ts";
 import { isUniqueViolation } from "../../shared/errors/db-errors.ts";
 import { runInTransaction } from "../../db/client.ts";
 import { courses, lessons, modules } from "../../db/schema/index.ts";
@@ -10,6 +10,7 @@ import { teacherRepository } from "./teacher.repository.ts";
 import type {
   CreateTeacherLessonInput,
   CreateTeacherModuleInput,
+  TeacherCoursesQuery,
   UpdateTeacherLessonInput,
   UpdateTeacherModuleInput,
 } from "./teacher.schemas.ts";
@@ -28,8 +29,10 @@ async function syncCourseLessons(courseId: string, tx: DbOrTx) {
 export const teacherService = {
   // ── Courses ───────────────────────────────────────────────────────────────
 
-  async listCourses(instructorId: string) {
-    return teacherRepository.findCoursesByInstructor(instructorId);
+  async listCourses(instructorId: string, { page, limit }: TeacherCoursesQuery) {
+    const offset = (page - 1) * limit;
+    const { data, total } = await teacherRepository.findCoursesByInstructor(instructorId, limit, offset);
+    return { data, total, page, limit };
   },
 
   // ── Modules ───────────────────────────────────────────────────────────────
@@ -52,11 +55,7 @@ export const teacherService = {
       courseId,
       instructorId,
     );
-    if (!course)
-      throw new ForbiddenError(
-        "FORBIDDEN",
-        "You do not own this course or it does not exist",
-      );
+    if (!course) throw new NotFoundError("Course not found");
     try {
       return await modulesRepository.createModule({ ...input, courseId });
     } catch (err) {
@@ -149,11 +148,7 @@ export const teacherService = {
       moduleId,
       instructorId,
     );
-    if (!mod)
-      throw new ForbiddenError(
-        "FORBIDDEN",
-        "You do not own this module or it does not exist",
-      );
+    if (!mod) throw new NotFoundError("Module not found");
     const courseId = mod.courseId;
     // isUniqueViolation wraps runInTransaction from outside so the violation
     // error propagates cleanly (Postgres aborts the tx on constraint errors;

@@ -1236,16 +1236,28 @@ Acepta un \`Authorization: Bearer <token>\` opcional. Si el token es inválido o
         tags: ["Teacher"],
         summary: "Mis cursos (docente)",
         description:
-          "Devuelve los cursos asignados al docente autenticado, ordenados por fecha de creación descendente.",
+          "Devuelve los cursos asignados al docente autenticado, paginados y ordenados por fecha de creación descendente.",
         security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "page",
+            in: "query",
+            schema: { type: "integer", default: 1 },
+          },
+          {
+            name: "limit",
+            in: "query",
+            schema: { type: "integer", default: 20, maximum: 50 },
+          },
+        ],
         responses: {
           "200": {
-            description: "Lista de cursos del docente.",
+            description: "Lista paginada de cursos del docente.",
             content: {
               "application/json": {
                 schema: z
                   .object({
-                    courses: z.array(
+                    data: z.array(
                       z.object({
                         id: z.uuid(),
                         slug: z.string(),
@@ -1256,11 +1268,15 @@ Acepta un \`Authorization: Bearer <token>\` opcional. Si el token es inválido o
                         updatedAt: z.iso.datetime(),
                       }),
                     ),
+                    total: z.number().int(),
+                    page: z.number().int(),
+                    limit: z.number().int(),
                   })
                   .meta({ id: "TeacherCoursesResponse" }),
               },
             },
           },
+          "400": validationError,
           "401": errorResponse("`UNAUTHORIZED`: falta el token."),
           "403": errorResponse("`FORBIDDEN`: el usuario no es docente."),
           ...commonErrors,

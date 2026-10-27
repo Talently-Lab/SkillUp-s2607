@@ -3,6 +3,7 @@ import { teacherService } from "./teacher.service.ts";
 import type {
   CreateTeacherLessonInput,
   CreateTeacherModuleInput,
+  TeacherCoursesQuery,
   UpdateTeacherLessonInput,
   UpdateTeacherModuleInput,
 } from "./teacher.schemas.ts";
@@ -13,8 +14,11 @@ export const teacherController = {
   // ── Courses ───────────────────────────────────────────────────────────────
 
   listCourses: (async (req, res) => {
-    const courses = await teacherService.listCourses(req.auth!.userId);
-    res.json({ courses });
+    const result = await teacherService.listCourses(
+      req.auth!.userId,
+      req.parsedQuery as TeacherCoursesQuery,
+    );
+    res.json(result);
   }) satisfies RequestHandler,
 
   // ── Modules ───────────────────────────────────────────────────────────────
