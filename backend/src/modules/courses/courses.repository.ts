@@ -18,6 +18,7 @@ interface FindManyOptions {
   status?: "draft" | "published" | undefined;
   categoryId?: number | undefined;
   featured?: boolean | undefined;
+  instructorId?: string | undefined;
 }
 
 function buildWhere(opts: FindManyOptions): SQL | undefined {
@@ -27,6 +28,8 @@ function buildWhere(opts: FindManyOptions): SQL | undefined {
     filters.push(eq(courses.categoryId, opts.categoryId));
   if (opts.featured !== undefined)
     filters.push(eq(courses.featured, opts.featured));
+  if (opts.instructorId !== undefined)
+    filters.push(eq(courses.instructorId, opts.instructorId));
   return filters.length > 0 ? and(...filters) : undefined;
 }
 
@@ -73,8 +76,23 @@ export const coursesRepository = {
     return findPage(query);
   },
 
+  /** Teacher panel: the courses assigned to the instructor, any status */
+  async findManyByInstructor(
+    instructorId: string,
+    query: { page: number; limit: number },
+  ) {
+    return findPage({ ...query, instructorId });
+  },
+
   async findById(id: string, executor: DbOrTx = db) {
     return findOneCourse(eq(courses.id, id), executor);
+  },
+
+  /** Returns the course only if it is assigned to the instructor, any status */
+  async findByIdForInstructor(id: string, instructorId: string) {
+    return findOneCourse(
+      and(eq(courses.id, id), eq(courses.instructorId, instructorId))!,
+    );
   },
 
   async countByInstructor(instructorId: string, executor: DbOrTx = db) {

@@ -3,7 +3,9 @@ import { teacherService } from "./teacher.service.ts";
 import type {
   CreateTeacherLessonInput,
   CreateTeacherModuleInput,
-  TeacherCoursesQuery,
+  ReorderInput,
+  TeacherPageQuery,
+  UpdateTeacherCourseInput,
   UpdateTeacherLessonInput,
   UpdateTeacherModuleInput,
 } from "./teacher.schemas.ts";
@@ -16,7 +18,33 @@ export const teacherController = {
   listCourses: (async (req, res) => {
     const result = await teacherService.listCourses(
       req.auth!.userId,
-      req.parsedQuery as TeacherCoursesQuery,
+      req.parsedQuery as TeacherPageQuery,
+    );
+    res.json(result);
+  }) satisfies RequestHandler,
+
+  getCourse: (async (req, res) => {
+    const courseId = req.params["courseId"] as string;
+    const course = await teacherService.getCourse(courseId, req.auth!.userId);
+    res.json({ course });
+  }) satisfies RequestHandler,
+
+  updateCourse: (async (req, res) => {
+    const courseId = req.params["courseId"] as string;
+    const course = await teacherService.updateCourse(
+      courseId,
+      req.auth!.userId,
+      req.body as UpdateTeacherCourseInput,
+    );
+    res.json({ course });
+  }) satisfies RequestHandler,
+
+  listEnrollments: (async (req, res) => {
+    const courseId = req.params["courseId"] as string;
+    const result = await teacherService.listEnrollments(
+      courseId,
+      req.auth!.userId,
+      req.parsedQuery as TeacherPageQuery,
     );
     res.json(result);
   }) satisfies RequestHandler,
@@ -25,7 +53,10 @@ export const teacherController = {
 
   listModules: (async (req, res) => {
     const courseId = req.params["courseId"] as string;
-    const modules = await teacherService.listModules(courseId, req.auth!.userId);
+    const modules = await teacherService.listModules(
+      courseId,
+      req.auth!.userId,
+    );
     res.json({ modules });
   }) satisfies RequestHandler,
 
@@ -37,6 +68,16 @@ export const teacherController = {
       req.body as CreateTeacherModuleInput,
     );
     res.status(201).json({ module });
+  }) satisfies RequestHandler,
+
+  reorderModules: (async (req, res) => {
+    const courseId = req.params["courseId"] as string;
+    const modules = await teacherService.reorderModules(
+      courseId,
+      req.auth!.userId,
+      req.body as ReorderInput,
+    );
+    res.json({ modules });
   }) satisfies RequestHandler,
 
   updateModule: (async (req, res) => {
@@ -59,7 +100,10 @@ export const teacherController = {
 
   listLessons: (async (req, res) => {
     const moduleId = req.params["moduleId"] as string;
-    const lessons = await teacherService.listLessons(moduleId, req.auth!.userId);
+    const lessons = await teacherService.listLessons(
+      moduleId,
+      req.auth!.userId,
+    );
     res.json({ lessons });
   }) satisfies RequestHandler,
 
@@ -71,6 +115,16 @@ export const teacherController = {
       req.body as CreateTeacherLessonInput,
     );
     res.status(201).json({ lesson });
+  }) satisfies RequestHandler,
+
+  reorderLessons: (async (req, res) => {
+    const moduleId = req.params["moduleId"] as string;
+    const lessons = await teacherService.reorderLessons(
+      moduleId,
+      req.auth!.userId,
+      req.body as ReorderInput,
+    );
+    res.json({ lessons });
   }) satisfies RequestHandler,
 
   updateLesson: (async (req, res) => {

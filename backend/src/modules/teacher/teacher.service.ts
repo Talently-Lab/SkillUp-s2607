@@ -1,38 +1,187 @@
-import { and, eq } from "drizzle-orm";
-import { ConflictError, NotFoundError } from "../../shared/errors/app-error.ts";
-import { isUniqueViolation } from "../../shared/errors/db-errors.ts";
-import { runInTransaction } from "../../db/client.ts";
-import { courses, lessons, modules } from "../../db/schema/index.ts";
+import {
+  BadRequestError,
+  ConflictError,
+  NotFoundError,
+} from "../../shared/errors/app-error.ts";
+import {
+  isForeignKeyViolation,
+  isUniqueViolation,
+} from "../../shared/errors/db-errors.ts";
+import { runInTransaction, type DbOrTx } from "../../db/client.ts";
+import { activityRepository } from "../activity/activity.repository.ts";
+import {
+  createdChanges,
+  deletedChanges,
+  diffChanges,
+} from "../activity/activity.service.ts";
 import { coursesRepository } from "../courses/courses.repository.ts";
+import { courseAction, publishedAtFor } from "../courses/courses.service.ts";
 import { modulesRepository } from "../modules/modules.repository.ts";
-import { syncCourseLessons } from "../modules/modules.service.ts";
+import {
+  syncCourseLessons,
+  syncCourseTotals,
+} from "../modules/modules.service.ts";
 import { teacherRepository } from "./teacher.repository.ts";
 import type {
   CreateTeacherLessonInput,
   CreateTeacherModuleInput,
-  TeacherCoursesQuery,
+  ReorderInput,
+  TeacherPageQuery,
+  UpdateTeacherCourseInput,
   UpdateTeacherLessonInput,
   UpdateTeacherModuleInput,
 } from "./teacher.schemas.ts";
 
+/**
+ * Every mutation runs in a transaction that starts with this lock: it
+ * serialises changes to the same course and re-checks ownership, so an admin
+ * reassigning the course between the first read and the write can't let the
+ * previous teacher through.
+ */
+async function lockOwnedCourse(
+  courseId: string,
+  instructorId: string,
+  tx: DbOrTx,
+  notFoundMessage: string,
+) {
+  const owned = await teacherRepository.lockOwnedCourse(
+    courseId,
+    instructorId,
+    tx,
+  );
+  if (!owned) throw new NotFoundError(notFoundMessage);
+}
+
+/**
+ * Catches unique violations from outside runInTransaction: Postgres aborts the
+ * tx on constraint errors, so catching inside the callback would leave it in
+ * an aborted state.
+ */
+function rethrowPositionTaken(err: unknown, message: string): never {
+  if (isUniqueViolation(err))
+    throw new ConflictError("POSITION_TAKEN", message);
+  throw err;
+}
+
+const MODULE_POSITION_TAKEN =
+  "A module with that position already exists in this course";
+const LESSON_POSITION_TAKEN =
+  "A lesson with that position already exists in this module";
+
+/** `ids` must hold every current id exactly once (no duplicates is checked by the schema) */
+function assertSameIds(current: string[], ids: string[], what: string) {
+  const currentSet = new Set(current);
+  if (ids.length !== current.length || !ids.every((id) => currentSet.has(id)))
+    throw new BadRequestError(
+      "INVALID_ORDER",
+      `ids must contain every ${what} exactly once`,
+    );
+}
+
+function paginated<T>(
+  { data, total }: { data: T[]; total: number },
+  { page, limit }: TeacherPageQuery,
+) {
+  return {
+    data,
+    pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+  };
+}
+
 export const teacherService = {
   // ── Courses ───────────────────────────────────────────────────────────────
 
-  async listCourses(instructorId: string, { page, limit }: TeacherCoursesQuery) {
-    const offset = (page - 1) * limit;
-    const { data, total } = await teacherRepository.findCoursesByInstructor(instructorId, limit, offset);
-    return { data, total, page, limit };
+  async listCourses(instructorId: string, query: TeacherPageQuery) {
+    const result = await coursesRepository.findManyByInstructor(
+      instructorId,
+      query,
+    );
+    return paginated(result, query);
+  },
+
+  async getCourse(courseId: string, instructorId: string) {
+    const course = await coursesRepository.findByIdForInstructor(
+      courseId,
+      instructorId,
+    );
+    if (!course) throw new NotFoundError("Course not found");
+    return course;
+  },
+
+  /** Edits the course content and publishes/unpublishes it; logged for the admin */
+  async updateCourse(
+    courseId: string,
+    instructorId: string,
+    input: UpdateTeacherCourseInput,
+  ) {
+    try {
+      return await runInTransaction(async (tx) => {
+        await lockOwnedCourse(courseId, instructorId, tx, "Course not found");
+        const current = (await coursesRepository.findById(courseId, tx))!;
+
+        if (input.status === "published" && current.status !== "published") {
+          const { total } = await modulesRepository.lessonTotalsByCourse(
+            courseId,
+            tx,
+          );
+          if (total === 0)
+            throw new BadRequestError(
+              "COURSE_EMPTY",
+              "A course needs at least one lesson to be published",
+            );
+        }
+
+        const changes = diffChanges(current, input);
+        if (Object.keys(changes).length === 0) return current;
+
+        const updated = (await coursesRepository.update(
+          courseId,
+          {
+            ...input,
+            publishedAt: publishedAtFor(input.status, current.status),
+          },
+          tx,
+        ))!;
+        await activityRepository.log(
+          {
+            courseId,
+            actorId: instructorId,
+            action: courseAction(changes),
+            changes,
+          },
+          tx,
+        );
+        return updated;
+      });
+    } catch (err) {
+      if (isForeignKeyViolation(err))
+        throw new BadRequestError(
+          "INVALID_REFERENCE",
+          "categoryId does not exist",
+        );
+      throw err;
+    }
+  },
+
+  async listEnrollments(
+    courseId: string,
+    instructorId: string,
+    query: TeacherPageQuery,
+  ) {
+    await teacherService.getCourse(courseId, instructorId);
+    const result = await teacherRepository.findEnrollmentsByCourse(
+      courseId,
+      query.limit,
+      (query.page - 1) * query.limit,
+    );
+    return paginated(result, query);
   },
 
   // ── Modules ───────────────────────────────────────────────────────────────
 
   async listModules(courseId: string, instructorId: string) {
-    const course = await teacherRepository.findCourseByInstructor(
-      courseId,
-      instructorId,
-    );
-    if (!course) throw new NotFoundError("Course not found");
-    return teacherRepository.findModulesByCourse(courseId);
+    await teacherService.getCourse(courseId, instructorId);
+    return modulesRepository.findByCourse(courseId);
   },
 
   async createModule(
@@ -40,20 +189,27 @@ export const teacherService = {
     instructorId: string,
     input: CreateTeacherModuleInput,
   ) {
-    const course = await teacherRepository.findCourseByInstructor(
-      courseId,
-      instructorId,
-    );
-    if (!course) throw new NotFoundError("Course not found");
     try {
-      return await modulesRepository.createModule({ ...input, courseId });
-    } catch (err) {
-      if (isUniqueViolation(err))
-        throw new ConflictError(
-          "POSITION_TAKEN",
-          "A module with that position already exists in this course",
+      return await runInTransaction(async (tx) => {
+        await lockOwnedCourse(courseId, instructorId, tx, "Course not found");
+        const module = await modulesRepository.createModule(
+          { ...input, courseId },
+          tx,
         );
-      throw err;
+        await activityRepository.log(
+          {
+            courseId,
+            actorId: instructorId,
+            action: "module.created",
+            entityId: module.id,
+            changes: createdChanges(input),
+          },
+          tx,
+        );
+        return module;
+      });
+    } catch (err) {
+      rethrowPositionTaken(err, MODULE_POSITION_TAKEN);
     }
   },
 
@@ -62,43 +218,39 @@ export const teacherService = {
     instructorId: string,
     input: UpdateTeacherModuleInput,
   ) {
-    // Ownership check and update run inside a single transaction so that a
-    // concurrent admin reassignment of instructorId cannot slip between them.
-    // isUniqueViolation wraps runInTransaction from outside so the violation
-    // error propagates cleanly (Postgres aborts the tx on constraint errors;
-    // catching inside the callback would leave it in an aborted state).
+    const existing = await teacherRepository.findModuleOwnedByTeacher(
+      moduleId,
+      instructorId,
+    );
+    if (!existing) throw new NotFoundError("Module not found");
+    const courseId = existing.courseId;
     try {
       return await runInTransaction(async (tx) => {
-        // Re-verify ownership inside the transaction to close the TOCTOU window.
-        const rows = await tx
-          .select({ id: modules.id })
-          .from(modules)
-          .innerJoin(
-            courses,
-            and(
-              eq(modules.courseId, courses.id),
-              eq(courses.instructorId, instructorId),
-            ),
-          )
-          .where(eq(modules.id, moduleId))
-          .limit(1);
-        if (rows.length === 0) throw new NotFoundError("Module not found");
+        await lockOwnedCourse(courseId, instructorId, tx, "Module not found");
+        const before = await modulesRepository.findModuleById(moduleId, tx);
+        if (!before) throw new NotFoundError("Module not found");
+        const changes = diffChanges(before, input);
+        if (Object.keys(changes).length === 0) return before;
 
-        const [updated] = await tx
-          .update(modules)
-          .set(input)
-          .where(eq(modules.id, moduleId))
-          .returning();
-        if (!updated) throw new NotFoundError("Module not found");
+        const updated = (await modulesRepository.updateModule(
+          moduleId,
+          input,
+          tx,
+        ))!;
+        await activityRepository.log(
+          {
+            courseId,
+            actorId: instructorId,
+            action: "module.updated",
+            entityId: moduleId,
+            changes,
+          },
+          tx,
+        );
         return updated;
       });
     } catch (err) {
-      if (isUniqueViolation(err))
-        throw new ConflictError(
-          "POSITION_TAKEN",
-          "A module with that position already exists in this course",
-        );
-      throw err;
+      rethrowPositionTaken(err, MODULE_POSITION_TAKEN);
     }
   },
 
@@ -110,10 +262,51 @@ export const teacherService = {
     if (!existing) throw new NotFoundError("Module not found");
     const courseId = existing.courseId;
     await runInTransaction(async (tx) => {
-      await coursesRepository.lockForUpdate(courseId, tx);
-      const removed = await modulesRepository.deleteModule(moduleId, tx);
-      if (!removed) throw new NotFoundError("Module not found");
+      await lockOwnedCourse(courseId, instructorId, tx, "Module not found");
+      const before = await modulesRepository.findModuleById(moduleId, tx);
+      if (!before) throw new NotFoundError("Module not found");
+      await modulesRepository.deleteModule(moduleId, tx);
+      // Cascades to lessons + lesson_progress; recompute affected enrollments.
       await syncCourseLessons(courseId, tx);
+      await activityRepository.log(
+        {
+          courseId,
+          actorId: instructorId,
+          action: "module.deleted",
+          entityId: moduleId,
+          changes: deletedChanges({
+            title: before.title,
+            position: before.position,
+          }),
+        },
+        tx,
+      );
+    });
+  },
+
+  /** Sets the order of all the course's modules in one atomic step */
+  async reorderModules(
+    courseId: string,
+    instructorId: string,
+    { ids }: ReorderInput,
+  ) {
+    return runInTransaction(async (tx) => {
+      await lockOwnedCourse(courseId, instructorId, tx, "Course not found");
+      const current = await teacherRepository.findModuleIds(courseId, tx);
+      assertSameIds(current, ids, "module of the course");
+      if (current.join() !== ids.join()) {
+        await teacherRepository.setModulePositions(ids, tx);
+        await activityRepository.log(
+          {
+            courseId,
+            actorId: instructorId,
+            action: "modules.reordered",
+            changes: { order: { from: current, to: ids } },
+          },
+          tx,
+        );
+      }
+      return modulesRepository.findByCourse(courseId, tx);
     });
   },
 
@@ -139,26 +332,29 @@ export const teacherService = {
     );
     if (!mod) throw new NotFoundError("Module not found");
     const courseId = mod.courseId;
-    // isUniqueViolation wraps runInTransaction from outside so the violation
-    // error propagates cleanly (Postgres aborts the tx on constraint errors;
-    // catching inside the callback would leave it in an aborted state).
     try {
       return await runInTransaction(async (tx) => {
-        await coursesRepository.lockForUpdate(courseId, tx);
+        await lockOwnedCourse(courseId, instructorId, tx, "Module not found");
         const lesson = await modulesRepository.createLesson(
           { ...input, moduleId },
           tx,
         );
+        // A new lesson lowers every enrollment's percent (and reopens completed ones).
         await syncCourseLessons(courseId, tx);
+        await activityRepository.log(
+          {
+            courseId,
+            actorId: instructorId,
+            action: "lesson.created",
+            entityId: lesson.id,
+            changes: createdChanges({ moduleId, ...input }),
+          },
+          tx,
+        );
         return lesson;
       });
     } catch (err) {
-      if (isUniqueViolation(err))
-        throw new ConflictError(
-          "POSITION_TAKEN",
-          "A lesson with that position already exists in this module",
-        );
-      throw err;
+      rethrowPositionTaken(err, LESSON_POSITION_TAKEN);
     }
   },
 
@@ -167,44 +363,41 @@ export const teacherService = {
     instructorId: string,
     input: UpdateTeacherLessonInput,
   ) {
-    // Ownership check and update run inside a single transaction so that a
-    // concurrent admin reassignment of instructorId cannot slip between them.
-    // isUniqueViolation wraps runInTransaction from outside so the violation
-    // error propagates cleanly (Postgres aborts the tx on constraint errors;
-    // catching inside the callback would leave it in an aborted state).
+    const existing = await teacherRepository.findLessonOwnedByTeacher(
+      lessonId,
+      instructorId,
+    );
+    if (!existing) throw new NotFoundError("Lesson not found");
+    const courseId = existing.courseId;
     try {
       return await runInTransaction(async (tx) => {
-        // Re-verify ownership inside the transaction to close the TOCTOU window.
-        const rows = await tx
-          .select({ id: lessons.id })
-          .from(lessons)
-          .innerJoin(modules, eq(lessons.moduleId, modules.id))
-          .innerJoin(
-            courses,
-            and(
-              eq(modules.courseId, courses.id),
-              eq(courses.instructorId, instructorId),
-            ),
-          )
-          .where(eq(lessons.id, lessonId))
-          .limit(1);
-        if (rows.length === 0) throw new NotFoundError("Lesson not found");
+        await lockOwnedCourse(courseId, instructorId, tx, "Lesson not found");
+        const before = await modulesRepository.findLessonById(lessonId, tx);
+        if (!before) throw new NotFoundError("Lesson not found");
+        const changes = diffChanges(before, input);
+        if (Object.keys(changes).length === 0) return before;
 
-        const [updated] = await tx
-          .update(lessons)
-          .set(input)
-          .where(eq(lessons.id, lessonId))
-          .returning();
-        if (!updated) throw new NotFoundError("Lesson not found");
+        const updated = (await modulesRepository.updateLesson(
+          lessonId,
+          input,
+          tx,
+        ))!;
+        // The course's durationMinutes is the sum of its lessons
+        if (changes["durationSeconds"]) await syncCourseTotals(courseId, tx);
+        await activityRepository.log(
+          {
+            courseId,
+            actorId: instructorId,
+            action: "lesson.updated",
+            entityId: lessonId,
+            changes,
+          },
+          tx,
+        );
         return updated;
       });
     } catch (err) {
-      if (isUniqueViolation(err))
-        throw new ConflictError(
-          "POSITION_TAKEN",
-          "A lesson with that position already exists in this module",
-        );
-      throw err;
+      rethrowPositionTaken(err, LESSON_POSITION_TAKEN);
     }
   },
 
@@ -216,11 +409,59 @@ export const teacherService = {
     if (!existing) throw new NotFoundError("Lesson not found");
     const courseId = existing.courseId;
     await runInTransaction(async (tx) => {
-      await coursesRepository.lockForUpdate(courseId, tx);
-      const removed = await modulesRepository.deleteLesson(lessonId, tx);
-      if (!removed) throw new NotFoundError("Lesson not found");
-      // ON DELETE CASCADE handles lesson_progress rows; recompute enrollment progress.
+      await lockOwnedCourse(courseId, instructorId, tx, "Lesson not found");
+      const before = await modulesRepository.findLessonById(lessonId, tx);
+      if (!before) throw new NotFoundError("Lesson not found");
+      await modulesRepository.deleteLesson(lessonId, tx);
+      // Deleting a lesson cascades to its progress rows; recompute affected enrollments.
       await syncCourseLessons(courseId, tx);
+      await activityRepository.log(
+        {
+          courseId,
+          actorId: instructorId,
+          action: "lesson.deleted",
+          entityId: lessonId,
+          changes: deletedChanges({
+            moduleId: before.moduleId,
+            title: before.title,
+            position: before.position,
+          }),
+        },
+        tx,
+      );
+    });
+  },
+
+  /** Sets the order of all the module's lessons in one atomic step */
+  async reorderLessons(
+    moduleId: string,
+    instructorId: string,
+    { ids }: ReorderInput,
+  ) {
+    const mod = await teacherRepository.findModuleOwnedByTeacher(
+      moduleId,
+      instructorId,
+    );
+    if (!mod) throw new NotFoundError("Module not found");
+    const courseId = mod.courseId;
+    return runInTransaction(async (tx) => {
+      await lockOwnedCourse(courseId, instructorId, tx, "Module not found");
+      const current = await teacherRepository.findLessonIds(moduleId, tx);
+      assertSameIds(current, ids, "lesson of the module");
+      if (current.join() !== ids.join()) {
+        await teacherRepository.setLessonPositions(ids, tx);
+        await activityRepository.log(
+          {
+            courseId,
+            actorId: instructorId,
+            action: "lessons.reordered",
+            entityId: moduleId,
+            changes: { order: { from: current, to: ids } },
+          },
+          tx,
+        );
+      }
+      return teacherRepository.findLessonsByModule(moduleId, tx);
     });
   },
 };

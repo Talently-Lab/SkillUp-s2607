@@ -12,10 +12,12 @@ import { teacherController } from "./teacher.controller.ts";
 import {
   createTeacherLessonSchema,
   createTeacherModuleSchema,
+  reorderSchema,
   teacherCourseParamsSchema,
-  teacherCoursesQuerySchema,
   teacherLessonParamsSchema,
   teacherModuleParamsSchema,
+  teacherPageQuerySchema,
+  updateTeacherCourseSchema,
   updateTeacherLessonSchema,
   updateTeacherModuleSchema,
 } from "./teacher.schemas.ts";
@@ -29,8 +31,28 @@ teacherRouter.use(requireAuth, requireRole("teacher"));
 
 teacherRouter.get(
   "/courses",
-  validateQuery(teacherCoursesQuerySchema),
+  validateQuery(teacherPageQuerySchema),
   teacherController.listCourses,
+);
+
+teacherRouter.get(
+  "/courses/:courseId",
+  validateParams(teacherCourseParamsSchema),
+  teacherController.getCourse,
+);
+
+teacherRouter.patch(
+  "/courses/:courseId",
+  validateParams(teacherCourseParamsSchema),
+  validateBody(updateTeacherCourseSchema),
+  teacherController.updateCourse,
+);
+
+teacherRouter.get(
+  "/courses/:courseId/enrollments",
+  validateParams(teacherCourseParamsSchema),
+  validateQuery(teacherPageQuerySchema),
+  teacherController.listEnrollments,
 );
 
 // ── Modules ───────────────────────────────────────────────────────────────────
@@ -46,6 +68,13 @@ teacherRouter.post(
   validateParams(teacherCourseParamsSchema),
   validateBody(createTeacherModuleSchema),
   teacherController.createModule,
+);
+
+teacherRouter.put(
+  "/courses/:courseId/modules/order",
+  validateParams(teacherCourseParamsSchema),
+  validateBody(reorderSchema),
+  teacherController.reorderModules,
 );
 
 teacherRouter.patch(
@@ -74,6 +103,13 @@ teacherRouter.post(
   validateParams(teacherModuleParamsSchema),
   validateBody(createTeacherLessonSchema),
   teacherController.createLesson,
+);
+
+teacherRouter.put(
+  "/modules/:moduleId/lessons/order",
+  validateParams(teacherModuleParamsSchema),
+  validateBody(reorderSchema),
+  teacherController.reorderLessons,
 );
 
 teacherRouter.patch(
