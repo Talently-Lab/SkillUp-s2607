@@ -8,6 +8,9 @@ import {
   isUniqueViolation,
 } from "../../shared/errors/db-errors.ts";
 import { runInTransaction, type DbOrTx } from "../../db/client.ts";
+import type { ActivityChanges } from "../../db/schema/index.ts";
+import { activityRepository } from "../activity/activity.repository.ts";
+import { createdChanges, diffChanges } from "../activity/activity.service.ts";
 import { usersAdminRepository } from "../users/users-admin.repository.ts";
 import { coursesRepository } from "./courses.repository.ts";
 import type {
@@ -20,7 +23,7 @@ import type {
 type Status = "draft" | "published";
 
 /** publishedAt only changes with the status: now on publish, null on unpublish */
-function publishedAtFor(
+export function publishedAtFor(
   next: Status | undefined,
   current?: Status,
 ): Date | null | undefined {
@@ -40,6 +43,14 @@ function handleWriteError(err: unknown): never {
       "categoryId or instructorId does not exist",
     );
   throw err;
+}
+
+/** A status change is logged as publish/unpublish; anything else as an update */
+export function courseAction(changes: ActivityChanges) {
+  const status = changes["status"]?.to;
+  if (status === "published") return "course.published";
+  if (status === "draft") return "course.unpublished";
+  return "course.updated";
 }
 
 /**
@@ -100,38 +111,56 @@ export const coursesService = {
     return course;
   },
 
-  async create(input: CreateCourseInput) {
+  async create(input: CreateCourseInput, actorId: string) {
     try {
       return await runInTransaction(async (tx) => {
         await assertTeacher(input.instructorId, tx);
-        return coursesRepository.create(
+        const course = await coursesRepository.create(
           { ...input, publishedAt: publishedAtFor(input.status) ?? null },
           tx,
         );
+        await activityRepository.log(
+          {
+            courseId: course.id,
+            actorId,
+            action: "course.created",
+            changes: createdChanges(input),
+          },
+          tx,
+        );
+        return course;
       });
     } catch (err) {
       handleWriteError(err);
     }
   },
 
-  async update(id: string, input: UpdateCourseInput) {
+  async update(id: string, input: UpdateCourseInput, actorId: string) {
     try {
       return await runInTransaction(async (tx) => {
+        // Serialises with the teacher's edits of the same course
+        await coursesRepository.lockForUpdate(id, tx);
         const current = await coursesRepository.findById(id, tx);
         if (!current) throw new NotFoundError("Course not found");
         // Only a new assignment is checked, so editing an old course keeps working
         if (input.instructorId !== current.instructorId)
           await assertTeacher(input.instructorId, tx);
 
-        const updated = await coursesRepository.update(
+        const changes = diffChanges(current, input);
+        if (Object.keys(changes).length === 0) return current;
+
+        const updated = (await coursesRepository.update(
           id,
           {
             ...input,
             publishedAt: publishedAtFor(input.status, current.status),
           },
           tx,
+        ))!;
+        await activityRepository.log(
+          { courseId: id, actorId, action: courseAction(changes), changes },
+          tx,
         );
-        if (!updated) throw new NotFoundError("Course not found");
         return updated;
       });
     } catch (err) {

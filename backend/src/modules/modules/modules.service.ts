@@ -1,6 +1,12 @@
 import { ConflictError, NotFoundError } from "../../shared/errors/app-error.ts";
 import { isUniqueViolation } from "../../shared/errors/db-errors.ts";
 import { runInTransaction } from "../../db/client.ts";
+import { activityRepository } from "../activity/activity.repository.ts";
+import {
+  createdChanges,
+  deletedChanges,
+  diffChanges,
+} from "../activity/activity.service.ts";
 import { coursesRepository } from "../courses/courses.repository.ts";
 import { enrollmentsRepository } from "../enrollments/enrollments.repository.ts";
 import { progressRepository } from "../progress/progress.repository.ts";
@@ -77,12 +83,33 @@ export const modulesService = {
       }),
     }));
   },
-  async createModule(courseId: string, input: CreateModuleInput) {
+  async createModule(
+    courseId: string,
+    input: CreateModuleInput,
+    actorId: string,
+  ) {
     // Admin may manage draft courses too
     const course = await coursesRepository.findById(courseId);
     if (!course) throw new NotFoundError("Course not found");
     try {
-      return await modulesRepository.createModule({ ...input, courseId });
+      return await runInTransaction(async (tx) => {
+        await coursesRepository.lockForUpdate(courseId, tx);
+        const module = await modulesRepository.createModule(
+          { ...input, courseId },
+          tx,
+        );
+        await activityRepository.log(
+          {
+            courseId,
+            actorId,
+            action: "module.created",
+            entityId: module.id,
+            changes: createdChanges(input),
+          },
+          tx,
+        );
+        return module;
+      });
     } catch (err) {
       if (isUniqueViolation(err))
         throw new ConflictError(
@@ -96,6 +123,7 @@ export const modulesService = {
     courseId: string,
     moduleId: string,
     input: UpdateModuleInput,
+    actorId: string,
   ) {
     const existing = await modulesRepository.findModuleInCourse(
       courseId,
@@ -103,9 +131,30 @@ export const modulesService = {
     );
     if (!existing) throw new NotFoundError("Module not found");
     try {
-      const updated = await modulesRepository.updateModule(moduleId, input);
-      if (!updated) throw new NotFoundError("Module not found");
-      return updated;
+      return await runInTransaction(async (tx) => {
+        await coursesRepository.lockForUpdate(courseId, tx);
+        const before = await modulesRepository.findModuleById(moduleId, tx);
+        if (!before) throw new NotFoundError("Module not found");
+        const changes = diffChanges(before, input);
+        if (Object.keys(changes).length === 0) return before;
+
+        const updated = (await modulesRepository.updateModule(
+          moduleId,
+          input,
+          tx,
+        ))!;
+        await activityRepository.log(
+          {
+            courseId,
+            actorId,
+            action: "module.updated",
+            entityId: moduleId,
+            changes,
+          },
+          tx,
+        );
+        return updated;
+      });
     } catch (err) {
       if (isUniqueViolation(err))
         throw new ConflictError(
@@ -115,7 +164,7 @@ export const modulesService = {
       throw err;
     }
   },
-  async deleteModule(courseId: string, moduleId: string) {
+  async deleteModule(courseId: string, moduleId: string, actorId: string) {
     const existing = await modulesRepository.findModuleInCourse(
       courseId,
       moduleId,
@@ -129,6 +178,19 @@ export const modulesService = {
       if (!removed) throw new NotFoundError("Module not found");
       // Cascades to lessons + lesson_progress; recompute affected enrollments.
       await syncCourseLessons(courseId, tx);
+      await activityRepository.log(
+        {
+          courseId,
+          actorId,
+          action: "module.deleted",
+          entityId: moduleId,
+          changes: deletedChanges({
+            title: existing.title,
+            position: existing.position,
+          }),
+        },
+        tx,
+      );
     });
   },
   // ── Lessons ───────────────────────────────────────────────────────────────
@@ -136,6 +198,7 @@ export const modulesService = {
     courseId: string,
     moduleId: string,
     input: CreateLessonInput,
+    actorId: string,
   ) {
     const m = await modulesRepository.findModuleInCourse(courseId, moduleId);
     if (!m) throw new NotFoundError("Module not found");
@@ -151,6 +214,16 @@ export const modulesService = {
         );
         // A new lesson lowers every enrollment's percent (and reopens completed ones).
         await syncCourseLessons(courseId, tx);
+        await activityRepository.log(
+          {
+            courseId,
+            actorId,
+            action: "lesson.created",
+            entityId: lesson.id,
+            changes: createdChanges({ moduleId, ...input }),
+          },
+          tx,
+        );
         return lesson;
       });
     } catch (err) {
@@ -167,6 +240,7 @@ export const modulesService = {
     moduleId: string,
     lessonId: string,
     input: UpdateLessonInput,
+    actorId: string,
   ) {
     const m = await modulesRepository.findModuleInCourse(courseId, moduleId);
     if (!m) throw new NotFoundError("Module not found");
@@ -178,15 +252,28 @@ export const modulesService = {
     try {
       return await runInTransaction(async (tx) => {
         await coursesRepository.lockForUpdate(courseId, tx);
-        const updated = await modulesRepository.updateLesson(
+        const before = await modulesRepository.findLessonById(lessonId, tx);
+        if (!before) throw new NotFoundError("Lesson not found");
+        const changes = diffChanges(before, input);
+        if (Object.keys(changes).length === 0) return before;
+
+        const updated = (await modulesRepository.updateLesson(
           lessonId,
           input,
           tx,
-        );
-        if (!updated) throw new NotFoundError("Lesson not found");
+        ))!;
         // The course's durationMinutes is the sum of its lessons
-        if (input.durationSeconds !== undefined)
-          await syncCourseTotals(courseId, tx);
+        if (changes["durationSeconds"]) await syncCourseTotals(courseId, tx);
+        await activityRepository.log(
+          {
+            courseId,
+            actorId,
+            action: "lesson.updated",
+            entityId: lessonId,
+            changes,
+          },
+          tx,
+        );
         return updated;
       });
     } catch (err) {
@@ -198,7 +285,12 @@ export const modulesService = {
       throw err;
     }
   },
-  async deleteLesson(courseId: string, moduleId: string, lessonId: string) {
+  async deleteLesson(
+    courseId: string,
+    moduleId: string,
+    lessonId: string,
+    actorId: string,
+  ) {
     const m = await modulesRepository.findModuleInCourse(courseId, moduleId);
     if (!m) throw new NotFoundError("Module not found");
     const existing = await modulesRepository.findLessonInModule(
@@ -212,6 +304,20 @@ export const modulesService = {
       if (!removed) throw new NotFoundError("Lesson not found");
       // Deleting a lesson cascades to its progress rows; recompute affected enrollments.
       await syncCourseLessons(courseId, tx);
+      await activityRepository.log(
+        {
+          courseId,
+          actorId,
+          action: "lesson.deleted",
+          entityId: lessonId,
+          changes: deletedChanges({
+            moduleId,
+            title: existing.title,
+            position: existing.position,
+          }),
+        },
+        tx,
+      );
     });
   },
 };

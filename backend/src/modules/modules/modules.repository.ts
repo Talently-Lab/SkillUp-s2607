@@ -14,14 +14,18 @@ import type {
 export const modulesRepository = {
   // ── Modules ──────────────────────────────────────────────────────────────
 
-  async findByCourse(courseId: string) {
-    return db.query.modules.findMany({
+  async findByCourse(courseId: string, executor: DbOrTx = db) {
+    return executor.query.modules.findMany({
       where: eq(modules.courseId, courseId),
       orderBy: [asc(modules.position)],
       with: {
         lessons: { orderBy: [asc(lessons.position)] },
       },
     });
+  },
+
+  async findModuleById(id: string, executor: DbOrTx = db) {
+    return executor.query.modules.findFirst({ where: eq(modules.id, id) });
   },
 
   /** Finds a module only if it belongs to the given course (ownership check) */
@@ -31,13 +35,17 @@ export const modulesRepository = {
     });
   },
 
-  async createModule(data: NewModule) {
-    const [m] = await db.insert(modules).values(data).returning();
+  async createModule(data: NewModule, executor: DbOrTx = db) {
+    const [m] = await executor.insert(modules).values(data).returning();
     return m!;
   },
 
-  async updateModule(id: string, data: UpdateModuleInput) {
-    const [m] = await db
+  async updateModule(
+    id: string,
+    data: UpdateModuleInput,
+    executor: DbOrTx = db,
+  ) {
+    const [m] = await executor
       .update(modules)
       .set(data)
       .where(eq(modules.id, id))
@@ -74,8 +82,8 @@ export const modulesRepository = {
     };
   },
 
-  async findLessonById(id: string) {
-    return db.query.lessons.findFirst({ where: eq(lessons.id, id) });
+  async findLessonById(id: string, executor: DbOrTx = db) {
+    return executor.query.lessons.findFirst({ where: eq(lessons.id, id) });
   },
 
   /** Finds a lesson only if it belongs to the given module (ownership check) */

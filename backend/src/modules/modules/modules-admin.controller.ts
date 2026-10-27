@@ -17,6 +17,7 @@ export const modulesAdminController = {
     const m = await modulesService.createModule(
       courseId,
       req.body as CreateModuleInput,
+      req.auth!.userId,
     );
     res.status(201).json({ module: m });
   }) satisfies RequestHandler,
@@ -28,6 +29,7 @@ export const modulesAdminController = {
       courseId,
       moduleId,
       req.body as UpdateModuleInput,
+      req.auth!.userId,
     );
     res.json({ module: m });
   }) satisfies RequestHandler,
@@ -35,7 +37,7 @@ export const modulesAdminController = {
   remove: (async (req, res) => {
     const courseId = req.params["courseId"] as string;
     const moduleId = req.params["moduleId"] as string;
-    await modulesService.deleteModule(courseId, moduleId);
+    await modulesService.deleteModule(courseId, moduleId, req.auth!.userId);
     res.status(204).end();
   }) satisfies RequestHandler,
 
@@ -47,6 +49,7 @@ export const modulesAdminController = {
       courseId,
       moduleId,
       req.body as CreateLessonInput,
+      req.auth!.userId,
     );
     res.status(201).json({ lesson: l });
   }) satisfies RequestHandler,
@@ -60,6 +63,7 @@ export const modulesAdminController = {
       moduleId,
       lessonId,
       req.body as UpdateLessonInput,
+      req.auth!.userId,
     );
     res.json({ lesson: l });
   }) satisfies RequestHandler,
@@ -68,7 +72,12 @@ export const modulesAdminController = {
     const courseId = req.params["courseId"] as string;
     const moduleId = req.params["moduleId"] as string;
     const lessonId = req.params["lessonId"] as string;
-    await modulesService.deleteLesson(courseId, moduleId, lessonId);
+    await modulesService.deleteLesson(
+      courseId,
+      moduleId,
+      lessonId,
+      req.auth!.userId,
+    );
     res.status(204).end();
   }) satisfies RequestHandler,
 };

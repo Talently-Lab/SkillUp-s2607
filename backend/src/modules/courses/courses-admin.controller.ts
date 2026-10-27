@@ -23,7 +23,10 @@ export const coursesAdminController = {
   }) satisfies RequestHandler,
 
   create: (async (req, res) => {
-    const course = await coursesService.create(req.body as CreateCourseInput);
+    const course = await coursesService.create(
+      req.body as CreateCourseInput,
+      req.auth!.userId,
+    );
     res.status(201).json({ course });
   }) satisfies RequestHandler,
 
@@ -32,6 +35,7 @@ export const coursesAdminController = {
     const course = await coursesService.update(
       id,
       req.body as UpdateCourseInput,
+      req.auth!.userId,
     );
     res.json({ course });
   }) satisfies RequestHandler,
