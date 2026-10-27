@@ -764,6 +764,66 @@ Todos los errores tienen la forma \`{ "error": { "code", "message", "details"? }
         },
       },
     },
+    "/admin/users/{id}/role": {
+      patch: {
+        tags: ["Admin — Users"],
+        summary: "Cambiar el rol de un usuario",
+        description: `Asigna un nuevo rol a un usuario existente. Solo admins.
+
+**Restricciones:**
+- Un admin no puede cambiar su propio rol (\`SELF_ROLE_FORBIDDEN\`).
+- No se puede cambiar el rol de un usuario suspendido (\`TARGET_SUSPENDED\`); primero debe reactivarse la cuenta.
+
+**Ventana de invalidación:** el cambio de rol no invalida los access tokens en vuelo. El nuevo rol entra en efecto cuando el token actual expire (hasta \`JWT_ACCESS_TTL_SECONDS\`, por defecto 15 min). Los refresh tokens no se revocan, por lo que la próxima llamada a \`/auth/refresh\` emitirá un token con el rol actualizado.`,
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: z
+                .object({ role: z.enum(["student", "teacher", "admin"]) })
+                .meta({ id: "UpdateRoleRequest" }),
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description: "Rol actualizado.",
+            content: {
+              "application/json": {
+                schema: z
+                  .object({
+                    user: z.object({
+                      id: z.uuid(),
+                      email: z.string(),
+                      fullName: z.string(),
+                      role: z.string(),
+                      status: z.string(),
+                      createdAt: z.iso.datetime(),
+                    }),
+                  })
+                  .meta({ id: "UserRoleResponse" }),
+              },
+            },
+          },
+          "400": validationError,
+          "401": errorResponse("`UNAUTHORIZED`"),
+          "403": errorResponse(
+            "`FORBIDDEN`: no es admin. `SELF_ROLE_FORBIDDEN`: intenta cambiar su propio rol. `TARGET_SUSPENDED`: el usuario destino está suspendido.",
+          ),
+          "404": errorResponse("`NOT_FOUND`: usuario no existe."),
+          ...commonErrors,
+        },
+      },
+    },
     [`/courses/{courseId}/modules`]: {
       get: {
         tags: ["Modules & Lessons"],
