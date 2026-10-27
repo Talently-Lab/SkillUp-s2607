@@ -40,20 +40,23 @@ export const usersAdminService = {
       );
     }
 
-    // Prevent suspending other admins
-    const target = await db.query.users.findFirst({
-      where: eq(users.id, targetId),
-    });
-    if (!target) throw new NotFoundError("User not found");
-    if (target.role === "admin" && status === "suspended") {
-      throw new ForbiddenError(
-        "ADMIN_SUSPEND_FORBIDDEN",
-        "Admin accounts cannot be suspended",
-      );
-    }
-
-    // Use a transaction: both the status update and token revocation must succeed together
+    // Use a transaction: the admin-role check, status update and token revocation must be
+    // atomic with respect to concurrent PATCH /:id/role requests. Without re-reading inside
+    // the transaction a concurrent updateRole that promotes the target to admin between the
+    // outer findFirst and the inner update would let the suspend proceed on an admin account.
     const user = await db.transaction(async (tx) => {
+      // Re-read the target row inside the transaction to close the TOCTOU window
+      const current = await tx.query.users.findFirst({
+        where: eq(users.id, targetId),
+      });
+      if (!current) throw new NotFoundError("User not found");
+      if (current.role === "admin" && status === "suspended") {
+        throw new ForbiddenError(
+          "ADMIN_SUSPEND_FORBIDDEN",
+          "Admin accounts cannot be suspended",
+        );
+      }
+
       const [updated] = await tx
         .update(users)
         .set({ status })
