@@ -7,6 +7,8 @@ import {
   isForeignKeyViolation,
   isUniqueViolation,
 } from "../../shared/errors/db-errors.ts";
+import { runInTransaction, type DbOrTx } from "../../db/client.ts";
+import { usersAdminRepository } from "../users/users-admin.repository.ts";
 import { coursesRepository } from "./courses.repository.ts";
 import type {
   AdminCoursesQuery,
@@ -38,6 +40,23 @@ function handleWriteError(err: unknown): never {
       "categoryId or instructorId does not exist",
     );
   throw err;
+}
+
+/**
+ * Only a teacher can be assigned as the instructor: other roles never see the
+ * teacher panel. Locks the user until the tx ends so the role can't change
+ * before the course is saved (see usersAdminService.updateRole).
+ */
+async function assertTeacher(
+  instructorId: string | null | undefined,
+  tx: DbOrTx,
+) {
+  if (!instructorId) return;
+  if (!(await usersAdminRepository.lockIfTeacher(instructorId, tx)))
+    throw new BadRequestError(
+      "INVALID_INSTRUCTOR",
+      "instructorId must belong to a user with the teacher role",
+    );
 }
 
 export const coursesService = {
@@ -83,9 +102,12 @@ export const coursesService = {
 
   async create(input: CreateCourseInput) {
     try {
-      return await coursesRepository.create({
-        ...input,
-        publishedAt: publishedAtFor(input.status) ?? null,
+      return await runInTransaction(async (tx) => {
+        await assertTeacher(input.instructorId, tx);
+        return coursesRepository.create(
+          { ...input, publishedAt: publishedAtFor(input.status) ?? null },
+          tx,
+        );
       });
     } catch (err) {
       handleWriteError(err);
@@ -93,16 +115,25 @@ export const coursesService = {
   },
 
   async update(id: string, input: UpdateCourseInput) {
-    const current = await coursesRepository.findById(id);
-    if (!current) throw new NotFoundError("Course not found");
-
     try {
-      const updated = await coursesRepository.update(id, {
-        ...input,
-        publishedAt: publishedAtFor(input.status, current.status),
+      return await runInTransaction(async (tx) => {
+        const current = await coursesRepository.findById(id, tx);
+        if (!current) throw new NotFoundError("Course not found");
+        // Only a new assignment is checked, so editing an old course keeps working
+        if (input.instructorId !== current.instructorId)
+          await assertTeacher(input.instructorId, tx);
+
+        const updated = await coursesRepository.update(
+          id,
+          {
+            ...input,
+            publishedAt: publishedAtFor(input.status, current.status),
+          },
+          tx,
+        );
+        if (!updated) throw new NotFoundError("Course not found");
+        return updated;
       });
-      if (!updated) throw new NotFoundError("Course not found");
-      return updated;
     } catch (err) {
       handleWriteError(err);
     }

@@ -2,9 +2,11 @@ import { eq } from "drizzle-orm";
 import { db } from "../../db/client.ts";
 import { refreshTokens, users } from "../../db/schema/index.ts";
 import {
+  ConflictError,
   ForbiddenError,
   NotFoundError,
 } from "../../shared/errors/app-error.ts";
+import { coursesRepository } from "../courses/courses.repository.ts";
 import { usersAdminRepository } from "./users-admin.repository.ts";
 import type {
   UpdateUserRoleInput,
@@ -104,18 +106,29 @@ export const usersAdminService = {
     //
     // Use a transaction: the status check and the update must be atomic with respect to
     // concurrent PATCH /:id/status requests. Without it, a suspend that races between the
-    // findFirst above and the update below would be silently bypassed (the role update would
-    // execute on a now-suspended account).
+    // read and the update would be silently bypassed (the role update would execute on a
+    // now-suspended account).
     const updated = await db.transaction(async (tx) => {
-      // Re-read the target row inside the transaction to close the TOCTOU window
-      const current = await tx.query.users.findFirst({
-        where: eq(users.id, targetId),
-      });
+      // Locked FOR UPDATE: a concurrent suspend, or a course being assigned to
+      // this teacher (which locks the row FOR SHARE), waits for this tx or
+      // finishes before it, so the checks below can't go stale.
+      const current = await usersAdminRepository.findForUpdate(targetId, tx);
       if (!current) throw new NotFoundError("User not found");
       if (current.status === "suspended") {
         throw new ForbiddenError(
           "TARGET_SUSPENDED",
           "Cannot change role of a suspended user",
+        );
+      }
+      // A former teacher keeps instructorId but loses the panel: the courses would be orphaned
+      if (
+        current.role === "teacher" &&
+        role !== "teacher" &&
+        (await coursesRepository.countByInstructor(targetId, tx)) > 0
+      ) {
+        throw new ConflictError(
+          "TEACHER_HAS_COURSES",
+          "Reassign the teacher's courses before changing their role",
         );
       }
 

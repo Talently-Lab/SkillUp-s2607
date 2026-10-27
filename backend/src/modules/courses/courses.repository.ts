@@ -73,8 +73,16 @@ export const coursesRepository = {
     return findPage(query);
   },
 
-  async findById(id: string) {
-    return findOneCourse(eq(courses.id, id));
+  async findById(id: string, executor: DbOrTx = db) {
+    return findOneCourse(eq(courses.id, id), executor);
+  },
+
+  async countByInstructor(instructorId: string, executor: DbOrTx = db) {
+    const [result] = await executor
+      .select({ value: count() })
+      .from(courses)
+      .where(eq(courses.instructorId, instructorId));
+    return result?.value ?? 0;
   },
 
   async findPublishedById(id: string) {
@@ -90,25 +98,26 @@ export const coursesRepository = {
   },
 
   /** Returns the created course with category and instructor */
-  async create(data: NewCourse) {
-    const [created] = await db
+  async create(data: NewCourse, executor: DbOrTx = db) {
+    const [created] = await executor
       .insert(courses)
       .values(data)
       .returning({ id: courses.id });
-    return (await findOneCourse(eq(courses.id, created!.id)))!;
+    return (await findOneCourse(eq(courses.id, created!.id), executor))!;
   },
 
   /** Returns the updated course with category and instructor, or null if not found */
   async update(
     id: string,
     data: UpdateCourseInput & { publishedAt?: Date | null | undefined },
+    executor: DbOrTx = db,
   ) {
-    const [updated] = await db
+    const [updated] = await executor
       .update(courses)
       .set(data)
       .where(eq(courses.id, id))
       .returning({ id: courses.id });
-    return updated ? findOneCourse(eq(courses.id, updated.id)) : null;
+    return updated ? findOneCourse(eq(courses.id, updated.id), executor) : null;
   },
 
   async updateLessonTotals(
@@ -160,8 +169,8 @@ async function findPage(opts: FindManyOptions) {
   return { data, total };
 }
 
-async function findOneCourse(condition: SQL) {
-  const rows = await db
+async function findOneCourse(condition: SQL, executor: DbOrTx = db) {
+  const rows = await executor
     .select(courseSelect)
     .from(courses)
     .innerJoin(categories, eq(courses.categoryId, categories.id))
