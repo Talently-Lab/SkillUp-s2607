@@ -1,6 +1,8 @@
+import { and, eq } from "drizzle-orm";
 import { ConflictError, ForbiddenError, NotFoundError } from "../../shared/errors/app-error.ts";
 import { isUniqueViolation } from "../../shared/errors/db-errors.ts";
 import { runInTransaction } from "../../db/client.ts";
+import { courses, lessons, modules } from "../../db/schema/index.ts";
 import { coursesRepository } from "../courses/courses.repository.ts";
 import { progressRepository } from "../progress/progress.repository.ts";
 import { modulesRepository } from "../modules/modules.repository.ts";
@@ -72,15 +74,36 @@ export const teacherService = {
     instructorId: string,
     input: UpdateTeacherModuleInput,
   ) {
-    const existing = await teacherRepository.findModuleOwnedByTeacher(
-      moduleId,
-      instructorId,
-    );
-    if (!existing) throw new NotFoundError("Module not found");
+    // Ownership check and update run inside a single transaction so that a
+    // concurrent admin reassignment of instructorId cannot slip between them.
+    // isUniqueViolation wraps runInTransaction from outside so the violation
+    // error propagates cleanly (Postgres aborts the tx on constraint errors;
+    // catching inside the callback would leave it in an aborted state).
     try {
-      const updated = await modulesRepository.updateModule(moduleId, input);
-      if (!updated) throw new NotFoundError("Module not found");
-      return updated;
+      return await runInTransaction(async (tx) => {
+        // Re-verify ownership inside the transaction to close the TOCTOU window.
+        const rows = await tx
+          .select({ id: modules.id })
+          .from(modules)
+          .innerJoin(
+            courses,
+            and(
+              eq(modules.courseId, courses.id),
+              eq(courses.instructorId, instructorId),
+            ),
+          )
+          .where(eq(modules.id, moduleId))
+          .limit(1);
+        if (rows.length === 0) throw new NotFoundError("Module not found");
+
+        const [updated] = await tx
+          .update(modules)
+          .set(input)
+          .where(eq(modules.id, moduleId))
+          .returning();
+        if (!updated) throw new NotFoundError("Module not found");
+        return updated;
+      });
     } catch (err) {
       if (isUniqueViolation(err))
         throw new ConflictError(
@@ -132,6 +155,9 @@ export const teacherService = {
         "You do not own this module or it does not exist",
       );
     const courseId = mod.courseId;
+    // isUniqueViolation wraps runInTransaction from outside so the violation
+    // error propagates cleanly (Postgres aborts the tx on constraint errors;
+    // catching inside the callback would leave it in an aborted state).
     try {
       return await runInTransaction(async (tx) => {
         await coursesRepository.lockForUpdate(courseId, tx);
@@ -157,15 +183,37 @@ export const teacherService = {
     instructorId: string,
     input: UpdateTeacherLessonInput,
   ) {
-    const existing = await teacherRepository.findLessonOwnedByTeacher(
-      lessonId,
-      instructorId,
-    );
-    if (!existing) throw new NotFoundError("Lesson not found");
+    // Ownership check and update run inside a single transaction so that a
+    // concurrent admin reassignment of instructorId cannot slip between them.
+    // isUniqueViolation wraps runInTransaction from outside so the violation
+    // error propagates cleanly (Postgres aborts the tx on constraint errors;
+    // catching inside the callback would leave it in an aborted state).
     try {
-      const updated = await modulesRepository.updateLesson(lessonId, input);
-      if (!updated) throw new NotFoundError("Lesson not found");
-      return updated;
+      return await runInTransaction(async (tx) => {
+        // Re-verify ownership inside the transaction to close the TOCTOU window.
+        const rows = await tx
+          .select({ id: lessons.id })
+          .from(lessons)
+          .innerJoin(modules, eq(lessons.moduleId, modules.id))
+          .innerJoin(
+            courses,
+            and(
+              eq(modules.courseId, courses.id),
+              eq(courses.instructorId, instructorId),
+            ),
+          )
+          .where(eq(lessons.id, lessonId))
+          .limit(1);
+        if (rows.length === 0) throw new NotFoundError("Lesson not found");
+
+        const [updated] = await tx
+          .update(lessons)
+          .set(input)
+          .where(eq(lessons.id, lessonId))
+          .returning();
+        if (!updated) throw new NotFoundError("Lesson not found");
+        return updated;
+      });
     } catch (err) {
       if (isUniqueViolation(err))
         throw new ConflictError(

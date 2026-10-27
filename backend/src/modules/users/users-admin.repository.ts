@@ -1,6 +1,6 @@
 import { and, asc, count, desc, eq, ilike, or, type SQL } from "drizzle-orm";
 import { db } from "../../db/client.ts";
-import { users, type UserStatus } from "../../db/schema/index.ts";
+import { users } from "../../db/schema/index.ts";
 import type { UsersQuery } from "./users-admin.schemas.ts";
 
 const PUBLIC_COLUMNS = {
@@ -43,14 +43,5 @@ export const usersAdminRepository = {
 
     const total = totalResult[0]?.value ?? 0;
     return { data, total };
-  },
-
-  async updateStatus(id: string, status: UserStatus) {
-    const [user] = await db
-      .update(users)
-      .set({ status })
-      .where(eq(users.id, id))
-      .returning(PUBLIC_COLUMNS);
-    return user ?? null;
   },
 };
