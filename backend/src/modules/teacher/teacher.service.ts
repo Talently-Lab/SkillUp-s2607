@@ -4,8 +4,8 @@ import { isUniqueViolation } from "../../shared/errors/db-errors.ts";
 import { runInTransaction } from "../../db/client.ts";
 import { courses, lessons, modules } from "../../db/schema/index.ts";
 import { coursesRepository } from "../courses/courses.repository.ts";
-import { progressRepository } from "../progress/progress.repository.ts";
 import { modulesRepository } from "../modules/modules.repository.ts";
+import { syncCourseLessons } from "../modules/modules.service.ts";
 import { teacherRepository } from "./teacher.repository.ts";
 import type {
   CreateTeacherLessonInput,
@@ -14,17 +14,6 @@ import type {
   UpdateTeacherLessonInput,
   UpdateTeacherModuleInput,
 } from "./teacher.schemas.ts";
-import type { DbOrTx } from "../../db/client.ts";
-
-/**
- * Keeps the course's lessonsCount and every enrollment's progress in sync
- * after a lesson is created or deleted. Must run inside a transaction.
- */
-async function syncCourseLessons(courseId: string, tx: DbOrTx) {
-  const total = await modulesRepository.countLessonsByCourse(courseId, tx);
-  await coursesRepository.updateLessonsCount(courseId, total, tx);
-  await progressRepository.recalcCourseProgress(courseId, tx);
-}
 
 export const teacherService = {
   // ── Courses ───────────────────────────────────────────────────────────────

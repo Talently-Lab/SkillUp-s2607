@@ -16,7 +16,7 @@ import type { AccessTokenClaims } from "../../shared/security/jwt.ts";
 import type { DbOrTx } from "../../db/client.ts";
 
 /** Keeps the course's lessonsCount and every enrollment's progress in line with its real lessons */
-async function syncCourseLessons(courseId: string, tx: DbOrTx) {
+export async function syncCourseLessons(courseId: string, tx: DbOrTx) {
   const total = await modulesRepository.countLessonsByCourse(courseId, tx);
   await coursesRepository.updateLessonsCount(courseId, total, tx);
   await progressRepository.recalcCourseProgress(courseId, tx);
