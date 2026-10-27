@@ -52,9 +52,10 @@ export const modulesService = {
 
     // Decide if this user sees all videos unlocked:
     //   - admin always sees everything
+    //   - the course's teacher, to preview it as a student would
     //   - a student (or any role) with an active/completed enrollment in this course
     let seeAll = false;
-    if (user?.role === "admin") {
+    if (user?.role === "admin" || user?.userId === course.instructorId) {
       seeAll = true;
     } else if (user) {
       const enrollment = await enrollmentsRepository.findByUserAndCourse(
