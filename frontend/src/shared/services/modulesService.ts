@@ -18,12 +18,21 @@ export const modulesService = {
       title,
       position,
       lessons: lessons.map(
-        ({ id, moduleId, title, position, videoUrl, locked }) => ({
+        ({
           id,
           moduleId,
           title,
           position,
           videoUrl,
+          durationSeconds,
+          locked,
+        }) => ({
+          id,
+          moduleId,
+          title,
+          position,
+          videoUrl,
+          durationSeconds,
           locked,
         }),
       ),

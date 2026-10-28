@@ -105,3 +105,32 @@ export async function request<T>(
 
   return (await response.json()) as T;
 }
+
+/** Shape of every paginated list of the API */
+export type Page<T> = {
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+};
+
+/** The API returns at most 50 items per page, so long lists are read page by page */
+const PAGE_SIZE = 50;
+
+export async function requestAllPages<T>(
+  path: string,
+  options: Pick<RequestOptions, "auth"> = {},
+): Promise<T[]> {
+  const items: T[] = [];
+  for (let page = 1; ; page++) {
+    const { data, pagination } = await request<Page<T>>(
+      `${path}?page=${page}&limit=${PAGE_SIZE}`,
+      options,
+    );
+    items.push(...data);
+    if (page >= pagination.totalPages) return items;
+  }
+}

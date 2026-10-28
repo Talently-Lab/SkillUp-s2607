@@ -5,6 +5,8 @@ export interface Lesson {
   position: number;
   /** null when the lesson is locked or has no video yet */
   videoUrl: string | null;
+  /** Read from the video when it was saved; null if it couldn't be read */
+  durationSeconds: number | null;
   /** Locked lessons are only for enrolled students, the first ones are a free preview */
   locked: boolean;
 }
