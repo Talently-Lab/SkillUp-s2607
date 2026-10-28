@@ -1,4 +1,4 @@
-import { request } from "@/shared/api/http";
+import { request, requestAllPages, type Page } from "@/shared/api/http";
 import { defaultCover } from "@/shared/constants/course";
 import type { Category } from "@/shared/types/category";
 import type {
@@ -11,7 +11,7 @@ import { toSlug } from "@/shared/utils/format";
 
 type ApiLevel = "beginner" | "intermediate" | "advanced";
 
-type ApiCourse = {
+export type ApiCourse = {
   id: string;
   slug: string;
   title: string;
@@ -29,16 +29,6 @@ type ApiCourse = {
   instructor: { id: string; fullName: string } | null;
 };
 
-type ApiCourseList = {
-  data: ApiCourse[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-};
-
 /** Shown while a course has no teacher assigned */
 export const NO_INSTRUCTOR = "Equipo SkillUp";
 
@@ -48,13 +38,13 @@ const levelLabels: Record<ApiLevel, CourseLevel> = {
   advanced: "Avanzado",
 };
 
-const apiLevels: Record<CourseLevel, ApiLevel> = {
+export const apiLevels: Record<CourseLevel, ApiLevel> = {
   Principiante: "beginner",
   Intermedio: "intermediate",
   Avanzado: "advanced",
 };
 
-function toCourse(course: ApiCourse): Course {
+export function toCourse(course: ApiCourse): Course {
   return {
     id: course.id,
     slug: course.slug,
@@ -88,25 +78,18 @@ function toApiBody(input: CourseInput) {
     durationMinutes: Math.round(input.durationHours * 60),
     // lessonsCount is not sent, the API counts the course's lessons itself
     priceCents: input.price === null ? 0 : Math.round(input.price * 100),
-    // The API only takes absolute URLs, covers are paths in /public
-    coverUrl: new URL(input.image, window.location.origin).href,
+    coverUrl: toCoverUrl(input.image),
   };
 }
 
-/** The API returns at most 50 courses per page, so lists are read page by page */
-const PAGE_SIZE = 50;
-
-async function listAll(path: string, auth = false): Promise<Course[]> {
-  const courses: Course[] = [];
-  for (let page = 1; ; page++) {
-    const { data, pagination } = await request<ApiCourseList>(
-      `${path}?page=${page}&limit=${PAGE_SIZE}`,
-      { auth },
-    );
-    courses.push(...data.map(toCourse));
-    if (page >= pagination.totalPages) return courses;
-  }
+export async function listAll(path: string, auth = false): Promise<Course[]> {
+  const courses = await requestAllPages<ApiCourse>(path, { auth });
+  return courses.map(toCourse);
 }
+
+/** The API only takes absolute URLs, covers are paths in /public */
+export const toCoverUrl = (image: string) =>
+  new URL(image, window.location.origin).href;
 
 export const coursesService = {
   list(): Promise<Course[]> {
@@ -114,7 +97,7 @@ export const coursesService = {
   },
 
   async listFeatured(limit: number): Promise<Course[]> {
-    const { data } = await request<ApiCourseList>(
+    const { data } = await request<Page<ApiCourse>>(
       `/courses?featured=true&limit=${limit}`,
     );
     return data.map(toCourse);

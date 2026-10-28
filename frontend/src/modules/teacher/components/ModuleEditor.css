@@ -74,13 +74,6 @@
   font-weight: 600;
 }
 
-.module-editor__input--minutes {
-  width: 3.5rem;
-  font-size: 0.875rem;
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-}
-
 .module-editor__actions {
   display: flex;
   flex: none;
@@ -184,19 +177,24 @@
     background-color: var(--bg);
   }
 
-  /* Phones: the minutes and actions go under the title */
+  /* Phones: the duration and actions go under the title, the video last */
   @media (max-width: 639px) {
     grid-template-columns: 2rem minmax(0, 1fr) auto;
     padding: 0.5rem 0.75rem;
 
-    .module-editor__minutes {
+    .module-editor__duration {
       grid-row: 2;
       grid-column: 2;
+      padding-inline: 0.5rem;
     }
 
     .module-editor__lesson-actions {
       grid-row: 2;
       grid-column: 3;
+    }
+
+    .module-editor__video {
+      grid-row: 3;
     }
   }
 }
@@ -216,12 +214,31 @@
   }
 }
 
-.module-editor__minutes {
+.module-editor__duration {
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--text-subtle);
+}
+
+.module-editor__video {
   display: flex;
+  grid-column: 2 / -1;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.75rem;
+}
+
+.module-editor__video-icon {
+  flex: none;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-left: 0.5rem;
   color: var(--text-subtle);
+}
+
+.module-editor__video-input {
+  font-size: 0.75rem;
+  color: var(--text-muted);
 }
 
 .module-editor__lesson-actions {
@@ -261,6 +278,19 @@
 .module-editor__add-title {
   flex: 1 1 12rem;
   font-size: 0.875rem;
+}
+
+.module-editor__add-video {
+  flex: 1 1 12rem;
+  font-size: 0.875rem;
+}
+
+.module-editor__add-error {
+  width: 100%;
+  padding-left: 1.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-error-text);
 }
 
 .module-editor__add-submit {

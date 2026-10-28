@@ -110,3 +110,15 @@
 .teacher-dashboard__panel {
   min-width: 0;
 }
+
+.teacher-dashboard__course-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+
+  .admin-button .mask-icon {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+}

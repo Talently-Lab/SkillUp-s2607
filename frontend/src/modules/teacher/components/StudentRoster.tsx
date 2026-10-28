@@ -303,8 +303,7 @@ export function StudentRoster({ course, roster }: StudentRosterProps) {
 
       <footer className="admin-page__footer">
         <span>
-          Mostrando {rows.length} alumnos con actividad reciente de{" "}
-          {formatNumber(course.students)} inscritos
+          Mostrando {rows.length} de {formatNumber(roster.length)} alumnos
         </span>
       </footer>
     </section>
