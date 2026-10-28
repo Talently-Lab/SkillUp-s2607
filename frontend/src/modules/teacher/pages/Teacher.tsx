@@ -14,8 +14,10 @@ import {
   type CourseTab,
 } from "@/modules/teacher/constants/tabs";
 import { useTeacherDashboard } from "@/modules/teacher/hooks/useTeacherDashboard";
+import { PageLoader } from "@/shared/components/Loader";
 import { useAuthStore } from "@/shared/stores/authStore";
 import { coursePath } from "@/shared/utils/paths";
+import AlertIcon from "@/assets/icons/alert-triangle.svg";
 import ExternalLinkIcon from "@/assets/icons/external-link.svg";
 import InboxIcon from "@/assets/icons/inbox.svg";
 import "@/modules/admin/components/Button.css";
@@ -24,8 +26,8 @@ import "./Teacher.css";
 
 export function Teacher() {
   const user = useAuthStore((state) => state.user);
-  const { courses, metrics, getRoster, getModules, updateModules } =
-    useTeacherDashboard();
+  const dashboard = useTeacherDashboard();
+  const { courses, metrics, getRoster } = dashboard;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [tab, setTab] = useState<CourseTab>("syllabus");
 
@@ -42,7 +44,26 @@ export function Teacher() {
         </p>
       </header>
 
-      {!selected ? (
+      {dashboard.isLoading ? (
+        <PageLoader label="Cargando tus cursos…" />
+      ) : dashboard.hasError ? (
+        <div className="admin-page__panel admin-page__empty" role="alert">
+          <MaskIcon src={AlertIcon} className="admin-page__empty-icon" />
+          <p className="admin-page__empty-title">
+            No pudimos cargar tus cursos
+          </p>
+          <p className="admin-page__empty-text">
+            Revisa tu conexión e inténtalo de nuevo.
+          </p>
+          <button
+            type="button"
+            className="admin-button admin-button--secondary"
+            onClick={dashboard.reload}
+          >
+            Reintentar
+          </button>
+        </div>
+      ) : !selected ? (
         <div className="admin-page__panel admin-page__empty">
           <MaskIcon src={InboxIcon} className="admin-page__empty-icon" />
           <p className="admin-page__empty-title">
@@ -110,11 +131,7 @@ export function Teacher() {
                 className="teacher-dashboard__panel"
               >
                 {tab === "syllabus" ? (
-                  <SyllabusEditor
-                    key={selected.id}
-                    modules={getModules(selected)}
-                    onUpdate={(updater) => updateModules(selected, updater)}
-                  />
+                  <SyllabusEditor key={selected.id} courseId={selected.id} />
                 ) : (
                   <StudentRoster
                     key={selected.id}
@@ -125,11 +142,6 @@ export function Teacher() {
               </div>
             </section>
           </div>
-
-          <p className="admin-page__note">
-            Los datos son de demostración: los cambios se pierden al recargar la
-            página.
-          </p>
         </>
       )}
     </div>

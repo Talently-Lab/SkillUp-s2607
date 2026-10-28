@@ -52,7 +52,7 @@
   color: var(--color-primary);
   transition: background-color 0.15s ease;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background-color: var(--fg);
   }
 
@@ -60,4 +60,20 @@
     outline: 2px solid var(--color-primary);
     outline-offset: 2px;
   }
+
+  &:disabled {
+    cursor: progress;
+    opacity: 0.7;
+  }
+}
+
+.syllabus-editor__empty {
+  margin-top: 1rem;
+  padding: 1.5rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background-color: var(--fg);
+  font-size: 0.875rem;
+  text-align: center;
+  color: var(--text-subtle);
 }

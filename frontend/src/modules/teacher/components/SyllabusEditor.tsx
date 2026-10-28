@@ -1,85 +1,59 @@
 import { useState } from "react";
-import { toast } from "sonner";
 
 import { MaskIcon } from "@/modules/admin/components/MaskIcon";
 import { ModuleEditor } from "@/modules/teacher/components/ModuleEditor";
-import type { EditableModule } from "@/modules/teacher/types";
-import {
-  formatMinutes,
-  insertAt,
-  move,
-  moduleMinutes,
-  newId,
-} from "@/modules/teacher/utils/syllabus";
+import { useCourseSyllabus } from "@/modules/teacher/hooks/useCourseSyllabus";
+import { formatSeconds, moduleSeconds } from "@/modules/teacher/utils/syllabus";
+import { Loader, PageLoader } from "@/shared/components/Loader";
+import AlertIcon from "@/assets/icons/alert-triangle.svg";
 import CheckIcon from "@/assets/icons/check.svg";
 import PlusIcon from "@/assets/icons/plus.svg";
 import "./SyllabusEditor.css";
 
 type SyllabusEditorProps = {
-  modules: EditableModule[];
-  onUpdate: (updater: (modules: EditableModule[]) => EditableModule[]) => void;
+  courseId: string;
 };
 
-export function SyllabusEditor({ modules, onUpdate }: SyllabusEditorProps) {
+export function SyllabusEditor({ courseId }: SyllabusEditorProps) {
+  const syllabus = useCourseSyllabus(courseId);
+  const { modules } = syllabus;
   const [focusModuleId, setFocusModuleId] = useState<string | null>(null);
+  const [isAddingModule, setIsAddingModule] = useState(false);
   const totalLessons = modules.reduce(
     (total, module) => total + module.lessons.length,
     0,
   );
-  const totalMinutes = modules.reduce(
-    (total, module) => total + moduleMinutes(module),
+  const totalSeconds = modules.reduce(
+    (total, module) => total + moduleSeconds(module),
     0,
   );
 
-  const updateModule = (
-    moduleId: string,
-    patch: (module: EditableModule) => EditableModule,
-  ) =>
-    onUpdate((current) =>
-      current.map((module) =>
-        module.id === moduleId ? patch(module) : module,
-      ),
+  const addModule = async () => {
+    setIsAddingModule(true);
+    const created = await syllabus.addModule();
+    setIsAddingModule(false);
+    if (created) setFocusModuleId(created.id);
+  };
+
+  if (syllabus.isLoading) return <PageLoader label="Cargando temario…" />;
+
+  if (syllabus.hasError)
+    return (
+      <div className="admin-page__empty" role="alert">
+        <MaskIcon src={AlertIcon} className="admin-page__empty-icon" />
+        <p className="admin-page__empty-title">No pudimos cargar el temario</p>
+        <p className="admin-page__empty-text">
+          Revisa tu conexión e inténtalo de nuevo.
+        </p>
+        <button
+          type="button"
+          className="admin-button admin-button--secondary"
+          onClick={syllabus.reload}
+        >
+          Reintentar
+        </button>
+      </div>
     );
-
-  const deleteModule = (index: number) => {
-    const removed = modules[index];
-    onUpdate((current) => current.filter((module) => module.id !== removed.id));
-    toast("Módulo eliminado", {
-      description: removed.title,
-      action: {
-        label: "Deshacer",
-        onClick: () => onUpdate((current) => insertAt(current, index, removed)),
-      },
-    });
-  };
-
-  const deleteLesson = (module: EditableModule, lessonIndex: number) => {
-    const removed = module.lessons[lessonIndex];
-    updateModule(module.id, (current) => ({
-      ...current,
-      lessons: current.lessons.filter((lesson) => lesson.id !== removed.id),
-    }));
-    toast("Lección eliminada", {
-      description: removed.title,
-      action: {
-        label: "Deshacer",
-        onClick: () =>
-          updateModule(module.id, (current) => ({
-            ...current,
-            lessons: insertAt(current.lessons, lessonIndex, removed),
-          })),
-      },
-    });
-  };
-
-  const addModule = () => {
-    const id = newId();
-    setFocusModuleId(id);
-    onUpdate((current) => [
-      ...current,
-      { id, title: "Nuevo módulo", lessons: [] },
-    ]);
-  };
 
   return (
     <div className="syllabus-editor">
@@ -87,61 +61,63 @@ export function SyllabusEditor({ modules, onUpdate }: SyllabusEditorProps) {
         <p className="syllabus-editor__totals">
           <strong>{modules.length}</strong> módulos ·{" "}
           <strong>{totalLessons}</strong> lecciones ·{" "}
-          <strong>{formatMinutes(totalMinutes)}</strong>
+          <strong>{formatSeconds(totalSeconds)}</strong>
         </p>
-        {/* TODO: save each change in the API once the teacher endpoints work */}
-        <p className="syllabus-editor__saved">
-          <MaskIcon src={CheckIcon} />
-          Guardado automático · visible en la página del curso
+        <p className="syllabus-editor__saved" role="status">
+          {syllabus.isSaving ? (
+            <>
+              <Loader size={14} />
+              Guardando…
+            </>
+          ) : (
+            <>
+              <MaskIcon src={CheckIcon} />
+              Guardado automático
+            </>
+          )}
         </p>
       </div>
 
-      <ol className="syllabus-editor__modules">
-        {modules.map((module, index) => (
-          <ModuleEditor
-            key={module.id}
-            module={module}
-            index={index}
-            total={modules.length}
-            autoFocusTitle={focusModuleId === module.id}
-            onRename={(title) =>
-              updateModule(module.id, (current) => ({ ...current, title }))
-            }
-            onMove={(step) =>
-              onUpdate((current) => move(current, index, index + step))
-            }
-            onDelete={() => deleteModule(index)}
-            onLessonChange={(lessonId, patch) =>
-              updateModule(module.id, (current) => ({
-                ...current,
-                lessons: current.lessons.map((lesson) =>
-                  lesson.id === lessonId ? { ...lesson, ...patch } : lesson,
-                ),
-              }))
-            }
-            onLessonMove={(lessonIndex, step) =>
-              updateModule(module.id, (current) => ({
-                ...current,
-                lessons: move(current.lessons, lessonIndex, lessonIndex + step),
-              }))
-            }
-            onLessonDelete={(lessonIndex) => deleteLesson(module, lessonIndex)}
-            onLessonAdd={(lesson) =>
-              updateModule(module.id, (current) => ({
-                ...current,
-                lessons: [...current.lessons, { ...lesson, id: newId() }],
-              }))
-            }
-          />
-        ))}
-      </ol>
+      {modules.length === 0 ? (
+        <p className="syllabus-editor__empty">
+          Este curso aún no tiene módulos. Añade el primero para empezar el
+          temario.
+        </p>
+      ) : (
+        <ol className="syllabus-editor__modules">
+          {modules.map((module, index) => (
+            <ModuleEditor
+              key={module.id}
+              module={module}
+              index={index}
+              total={modules.length}
+              autoFocusTitle={focusModuleId === module.id}
+              onRename={(title) => syllabus.renameModule(module.id, title)}
+              onMove={(step) => syllabus.moveModule(module.id, step)}
+              onDelete={() => syllabus.deleteModule(module)}
+              onLessonRename={(lessonId, title) =>
+                syllabus.renameLesson(module.id, lessonId, title)
+              }
+              onLessonVideoChange={(lessonId, videoUrl) =>
+                syllabus.changeLessonVideo(module.id, lessonId, videoUrl)
+              }
+              onLessonMove={(lessonId, step) =>
+                syllabus.moveLesson(module.id, lessonId, step)
+              }
+              onLessonDelete={syllabus.deleteLesson}
+              onLessonAdd={(lesson) => syllabus.addLesson(module.id, lesson)}
+            />
+          ))}
+        </ol>
+      )}
 
       <button
         type="button"
         className="syllabus-editor__add"
         onClick={addModule}
+        disabled={isAddingModule}
       >
-        <MaskIcon src={PlusIcon} />
+        {isAddingModule ? <Loader size={16} /> : <MaskIcon src={PlusIcon} />}
         Añadir módulo
       </button>
     </div>
