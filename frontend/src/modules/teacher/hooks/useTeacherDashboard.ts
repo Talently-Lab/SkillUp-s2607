@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 
 import type { RosterEntry } from "@/modules/teacher/types";
 import { toRosterEntry } from "@/modules/teacher/utils/roster";
-import { teacherService } from "@/shared/services/teacherService";
+import {
+  teacherService,
+  type TeacherCourseInput,
+} from "@/shared/services/teacherService";
 import type { Course } from "@/shared/types/course";
 
 type LoadStatus = "loading" | "ready" | "error";
@@ -94,6 +97,18 @@ export function useTeacherDashboard() {
 
   const getRoster = (course: Course): RosterEntry[] => rosters[course.id] ?? [];
 
+  /** Throws the API error so the caller can show it */
+  const updateCourse = async (
+    id: string,
+    input: Partial<TeacherCourseInput>,
+  ) => {
+    const updated = await teacherService.updateCourse(id, input);
+    setCourses((prev) =>
+      prev.map((course) => (course.id === updated.id ? updated : course)),
+    );
+    return updated;
+  };
+
   return {
     courses,
     isLoading: loadStatus === "loading",
@@ -101,5 +116,6 @@ export function useTeacherDashboard() {
     reload,
     metrics: getMetrics(courses, rosters),
     getRoster,
+    updateCourse,
   };
 }

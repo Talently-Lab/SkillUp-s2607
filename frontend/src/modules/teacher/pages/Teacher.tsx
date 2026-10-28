@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router";
+import { toast } from "sonner";
 
 import { MaskIcon } from "@/modules/admin/components/MaskIcon";
 import { StatusBadge } from "@/modules/admin/components/StatusBadge";
 import { AssignedCourseList } from "@/modules/teacher/components/AssignedCourseList";
+import { CourseDetailsModal } from "@/modules/teacher/components/CourseDetailsModal";
 import { CourseTabs } from "@/modules/teacher/components/CourseTabs";
 import { StudentRoster } from "@/modules/teacher/components/StudentRoster";
 import { SyllabusEditor } from "@/modules/teacher/components/SyllabusEditor";
@@ -14,12 +16,17 @@ import {
   type CourseTab,
 } from "@/modules/teacher/constants/tabs";
 import { useTeacherDashboard } from "@/modules/teacher/hooks/useTeacherDashboard";
-import { PageLoader } from "@/shared/components/Loader";
+import { showTeacherError } from "@/modules/teacher/utils/teacherErrorMessage";
+import { Loader, PageLoader } from "@/shared/components/Loader";
+import { useFetch } from "@/shared/hooks/useFetch";
+import { categoriesService } from "@/shared/services/categoriesService";
+import type { TeacherCourseInput } from "@/shared/services/teacherService";
 import { useAuthStore } from "@/shared/stores/authStore";
 import { coursePath } from "@/shared/utils/paths";
 import AlertIcon from "@/assets/icons/alert-triangle.svg";
 import ExternalLinkIcon from "@/assets/icons/external-link.svg";
 import InboxIcon from "@/assets/icons/inbox.svg";
+import PencilIcon from "@/assets/icons/pencil.svg";
 import "@/modules/admin/components/Button.css";
 import "@/modules/admin/pages/AdminPage.css";
 import "./Teacher.css";
@@ -28,12 +35,45 @@ export function Teacher() {
   const user = useAuthStore((state) => state.user);
   const dashboard = useTeacherDashboard();
   const { courses, metrics, getRoster } = dashboard;
+  const categoriesQuery = useFetch("categories", categoriesService.list);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [tab, setTab] = useState<CourseTab>("syllabus");
+  const [isEditing, setIsEditing] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
 
   const selected =
     courses.find((course) => course.id === selectedId) ?? courses[0];
+  const isDraft = selected?.status === "draft";
   const firstName = user?.name.split(" ")[0] ?? "";
+
+  // Errors reach the form, which shows them and stays open
+  const saveDetails = async (input: Partial<TeacherCourseInput>) => {
+    await dashboard.updateCourse(selected.id, input);
+    setIsEditing(false);
+    toast.success("Datos del curso guardados");
+  };
+
+  const togglePublished = async () => {
+    setIsPublishing(true);
+    try {
+      await dashboard.updateCourse(selected.id, {
+        status: isDraft ? "published" : "draft",
+      });
+      if (isDraft)
+        toast.success("Curso publicado", {
+          description: "Ya aparece en el catálogo.",
+        });
+      else
+        toast.success("El curso pasó a borrador", {
+          description:
+            "Sale del catálogo, los alumnos inscritos conservan el acceso.",
+        });
+    } catch (error) {
+      showTeacherError(error);
+    } finally {
+      setIsPublishing(false);
+    }
+  };
 
   return (
     <div className="teacher-dashboard">
@@ -107,15 +147,38 @@ export function Teacher() {
                     {selected.title}
                   </h2>
                 </div>
-                {selected.status !== "draft" && (
-                  <Link
-                    to={coursePath(selected.slug)}
-                    className="teacher-dashboard__preview"
+                <div className="teacher-dashboard__course-actions">
+                  {!isDraft && (
+                    <Link
+                      to={coursePath(selected.slug)}
+                      className="teacher-dashboard__preview"
+                    >
+                      Ver como alumno
+                      <MaskIcon src={ExternalLinkIcon} />
+                    </Link>
+                  )}
+                  <button
+                    type="button"
+                    className="admin-button admin-button--sm admin-button--secondary"
+                    onClick={() => setIsEditing(true)}
                   >
-                    Ver como alumno
-                    <MaskIcon src={ExternalLinkIcon} />
-                  </Link>
-                )}
+                    <MaskIcon src={PencilIcon} />
+                    Editar datos
+                  </button>
+                  <button
+                    type="button"
+                    className={
+                      isDraft
+                        ? "admin-button admin-button--sm admin-button--primary"
+                        : "admin-button admin-button--sm admin-button--secondary"
+                    }
+                    onClick={togglePublished}
+                    disabled={isPublishing}
+                  >
+                    {isPublishing && <Loader size={14} />}
+                    {isDraft ? "Publicar" : "Pasar a borrador"}
+                  </button>
+                </div>
               </div>
 
               <CourseTabs
@@ -142,6 +205,15 @@ export function Teacher() {
               </div>
             </section>
           </div>
+
+          {isEditing && (
+            <CourseDetailsModal
+              course={selected}
+              categories={categoriesQuery.data ?? []}
+              onClose={() => setIsEditing(false)}
+              onSave={saveDetails}
+            />
+          )}
         </>
       )}
     </div>
