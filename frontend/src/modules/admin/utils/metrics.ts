@@ -4,24 +4,11 @@ import type { Course } from "@/shared/types/course";
 const NET_FACTOR = 0.86;
 /** Share of the all-time revenue earned in the last 12 months */
 const LAST_YEAR_SHARE = 0.62;
-/** Share of the enrollments that belong to students active in the last 30 days */
-const ACTIVE_SHARE = 0.58;
 
 export function courseRevenue(course: Course): number {
   return course.price
     ? Math.round(course.price * course.students * NET_FACTOR)
     : 0;
-}
-
-function hash(value: string): number {
-  let result = 11;
-  for (const char of value) result = (result * 31 + char.charCodeAt(0)) >>> 0;
-  return result;
-}
-
-/** Estimated completion rate (percent) of a course, stable across renders */
-function completionRate(course: Course): number {
-  return course.students ? 38 + (hash(course.id) % 35) : 0;
 }
 
 export type MonthlySale = {
@@ -72,47 +59,26 @@ export function averageTicket(courses: Course[]): number {
   return units ? revenue / units : 0;
 }
 
-export type PlatformKpis = {
+/** The API has no sales data yet, so these come from the demo courses */
+export type RevenueKpis = {
   totalRevenue: number;
   lastYearRevenue: number;
   monthDelta: number;
-  activeStudents: number;
-  totalEnrollments: number;
-  teachers: number;
-  courses: number;
-  completion: number;
 };
 
-export function getPlatformKpis(
+export function getRevenueKpis(
   courses: Course[],
   monthly: MonthlySale[],
-): PlatformKpis {
-  const totalRevenue = courses.reduce(
-    (total, course) => total + courseRevenue(course),
-    0,
-  );
-  const totalEnrollments = courses.reduce(
-    (total, course) => total + course.students,
-    0,
-  );
-  // Weighted by the enrollments, so big courses count more
-  const completion = totalEnrollments
-    ? courses.reduce(
-        (total, course) => total + completionRate(course) * course.students,
-        0,
-      ) / totalEnrollments
-    : 0;
+): RevenueKpis {
   const last = monthly.at(-1)?.revenue ?? 0;
   const previous = monthly.at(-2)?.revenue ?? 0;
 
   return {
-    totalRevenue,
+    totalRevenue: courses.reduce(
+      (total, course) => total + courseRevenue(course),
+      0,
+    ),
     lastYearRevenue: monthly.reduce((total, month) => total + month.revenue, 0),
     monthDelta: previous ? ((last - previous) / previous) * 100 : 0,
-    activeStudents: Math.round(totalEnrollments * ACTIVE_SHARE),
-    totalEnrollments,
-    teachers: new Set(courses.map((course) => course.instructor)).size,
-    courses: courses.length,
-    completion: Math.round(completion * 10) / 10,
   };
 }
