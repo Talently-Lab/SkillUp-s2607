@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 
-import type { PlatformKpis } from "@/modules/admin/utils/metrics";
+import type { RevenueKpis } from "@/modules/admin/utils/metrics";
+import type { PlatformStats } from "@/shared/types/adminStats";
 import {
   formatMoneyRounded,
   formatNumber,
@@ -11,27 +12,29 @@ import TrendingUpIcon from "@/assets/icons/trending-up.svg";
 import "./KpiStrip.css";
 
 type KpiStripProps = {
-  kpis: PlatformKpis;
+  revenue: RevenueKpis;
+  stats: PlatformStats;
 };
 
-export function KpiStrip({ kpis }: KpiStripProps) {
-  const isUp = kpis.monthDelta >= 0;
+export function KpiStrip({ revenue, stats }: KpiStripProps) {
+  const isUp = revenue.monthDelta >= 0;
+  const drafts = stats.courses.total - stats.courses.published;
 
   const secondary = [
     {
-      label: "Estudiantes activos",
-      value: formatNumber(kpis.activeStudents),
-      hint: `Últimos 30 días · ${formatNumber(kpis.totalEnrollments)} inscripciones`,
+      label: "Estudiantes",
+      value: formatNumber(stats.students),
+      hint: `${formatNumber(stats.enrollments.total)} inscripciones`,
     },
     {
-      label: "Docentes",
-      value: formatNumber(kpis.teachers),
-      hint: `${kpis.courses} cursos publicados`,
+      label: "Cursos publicados",
+      value: formatNumber(stats.courses.published),
+      hint: `${formatNumber(drafts)} en borrador`,
     },
     {
       label: "Tasa de finalización",
-      value: formatPercent(kpis.completion),
-      hint: "Promedio ponderado por inscritos",
+      value: formatPercent(stats.completionRate),
+      hint: `${formatNumber(stats.enrollments.completed)} inscripciones completadas`,
     },
   ];
 
@@ -40,7 +43,7 @@ export function KpiStrip({ kpis }: KpiStripProps) {
       <div className="kpi-strip__hero">
         <p className="kpi-strip__hero-label">Ingresos totales acumulados</p>
         <p className="kpi-strip__hero-value">
-          {formatMoneyRounded(kpis.totalRevenue)}
+          {formatMoneyRounded(revenue.totalRevenue)}
         </p>
         <div className="kpi-strip__hero-footer">
           <span
@@ -56,10 +59,11 @@ export function KpiStrip({ kpis }: KpiStripProps) {
               aria-hidden="true"
             />
             {isUp ? "+" : ""}
-            {formatPercent(kpis.monthDelta)} vs mes anterior
+            {formatPercent(revenue.monthDelta)} vs mes anterior
           </span>
           <span className="kpi-strip__hero-hint">
-            {formatMoneyRounded(kpis.lastYearRevenue)} en los últimos 12 meses
+            {formatMoneyRounded(revenue.lastYearRevenue)} en los últimos 12
+            meses
           </span>
         </div>
       </div>

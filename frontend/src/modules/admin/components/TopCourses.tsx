@@ -1,38 +1,38 @@
-import { courseRevenue } from "@/modules/admin/utils/metrics";
-import type { Course } from "@/shared/types/course";
+import type { TopCourse } from "@/shared/types/adminStats";
 import {
-  formatMoneyRounded,
   formatNumber,
   formatPercent,
+  formatPrice,
 } from "@/shared/utils/format";
 import "./TopCourses.css";
 
 const TOP_LIMIT = 3;
 
 type TopCoursesProps = {
-  courses: Course[];
-  totalRevenue: number;
+  courses: TopCourse[];
+  totalEnrollments: number;
 };
 
-export function TopCourses({ courses, totalRevenue }: TopCoursesProps) {
+export function TopCourses({ courses, totalEnrollments }: TopCoursesProps) {
+  // The API already sends them sorted by students
   const top = courses
-    .filter((course) => courseRevenue(course) > 0)
-    .sort((a, b) => courseRevenue(b) - courseRevenue(a))
+    .filter((course) => course.students > 0)
     .slice(0, TOP_LIMIT);
 
   return (
     <section aria-labelledby="top-courses-heading" className="top-courses">
       <h2 id="top-courses-heading" className="top-courses__title">
-        Cursos más vendidos
+        Cursos con más inscritos
       </h2>
 
       {top.length === 0 ? (
-        <p className="top-courses__empty">Aún no hay ventas registradas.</p>
+        <p className="top-courses__empty">Aún no hay inscripciones.</p>
       ) : (
         <ol className="top-courses__list">
           {top.map((course, index) => {
-            const revenue = courseRevenue(course);
-            const share = totalRevenue ? (revenue / totalRevenue) * 100 : 0;
+            const share = totalEnrollments
+              ? (course.students / totalEnrollments) * 100
+              : 0;
 
             return (
               <li key={course.id} className="top-courses__item">
@@ -45,7 +45,7 @@ export function TopCourses({ courses, totalRevenue }: TopCoursesProps) {
                 <div className="top-courses__body">
                   <p className="top-courses__course">{course.title}</p>
                   <p className="top-courses__meta">
-                    {course.instructor} · {formatNumber(course.students)} ventas
+                    {formatPrice(course.price)}
                   </p>
                   <div className="top-courses__revenue">
                     <span className="top-courses__bar" aria-hidden="true">
@@ -55,11 +55,11 @@ export function TopCourses({ courses, totalRevenue }: TopCoursesProps) {
                       />
                     </span>
                     <span className="top-courses__amount">
-                      {formatMoneyRounded(revenue)}
+                      {formatNumber(course.students)}
                     </span>
                   </div>
                   <p className="top-courses__share">
-                    {formatPercent(share)} de los ingresos
+                    {formatPercent(share)} de las inscripciones
                   </p>
                 </div>
               </li>
