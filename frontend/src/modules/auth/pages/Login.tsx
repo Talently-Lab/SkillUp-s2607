@@ -9,7 +9,6 @@ import { FormField } from "@/shared/components/FormField";
 import { GoogleButton } from "@/shared/components/GoogleButton";
 import { Loader } from "@/shared/components/Loader";
 import { PasswordToggle } from "@/shared/components/PasswordToggle";
-import { mockUsers } from "@/shared/mocks/users";
 import { useAuthStore } from "@/shared/stores/authStore";
 import type { AccountType } from "@/shared/types/account";
 import { roleHome } from "@/shared/utils/roles";
@@ -40,7 +39,6 @@ export function Login() {
   const [loading, setLoading] = useState(false);
   const text = copy[accountType];
   const isAdmin = accountType === "admin";
-  const demoUser = mockUsers.find((item) => item.role === accountType);
   // Only same-site paths, so the param can't send the user to another domain
   const redirectParam = params.get("redirect");
   const redirect =
@@ -90,15 +88,6 @@ export function Login() {
 
       <h1 className="login__title">{text.title}</h1>
       <p className="login__subtitle">{text.subtitle}</p>
-
-      {/* Only to try the UI: these mock accounts don't exist in the API.
-          TODO: remove it once the courses endpoints work */}
-      {demoUser && (
-        <p className="login__demo">
-          Demo: <strong>{demoUser.email}</strong> · contraseña{" "}
-          <strong>{demoUser.password}</strong>
-        </p>
-      )}
 
       {!isAdmin && (
         <>

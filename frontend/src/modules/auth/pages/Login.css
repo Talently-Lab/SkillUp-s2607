@@ -16,22 +16,6 @@
   color: var(--text-muted);
 }
 
-.login__demo {
-  margin-top: 0.75rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: var(--radius);
-  background-color: var(--color-primary-soft);
-  font-size: 0.75rem;
-  line-height: 1.6;
-  color: var(--text-muted);
-  overflow-wrap: anywhere;
-
-  strong {
-    font-weight: 600;
-    color: var(--color-primary);
-  }
-}
-
 .login__google {
   margin-top: 2rem;
 }
