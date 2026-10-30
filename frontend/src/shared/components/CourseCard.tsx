@@ -8,7 +8,8 @@ import { learnPath } from "@/shared/utils/paths";
 import ArrowRightIcon from "@/assets/icons/arrow-right.svg";
 import BarChartIcon from "@/assets/icons/bar-chart.svg";
 import CheckCircleIcon from "@/assets/icons/check-circle.svg";
-import CartShoppingIcon from "@/assets/icons/cart-shopping.svg";
+// TODO: el carrito queda fuera del MVP; descomentar cuando se desarrolle
+// import CartShoppingIcon from "@/assets/icons/cart-shopping.svg";
 import ClockIcon from "@/assets/icons/clock.svg";
 import StarIcon from "@/assets/icons/star.svg";
 import "./CourseCard.css";
@@ -117,7 +118,7 @@ export function CourseCard({ course, enrollment }: CourseCardProps) {
                 </span>
               ) : (
                 <div className="course-card__actions">
-                  {/* TODO: el carrito está pendiente de ser desarrollado */}
+                  {/* TODO: el carrito queda fuera del MVP; descomentar cuando se desarrolle
                   <button
                     type="button"
                     className="course-card__cart-btn"
@@ -130,6 +131,7 @@ export function CourseCard({ course, enrollment }: CourseCardProps) {
                       alt=""
                     />
                   </button>
+                  */}
                   <button type="button" className="course-card__buy-btn">
                     Comprar ahora
                   </button>
