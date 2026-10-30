@@ -6,7 +6,8 @@ import { NotificationBell } from "./NotificationBell";
 import { UserMenu } from "./UserMenu";
 import { useAuthStore } from "../stores/authStore";
 import { roleHome, rolePanelLabel } from "../utils/roles";
-import CartShoppingIcon from "../../assets/icons/cart-shopping.svg";
+// TODO: el carrito queda fuera del MVP; descomentar cuando se desarrolle
+// import CartShoppingIcon from "../../assets/icons/cart-shopping.svg";
 import MenuIcon from "../../assets/icons/menu.svg";
 import CloseIcon from "../../assets/icons/close.svg";
 import "./SiteHeader.css";
@@ -62,6 +63,7 @@ export function SiteHeader() {
         </div>
 
         <div className="site-header__actions">
+          {/* TODO: el carrito queda fuera del MVP; descomentar cuando se desarrolle
           {(!user || isStudent) && (
             <button
               type="button"
@@ -75,6 +77,7 @@ export function SiteHeader() {
               />
             </button>
           )}
+          */}
           {/* Keyed by user so the inbox resets when the account changes */}
           {user && isStudent && (
             <NotificationBell key={user.id} userId={user.id} />

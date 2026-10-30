@@ -3,7 +3,8 @@ import { Link } from "react-router";
 import type { Course } from "@/shared/types/course";
 import { formatPrice } from "@/shared/utils/format";
 import { learnPath } from "@/shared/utils/paths";
-import CartShoppingIcon from "@/assets/icons/cart-shopping.svg";
+// TODO: el carrito queda fuera del MVP; descomentar cuando se desarrolle
+// import CartShoppingIcon from "@/assets/icons/cart-shopping.svg";
 import "./MobileEnrollBar.css";
 
 type MobileEnrollBarProps = {
@@ -54,7 +55,7 @@ export function MobileEnrollBar({
           </button>
         ) : (
           <>
-            {/* TODO: el carrito está pendiente de ser desarrollado */}
+            {/* TODO: el carrito queda fuera del MVP; descomentar cuando se desarrolle
             <button
               type="button"
               className="mobile-enroll__cart"
@@ -66,6 +67,7 @@ export function MobileEnrollBar({
                 alt=""
               />
             </button>
+            */}
             {/* TODO: el checkout está pendiente de ser desarrollado */}
             <button type="button" className="mobile-enroll__btn">
               Comprar ahora

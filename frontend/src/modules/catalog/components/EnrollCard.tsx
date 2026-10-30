@@ -3,7 +3,8 @@ import { Link } from "react-router";
 import type { Course } from "@/shared/types/course";
 import { formatPrice } from "@/shared/utils/format";
 import { learnPath } from "@/shared/utils/paths";
-import CartShoppingIcon from "@/assets/icons/cart-shopping.svg";
+// TODO: el carrito queda fuera del MVP; descomentar cuando se desarrolle
+// import CartShoppingIcon from "@/assets/icons/cart-shopping.svg";
 import CertificateIcon from "@/assets/icons/certificate-ssl.svg";
 import ClockIcon from "@/assets/icons/clock.svg";
 import LockIcon from "@/assets/icons/lock.svg";
@@ -74,11 +75,12 @@ export function EnrollCard({
             <button type="button" className="enroll-card__btn enroll-card__btn--primary">
               Comprar ahora
             </button>
-            {/* TODO: el carrito está pendiente de ser desarrollado */}
+            {/* TODO: el carrito queda fuera del MVP; descomentar cuando se desarrolle
             <button type="button" className="enroll-card__btn enroll-card__btn--outline">
               <img className="enroll-card__btn-icon" src={CartShoppingIcon} alt="" />
               Añadir al carrito
             </button>
+            */}
             <p className="enroll-card__note">
               <img className="enroll-card__note-icon" src={LockIcon} alt="" />
               Pago seguro · Acceso inmediato tras el pago
