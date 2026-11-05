@@ -11,7 +11,8 @@ type ApiTopCourse = {
 
 type ApiStats = {
   courses: { total: number; published: number };
-  students: { total: number };
+  students: { total: number; active: number };
+  teachers: { total: number; withPublishedCourses: number };
   enrollments: { total: number; completed: number };
   completionRate: number;
   topCourses: ApiTopCourse[];
@@ -38,7 +39,8 @@ export const adminStatsService = {
     const stats = await request<ApiStats>("/admin/stats", { auth: true });
     return {
       courses: stats.courses,
-      students: stats.students.total,
+      students: stats.students,
+      teachers: stats.teachers,
       enrollments: stats.enrollments,
       completionRate: stats.completionRate,
       topCourses: stats.topCourses.map(toTopCourse),
