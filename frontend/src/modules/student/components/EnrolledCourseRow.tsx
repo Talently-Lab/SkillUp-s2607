@@ -8,7 +8,7 @@ import {
   isCourseFinished,
   type CourseProgress,
 } from "@/modules/student/utils/progress";
-import { ProgressBar } from "./ProgressBar";
+import { ProgressBar } from "@/modules/student/components/ProgressBar";
 import CheckCircleIcon from "@/assets/icons/check-circle.svg";
 import PlayFilledIcon from "@/assets/icons/play-filled.svg";
 import PlayFilledDarkIcon from "@/assets/icons/play-filled-dark.svg";

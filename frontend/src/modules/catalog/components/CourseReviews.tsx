@@ -1,16 +1,16 @@
 import { useRef, useState } from "react";
 
-import { ReviewFormModal } from "../../../shared/components/ReviewFormModal";
-import type { Course } from "../../../shared/types/course";
-import type { StarValue } from "../../../shared/types/review";
+import { ReviewFormModal } from "@/shared/components/ReviewFormModal";
+import type { Course } from "@/shared/types/course";
+import type { StarValue } from "@/shared/types/review";
 import {
   formatNumber,
   formatRelativeTime,
-} from "../../../shared/utils/format";
-import { getCourseReviews, getReviewSummary, STARS } from "../utils/reviews";
-import { Pagination } from "./Pagination";
-import { StarRating } from "./StarRating";
-import StarFilledIcon from "../../../assets/icons/star-filled.svg";
+} from "@/shared/utils/format";
+import { getCourseReviews, getReviewSummary, STARS } from "@/modules/catalog/utils/reviews";
+import { Pagination } from "@/modules/catalog/components/Pagination";
+import { StarRating } from "@/modules/catalog/components/StarRating";
+import StarFilledIcon from "@/assets/icons/star-filled.svg";
 import "./CourseReviews.css";
 
 type CourseReviewsProps = {
