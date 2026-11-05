@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Link } from "react-router";
 
+import { ReviewFormModal } from "@/shared/components/ReviewFormModal";
 import type { EnrolledCourse } from "@/shared/types/enrollment";
 import { coursePath, learnPath } from "@/shared/utils/paths";
 import {
@@ -22,6 +24,7 @@ export function EnrolledCourseRow({
   progress,
 }: EnrolledCourseRowProps) {
   const complete = isCourseFinished(progress);
+  const [reviewing, setReviewing] = useState(false);
 
   return (
     <li className="enrolled-row">
@@ -66,25 +69,43 @@ export function EnrolledCourseRow({
         </div>
       </div>
 
-      <Link
-        to={learnPath(course.slug)}
-        className={
-          complete
-            ? "enrolled-row__btn enrolled-row__btn--outline"
-            : "enrolled-row__btn"
-        }
-      >
-        <img
-          className="enrolled-row__btn-icon"
-          src={complete ? PlayFilledDarkIcon : PlayFilledIcon}
-          alt=""
+      <div className="enrolled-row__actions">
+        {complete && (
+          <button
+            type="button"
+            className="enrolled-row__btn"
+            onClick={() => setReviewing(true)}
+          >
+            Dejar reseña
+          </button>
+        )}
+        <Link
+          to={learnPath(course.slug)}
+          className={
+            complete
+              ? "enrolled-row__btn enrolled-row__btn--outline"
+              : "enrolled-row__btn"
+          }
+        >
+          <img
+            className="enrolled-row__btn-icon"
+            src={complete ? PlayFilledDarkIcon : PlayFilledIcon}
+            alt=""
+          />
+          {complete
+            ? "Repasar"
+            : progress.completed === 0
+              ? "Entrar al curso"
+              : "Continuar"}
+        </Link>
+      </div>
+
+      {reviewing && (
+        <ReviewFormModal
+          courseTitle={course.title}
+          onClose={() => setReviewing(false)}
         />
-        {complete
-          ? "Repasar"
-          : progress.completed === 0
-            ? "Entrar al curso"
-            : "Continuar"}
-      </Link>
+      )}
     </li>
   );
 }
