@@ -2,6 +2,7 @@ import { isValidEmail } from "@/shared/utils/validation";
 import {
   NAME_MAX_LENGTH,
   NAME_MIN_LENGTH,
+  NAME_PATTERN,
 } from "@/modules/auth/constants/name";
 import { PASSWORD_MIN_LENGTH } from "@/modules/auth/constants/password";
 
@@ -21,11 +22,13 @@ export function validateRegister({
   const errors: RegisterErrors = {};
 
   const trimmedName = name.trim();
-  if (!trimmedName) errors.name = "Ingresa tu nombre.";
+  if (!trimmedName) errors.name = "Ingresa tu nombre y apellido.";
   else if (trimmedName.length < NAME_MIN_LENGTH)
     errors.name = `Usa al menos ${NAME_MIN_LENGTH} caracteres.`;
   else if (trimmedName.length > NAME_MAX_LENGTH)
     errors.name = `Usa como máximo ${NAME_MAX_LENGTH} caracteres.`;
+  else if (!NAME_PATTERN.test(trimmedName))
+    errors.name = "Usa solo letras, espacios, guiones y apóstrofes.";
 
   if (!email.trim()) errors.email = "Ingresa tu email.";
   else if (!isValidEmail(email)) errors.email = "Ingresa un email válido.";
