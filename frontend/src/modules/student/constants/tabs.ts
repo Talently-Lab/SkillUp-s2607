@@ -1,4 +1,6 @@
-export type DashboardTab = "courses" | "certificates" | "payments";
+// TODO: certificados y pagos quedan fuera del MVP; descomentar cuando se desarrollen
+// export type DashboardTab = "courses" | "certificates" | "payments";
+export type DashboardTab = "courses";
 
 /** `param` is the `?tab=` value, the courses tab is the default */
 export const dashboardTabs: {
@@ -7,8 +9,8 @@ export const dashboardTabs: {
   label: string;
 }[] = [
   { value: "courses", param: null, label: "Mis cursos" },
-  { value: "certificates", param: "certificados", label: "Mis certificados" },
-  { value: "payments", param: "pagos", label: "Mis pagos" },
+  // { value: "certificates", param: "certificados", label: "Mis certificados" },
+  // { value: "payments", param: "pagos", label: "Mis pagos" },
 ];
 
 export function tabFromParam(value: string | null): DashboardTab {

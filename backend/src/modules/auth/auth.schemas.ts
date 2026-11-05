@@ -3,6 +3,8 @@ import "zod-openapi";
 
 export const PASSWORD_MIN_LENGTH = 8;
 export const PASSWORD_MAX_LENGTH = 128;
+/** Letters of any language, plus the spaces, hyphens and apostrophes of a name */
+const FULL_NAME_PATTERN = /^\p{L}[\p{L}\p{M} '’-]*$/u;
 
 const email = z
   .string({ error: "Email is required" })
@@ -22,6 +24,10 @@ export const registerSchema = z
       .trim()
       .min(2, { error: "Full name must have at least 2 characters" })
       .max(60, { error: "Full name must have at most 60 characters" })
+      .regex(FULL_NAME_PATTERN, {
+        error:
+          "Full name can only contain letters, spaces, hyphens and apostrophes",
+      })
       .meta({ example: "Valentina Ruiz" }),
     email,
     password: z

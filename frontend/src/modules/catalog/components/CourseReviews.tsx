@@ -1,27 +1,31 @@
 import { useRef, useState } from "react";
 
-import type { Course } from "../../../shared/types/course";
-import type { StarValue } from "../../../shared/types/review";
+import { ReviewFormModal } from "@/shared/components/ReviewFormModal";
+import type { Course } from "@/shared/types/course";
+import type { StarValue } from "@/shared/types/review";
 import {
   formatNumber,
   formatRelativeTime,
-} from "../../../shared/utils/format";
-import { getCourseReviews, getReviewSummary, STARS } from "../utils/reviews";
-import { Pagination } from "./Pagination";
-import { StarRating } from "./StarRating";
-import StarFilledIcon from "../../../assets/icons/star-filled.svg";
+} from "@/shared/utils/format";
+import { getCourseReviews, getReviewSummary, STARS } from "@/modules/catalog/utils/reviews";
+import { Pagination } from "@/modules/catalog/components/Pagination";
+import { StarRating } from "@/modules/catalog/components/StarRating";
+import StarFilledIcon from "@/assets/icons/star-filled.svg";
 import "./CourseReviews.css";
 
 type CourseReviewsProps = {
   course: Course;
+  /** True for a logged-in student who finished the course */
+  canReview: boolean;
 };
 
 /** Keeps the section short so users don't have to scroll through every comment */
 const REVIEWS_PER_PAGE = 5;
 
-export function CourseReviews({ course }: CourseReviewsProps) {
+export function CourseReviews({ course, canReview }: CourseReviewsProps) {
   const [filter, setFilter] = useState<StarValue | null>(null);
   const [page, setPage] = useState(1);
+  const [reviewing, setReviewing] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
 
   const summary = getReviewSummary(course);
@@ -51,9 +55,20 @@ export function CourseReviews({ course }: CourseReviewsProps) {
       className="course-reviews"
       aria-labelledby="reviews-heading"
     >
-      <h2 id="reviews-heading" className="course-detail__section-title">
-        Opiniones de estudiantes
-      </h2>
+      <div className="course-reviews__header">
+        <h2 id="reviews-heading" className="course-detail__section-title">
+          Opiniones de estudiantes
+        </h2>
+        {canReview && (
+          <button
+            type="button"
+            className="course-reviews__write"
+            onClick={() => setReviewing(true)}
+          >
+            Dejar reseña
+          </button>
+        )}
+      </div>
 
       {reviews.length === 0 ? (
         <div className="course-reviews__empty">
@@ -184,6 +199,13 @@ export function CourseReviews({ course }: CourseReviewsProps) {
             </div>
           </div>
         </div>
+      )}
+
+      {reviewing && (
+        <ReviewFormModal
+          courseTitle={course.title}
+          onClose={() => setReviewing(false)}
+        />
       )}
     </section>
   );

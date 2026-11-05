@@ -107,6 +107,13 @@
   }
 }
 
+.enrolled-row__actions {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 .enrolled-row__btn {
   display: inline-flex;
   align-items: center;

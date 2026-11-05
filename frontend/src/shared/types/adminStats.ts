@@ -10,7 +10,9 @@ export interface TopCourse {
 export interface PlatformStats {
   /** `total` counts the drafts too */
   courses: { total: number; published: number };
-  students: number;
+  /** `active` enrolled or completed a lesson in the last 30 days */
+  students: { total: number; active: number };
+  teachers: { total: number; withPublishedCourses: number };
   enrollments: { total: number; completed: number };
   /** Percent of the enrollments already completed, one decimal */
   completionRate: number;

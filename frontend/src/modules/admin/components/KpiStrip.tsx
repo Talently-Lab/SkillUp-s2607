@@ -18,23 +18,22 @@ type KpiStripProps = {
 
 export function KpiStrip({ revenue, stats }: KpiStripProps) {
   const isUp = revenue.monthDelta >= 0;
-  const drafts = stats.courses.total - stats.courses.published;
 
   const secondary = [
     {
-      label: "Estudiantes",
-      value: formatNumber(stats.students),
-      hint: `${formatNumber(stats.enrollments.total)} inscripciones`,
+      label: "Estudiantes activos",
+      value: formatNumber(stats.students.active),
+      hint: `Últimos 30 días · ${formatNumber(stats.enrollments.total)} inscripciones`,
     },
     {
-      label: "Cursos publicados",
-      value: formatNumber(stats.courses.published),
-      hint: `${formatNumber(drafts)} en borrador`,
+      label: "Docentes registrados",
+      value: formatNumber(stats.teachers.total),
+      hint: `${formatNumber(stats.teachers.withPublishedCourses)} con cursos publicados`,
     },
     {
       label: "Tasa de finalización",
       value: formatPercent(stats.completionRate),
-      hint: `${formatNumber(stats.enrollments.completed)} inscripciones completadas`,
+      hint: "Promedio ponderado por inscritos",
     },
   ];
 

@@ -1860,7 +1860,7 @@ Acepta un \`Authorization: Bearer <token>\` opcional. Si el token es inválido o
         tags: ["Admin — Stats"],
         summary: "Estadísticas de la plataforma (admin)",
         description:
-          "Devuelve métricas generales: total de cursos (y publicados), estudiantes, inscripciones (y completadas), tasa de finalización y top 5 cursos por estudiantes. `courses.total` incluye los cursos en borrador (`draft`); `courses.published` es el subconjunto publicado.",
+          "Devuelve métricas generales: total de cursos (y publicados), estudiantes (y activos: se inscribieron o completaron una lección en los últimos 30 días), docentes (y cuántos tienen cursos publicados), inscripciones (y completadas), tasa de finalización y top 5 cursos por estudiantes. `courses.total` incluye los cursos en borrador (`draft`); `courses.published` es el subconjunto publicado.",
         security: [{ bearerAuth: [] }],
         responses: {
           "200": {
@@ -1873,7 +1873,14 @@ Acepta un \`Authorization: Bearer <token>\` opcional. Si el token es inválido o
                       total: z.number().int(),
                       published: z.number().int(),
                     }),
-                    students: z.object({ total: z.number().int() }),
+                    students: z.object({
+                      total: z.number().int(),
+                      active: z.number().int(),
+                    }),
+                    teachers: z.object({
+                      total: z.number().int(),
+                      withPublishedCourses: z.number().int(),
+                    }),
                     enrollments: z.object({
                       total: z.number().int(),
                       completed: z.number().int(),

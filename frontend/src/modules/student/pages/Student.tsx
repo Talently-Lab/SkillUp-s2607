@@ -103,7 +103,7 @@ export function Student() {
         aria-labelledby={tabId(tab)}
         className="student-dashboard__panel"
       >
-        {/* TODO: las pestañas de certificados y pagos están pendientes */}
+        {/* TODO: certificados y pagos quedan fuera del MVP, ver constants/tabs.ts */}
         {tab === "courses" &&
           (enrolled.length === 0 ? (
             <EmptyCourses />
