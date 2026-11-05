@@ -242,7 +242,11 @@ function CourseDetailView({ course }: { course: Course }) {
             )}
           </section>
 
-          <CourseReviews key={course.id} course={course} />
+          <CourseReviews
+            key={course.id}
+            course={course}
+            canReview={access.completed}
+          />
 
           <section aria-labelledby="teacher-heading">
             <h2 id="teacher-heading" className="course-detail__section-title">

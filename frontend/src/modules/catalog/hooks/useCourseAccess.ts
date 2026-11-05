@@ -30,8 +30,12 @@ export function useCourseAccess(course: Course) {
       // below come unlocked for an enrolled student
       const enrollments = isStudent ? await enrollmentsService.listMine() : [];
       const modules = await modulesService.listByCourse(course.id);
+      const enrollment = enrollments.find(
+        (item) => item.courseId === course.id,
+      );
       return {
-        enrolled: enrollments.some((item) => item.courseId === course.id),
+        enrolled: Boolean(enrollment),
+        completed: enrollment?.status === "completed",
         modules,
       };
     },
@@ -62,6 +66,7 @@ export function useCourseAccess(course: Course) {
   return {
     modules: data?.modules ?? [],
     enrolled: data?.enrolled ?? false,
+    completed: data?.completed ?? false,
     isLoading,
     error,
     retry,
