@@ -16,11 +16,11 @@ import {
 } from "../activity/activity.service.ts";
 import { coursesRepository } from "../courses/courses.repository.ts";
 import { courseAction, publishedAtFor } from "../courses/courses.service.ts";
-import { modulesRepository } from "../modules/modules.repository.ts";
+import { modulesRepository } from "../course-modules/course-modules.repository.ts";
 import {
   syncCourseLessons,
   syncCourseTotals,
-} from "../modules/modules.service.ts";
+} from "../course-modules/course-modules.service.ts";
 import { teacherRepository } from "./teacher.repository.ts";
 import type {
   CreateTeacherLessonInput,

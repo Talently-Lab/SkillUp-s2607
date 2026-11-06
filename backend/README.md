@@ -37,8 +37,17 @@ src/
 │   ├── seed-admin.ts    # crea el usuario admin inicial
 │   └── seed-teacher.ts  # crea un docente para desarrollo
 ├── docs/                # documento OpenAPI y Swagger UI
-├── modules/             # módulos por dominio (auth, courses, orders, etc.)
-│   └── auth/            # registro, login, refresh, logout y usuario actual
+├── modules/             # módulos por dominio
+│   ├── activity/        # registro de los cambios hechos por el admin
+│   ├── auth/            # registro, login, refresh, logout y usuario actual
+│   ├── categories/      # listado de categorías de cursos
+│   ├── course-modules/  # módulos de un curso y sus lecciones
+│   ├── courses/         # catálogo y administración de cursos
+│   ├── enrollments/     # inscripciones de los estudiantes
+│   ├── progress/        # progreso del estudiante en las lecciones
+│   ├── stats/           # estadísticas del panel de admin
+│   ├── teacher/         # panel del docente
+│   └── users/           # administración de usuarios
 ├── shared/              # código compartido entre módulos
 │   ├── errors/          # clases de error (AppError y sus variantes) y handler 404
 │   ├── middlewares/     # errores, validación, autenticación y límite de intentos
@@ -50,7 +59,9 @@ src/
 
 - **`app.ts` y `server.ts`** están separados para poder testear la app sin abrir un puerto.
 - **`config/env.ts`** es el único lugar que lee `process.env`. Si falta una variable o es inválida, el servidor no arranca.
-- **`modules`**: cada módulo se divide en capas `routes` → `controller` → `service` → `repository`, y sus esquemas de Zod. Un módulo no debería importar de otro módulo. Si algo se necesita en más de uno, se mueve a `shared`.
+- **`modules`**: cada módulo se divide en capas `routes` → `controller` → `service` → `repository`, y sus esquemas de Zod. Los endpoints de admin van en sus propios `*-admin.controller.ts` y `*-admin.routes.ts`.
+- **Dependencias entre módulos**: un módulo solo puede importar los archivos `*.service.ts`, `*.repository.ts` y `*.schemas.ts` de otro módulo, nunca sus rutas, controllers u otros archivos internos. Lo valida `pnpm lint` con `eslint-plugin-boundaries`. Si algo no pertenece a ningún dominio, se mueve a `shared`.
+- **`course-modules`**: es el dominio de los módulos de un curso. Se llama así para no confundirse con la carpeta `modules/`, aunque su tabla y sus rutas siguen usando `modules`.
 - **Errores**: los errores esperados se lanzan como `AppError` y el manejador global los convierte en una respuesta `{ error: { code, message, details? } }`. Los inesperados se registran en el log y responden `500`.
 - **Imports**: los imports relativos llevan la extensión `.ts` (por ejemplo `./app.ts`), porque Node ejecuta TypeScript directamente. Por el mismo motivo no se usan `enum` ni `namespace`.
 

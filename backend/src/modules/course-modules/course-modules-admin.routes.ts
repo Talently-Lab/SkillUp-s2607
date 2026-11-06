@@ -7,7 +7,7 @@ import {
   validateBody,
   validateParams,
 } from "../../shared/middlewares/validate.ts";
-import { modulesAdminController } from "./modules-admin.controller.ts";
+import { modulesAdminController } from "./course-modules-admin.controller.ts";
 import {
   courseModuleLessonParamsSchema,
   courseModuleParamsSchema,
@@ -16,7 +16,7 @@ import {
   createModuleSchema,
   updateLessonSchema,
   updateModuleSchema,
-} from "./modules.schemas.ts";
+} from "./course-modules.schemas.ts";
 
 // Admin: CRUD modules and lessons within a course
 export const modulesAdminRouter = Router({ mergeParams: true });

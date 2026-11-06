@@ -9,7 +9,7 @@ import {
 import type {
   UpdateLessonInput,
   UpdateModuleInput,
-} from "./modules.schemas.ts";
+} from "./course-modules.schemas.ts";
 
 export const modulesRepository = {
   // ── Modules ──────────────────────────────────────────────────────────────
