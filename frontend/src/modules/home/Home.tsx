@@ -102,7 +102,7 @@ export function Home() {
             <p className="featured__status">
               {featured.error
                 ? "No pudimos cargar los cursos destacados."
-                : "Pronto tendremos cursos destacados."}{" "}
+                : "Próximamente verás aquí los cursos destacados. Estamos trabajando en ellos."}{" "}
               <Link to="/catalog" className="featured__status-link">
                 Explora el catálogo
               </Link>
