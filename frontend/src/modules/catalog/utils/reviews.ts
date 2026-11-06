@@ -24,7 +24,9 @@ function hash(value: string): number {
 export function getReviewSummary(course: Course): ReviewSummary {
   const counts: StarCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
   const count =
-    course.students > 0 ? Math.max(6, Math.round(course.students * 0.14)) : 0;
+    course.rating > 0 && course.students > 0
+      ? Math.max(6, Math.round(course.students * 0.14))
+      : 0;
   if (count === 0) return { average: 0, count, counts };
 
   const p1 = 0.01;
@@ -51,8 +53,8 @@ export function getReviewSummary(course: Course): ReviewSummary {
  * never shows comments for a 0% bar.
  */
 export function getCourseReviews(course: Course): Review[] {
-  if (course.students === 0) return [];
-  const { counts } = getReviewSummary(course);
+  const { count, counts } = getReviewSummary(course);
+  if (count === 0) return [];
   const pool = sampleReviews.filter((sample) => counts[sample.rating] > 0);
   if (pool.length === 0) return [];
 
