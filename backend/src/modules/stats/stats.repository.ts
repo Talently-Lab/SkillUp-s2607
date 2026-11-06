@@ -1,4 +1,4 @@
-import { and, count, countDistinct, desc, eq, gte, or } from "drizzle-orm";
+import { and, asc, count, countDistinct, desc, eq, gte, or } from "drizzle-orm";
 import { db } from "../../db/client.ts";
 import {
   courses,
@@ -70,14 +70,16 @@ export const statsRepository = {
           id: courses.id,
           slug: courses.slug,
           title: courses.title,
-          studentsCount: courses.studentsCount,
+          studentsCount: count(enrollments.id),
           ratingAvg: courses.ratingAvg,
           priceCents: courses.priceCents,
           currency: courses.currency,
         })
         .from(courses)
+        .leftJoin(enrollments, eq(enrollments.courseId, courses.id))
         .where(eq(courses.status, "published"))
-        .orderBy(desc(courses.studentsCount))
+        .groupBy(courses.id)
+        .orderBy(desc(count(enrollments.id)), asc(courses.id))
         .limit(5),
     ]);
     const totalCourses = totalCoursesResult[0]?.value ?? 0;

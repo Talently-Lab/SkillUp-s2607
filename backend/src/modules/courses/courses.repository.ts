@@ -1,8 +1,9 @@
-import { and, asc, count, desc, eq, type SQL } from "drizzle-orm";
+import { and, asc, count, desc, eq, sql, type SQL } from "drizzle-orm";
 import { db, type DbOrTx } from "../../db/client.ts";
 import {
   categories,
   courses,
+  enrollments,
   type NewCourse,
   users,
 } from "../../db/schema/index.ts";
@@ -49,7 +50,11 @@ const courseSelect = {
   featured: courses.featured,
   lessonsCount: courses.lessonsCount,
   durationMinutes: courses.durationMinutes,
-  studentsCount: courses.studentsCount,
+  // Counted live: enrollments disappear with their user, so a stored total would drift
+  studentsCount: sql<number>`(
+    select count(*)::int from ${enrollments}
+    where ${enrollments.courseId} = ${courses.id}
+  )`,
   ratingAvg: courses.ratingAvg,
   reviewsCount: courses.reviewsCount,
   publishedAt: courses.publishedAt,
