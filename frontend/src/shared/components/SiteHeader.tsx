@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router";
 
 import { Logo } from "./Logo";
-import { NotificationBell } from "./NotificationBell";
+// TODO: las notificaciones quedan fuera del MVP; descomentar cuando se desarrollen
+// import { NotificationBell } from "./NotificationBell";
 import { UserMenu } from "./UserMenu";
 import { useAuthStore } from "../stores/authStore";
 import { roleHome, rolePanelLabel } from "../utils/roles";
@@ -28,7 +29,8 @@ export function SiteHeader() {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
-  const isStudent = user?.role === "student";
+  // TODO: descomentar junto con el carrito y las notificaciones
+  // const isStudent = user?.role === "student";
   const panelLabel = user && rolePanelLabel[user.role];
   const navItems = panelLabel
     ? [
@@ -78,10 +80,12 @@ export function SiteHeader() {
             </button>
           )}
           */}
-          {/* Keyed by user so the inbox resets when the account changes */}
+          {/* TODO: las notificaciones quedan fuera del MVP; descomentar cuando se desarrollen
+          Keyed by user so the inbox resets when the account changes
           {user && isStudent && (
             <NotificationBell key={user.id} userId={user.id} />
           )}
+          */}
           <div className="site-header__auth">
             {user ? (
               <UserMenu user={user} onSignOut={handleSignOut} />

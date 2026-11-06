@@ -134,11 +134,13 @@ export function Login() {
           onChange={(event) => handleChange("password", event.target.value)}
           error={errors.password}
           disabled={loading}
+          /* TODO: la recuperación de contraseña queda fuera del MVP; descomentar cuando se desarrolle
           labelAction={
             <button type="button" className="login__forgot">
               ¿Olvidaste tu contraseña?
             </button>
           }
+          */
           trailing={
             <PasswordToggle
               visible={showPassword}

@@ -19,7 +19,8 @@ export const durationOptions: { value: DurationFilter; label: string }[] = [
 
 export const sortOptions: { value: SortOption; label: string }[] = [
   { value: "popular", label: "Más populares" },
-  { value: "rating", label: "Mejor valorados" },
+  // TODO: las reseñas no tienen backend todavía; descomentar cuando se desarrollen
+  // { value: "rating", label: "Mejor valorados" },
   { value: "shortest", label: "Menor duración" },
   { value: "price", label: "Menor precio" },
 ];
