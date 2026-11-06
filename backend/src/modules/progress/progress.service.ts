@@ -1,6 +1,6 @@
 import { ConflictError, NotFoundError } from "../../shared/errors/app-error.ts";
 import { runInTransaction } from "../../db/client.ts";
-import { modulesRepository } from "../modules/modules.repository.ts";
+import { modulesRepository } from "../course-modules/course-modules.repository.ts";
 import { enrollmentsRepository } from "../enrollments/enrollments.repository.ts";
 import { progressRepository } from "./progress.repository.ts";
 

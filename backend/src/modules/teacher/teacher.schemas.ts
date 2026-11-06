@@ -4,7 +4,7 @@ import { courseFieldsSchema } from "../courses/courses.schemas.ts";
 import {
   durationSecondsSchema,
   positionSchema,
-} from "../modules/modules.schemas.ts";
+} from "../course-modules/course-modules.schemas.ts";
 
 // ── Route params ──────────────────────────────────────────────────────────────
 

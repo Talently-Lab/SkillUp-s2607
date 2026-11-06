@@ -32,7 +32,7 @@ import {
   moduleSchema,
   updateLessonSchema,
   updateModuleSchema,
-} from "../modules/modules/modules.schemas.ts";
+} from "../modules/course-modules/course-modules.schemas.ts";
 import { TEACHER_BASE_PATH } from "../modules/teacher/teacher.controller.ts";
 import {
   createTeacherLessonSchema,

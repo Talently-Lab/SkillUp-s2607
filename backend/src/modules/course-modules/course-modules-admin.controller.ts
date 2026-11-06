@@ -1,11 +1,11 @@
 import type { RequestHandler } from "express";
-import { modulesService } from "./modules.service.ts";
+import { modulesService } from "./course-modules.service.ts";
 import type {
   CreateLessonInput,
   CreateModuleInput,
   UpdateLessonInput,
   UpdateModuleInput,
-} from "./modules.schemas.ts";
+} from "./course-modules.schemas.ts";
 
 export const MODULES_ADMIN_BASE_PATH =
   "/api/v1/admin/courses/:courseId/modules";
