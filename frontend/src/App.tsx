@@ -12,6 +12,8 @@ import { Teacher } from "./modules/teacher/pages/Teacher";
 import { teacherNav } from "./modules/teacher/constants/nav";
 import { Register } from "./modules/auth/pages/Register";
 import { Login } from "./modules/auth/pages/Login";
+import { AdminLogin } from "./modules/auth/pages/AdminLogin";
+import { NotFound } from "./modules/errors/NotFound";
 import { DashboardLayout } from "./layouts/DashboardLayout";
 import { PublicLayout } from "./layouts/PublicLayout";
 import { RequireAuth } from "./shared/components/RequireAuth";
@@ -23,15 +25,14 @@ function App() {
         <Route path="/" element=<Home /> />
         <Route path="/catalog" element=<Catalog /> />
         <Route path="/catalog/:slug" element=<CourseDetail /> />
-        {/* The student panel keeps the site header, so it lives in the public layout */}
         <Route
           path="/student"
           element=<RequireAuth role="student">
             <Student />
           </RequireAuth>
         />
+        <Route path="*" element=<NotFound /> />
       </Route>
-      {/* The classroom has its own header, so it lives outside the layouts */}
       <Route
         path="/student/courses/:slug"
         element=<RequireAuth role="student">
@@ -40,6 +41,7 @@ function App() {
       />
       <Route path="/register" element=<Register /> />
       <Route path="/login" element=<Login /> />
+      <Route path="/admin/login" element=<AdminLogin /> />
       <Route
         path="/admin"
         element=<RequireAuth role="admin">

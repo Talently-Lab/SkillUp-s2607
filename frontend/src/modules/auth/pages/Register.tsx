@@ -6,6 +6,7 @@ import { AuthLayout } from "@/layouts/AuthLayout";
 import { AuthDivider } from "@/shared/components/AuthDivider";
 import { FormField } from "@/shared/components/FormField";
 import { GoogleButton } from "@/shared/components/GoogleButton";
+import { Icon } from "@/shared/components/Icon";
 import { Loader } from "@/shared/components/Loader";
 import { PasswordToggle } from "@/shared/components/PasswordToggle";
 import { copy } from "@/modules/auth/constants/registerCopy";
@@ -72,20 +73,26 @@ export function Register() {
 
   return (
     <AuthLayout
+      title={["Tu primera clase,", "hoy mismo."]}
       quote="Me registré en menos de un minuto y esa misma noche ya estaba en mi primera clase."
       author="Javier Ramírez"
       role="Estudiante de Diseño UX"
+      initials="JR"
+      topLink={{ to: "/login", label: "Iniciar sesión" }}
     >
-      <h1 className="register__title">{text.title}</h1>
+      <h1 className="display register__title">{text.title}</h1>
       <p className="register__subtitle">{text.subtitle}</p>
+      <ul className="register__perks">
+        {["Sin tarjeta", "12 cursos gratis", "Certificado al terminar"].map((perk) => (
+          <li key={perk}>
+            <Icon name="check-circle" />
+            {perk}
+          </li>
+        ))}
+      </ul>
 
       <div className="register__google">
-        <GoogleButton
-          onClick={() =>
-            toast.info("El registro con Google estará disponible pronto.")
-          }
-          disabled={loading}
-        />
+        <GoogleButton soon disabled={loading} />
       </div>
 
       <AuthDivider />
@@ -157,13 +164,17 @@ export function Register() {
           }
         />
 
-        <button type="submit" className="register__submit" disabled={loading}>
+        <button
+          type="submit"
+          className="btn btn-primary btn-block register__submit"
+          disabled={loading}
+        >
           {loading && <Loader />}
           {loading ? "Creando cuenta…" : text.submit}
         </button>
 
         <p className="register__terms">
-          Al continuar aceptas los{" "}
+          Al crear tu cuenta aceptás los{" "}
           <button type="button" className="register__terms-link">
             Términos
           </button>{" "}
@@ -176,15 +187,9 @@ export function Register() {
       </form>
 
       <p className="register__login">
-        ¿Ya tienes cuenta?{" "}
+        ¿Ya tenés cuenta?{" "}
         <Link to="/login" className="register__login-link">
-          Inicia sesión
-        </Link>
-      </p>
-      <p className="register__admin">
-        ¿Eres administrador?{" "}
-        <Link to="/login?tipo=admin" className="register__admin-link">
-          Accede aquí
+          Iniciá sesión
         </Link>
       </p>
     </AuthLayout>
