@@ -1,32 +1,91 @@
+/* SkillUp Campus · Índigo Aurora
+   Source of truth: design/mockups/css/tokens.css. Light mode only. */
 :root {
-  --bg: #eff1fb;
-  /* Foreground */
-  --fg: #ffffff;
-  --text: #16214d;
-  --text-h: #16214d;
-  --text-muted: #475569;
-  --text-subtle: #64748b;
-  --border: #e2e8f0;
-  --color-primary: #2c4bdb;
-  --color-primary-hover: #2340c2;
-  --color-primary-soft: #e8ecfc;
-  --color-accent: #e0702e;
-  --color-accent-hover: #c95f22;
-  --color-success: #219653;
-  --color-error: #eb5757;
-  /* Darker error tone for text, keeps AA contrast (5.6:1) on white */
-  --color-error-text: #c62828;
+  /* Brand · deep indigo (dark surfaces: hero, sidebar, highlighted cards) */
+  --brand-950: #1b0f45;
+  --brand-900: #2a1670;
+  --brand-800: #3a1f94;
+  --brand-700: #4a26b0;
 
-  --inter: "Inter Variable", Roboto, sans-serif;
-  --heading: "Sora Variable", Roboto, sans-serif;
+  /* Primary · violet */
+  --primary: #6d3fe0;
+  --primary-hover: #5a2fc9;
+  --primary-bright: #8257f0; /* only on dark backgrounds or as a fill */
+  --primary-soft: #efe9ff;
+  --primary-tint: #f7f4ff;
+  --primary-line: #d9cdfb;
 
+  /* Secondary · aurora teal */
+  --teal: #2fd9c0; /* fill or text on dark; NEVER as text on white */
+  --teal-hover: #5ae6d2;
+  --teal-strong: #17bfa6;
+  --teal-text: #0b7f6e; /* teal for text on light (AA) */
+  --teal-soft: #dcfaf4;
+
+  /* Accent · sun (small details: caret, streaks, highlighted stars) */
+  --sun: #ffc94d;
+  --sun-soft: #fff4d9;
+  --star: #f5a524;
+
+  /* Neutrals with a violet bias */
+  --ink: #17142b;
+  --text: #3d3958;
+  --text-muted: #6b6788;
+  --line: #e7e4f0;
+  --surface: #ffffff;
+  --surface-2: #f3f1f9;
+  --bg: #fbfaff;
+
+  /* Text on dark brand surfaces */
+  --on-dark: #ffffff;
+  --on-dark-muted: #d4cbf5;
+  --on-dark-subtle: #b9addf;
+  --on-dark-line: rgb(255 255 255 / 0.14);
+
+  /* Semantic */
+  --success: #17803d;
+  --success-bg: #eefcf3;
+  --warning: #a36007;
+  --warning-bg: #fef6eb;
+  --danger: #b0271d;
+  --danger-fill: #d32e22;
+  --danger-bg: #fceeed;
+  --info: #0b76ac;
+  --info-bg: #ecf8fe;
+
+  /* Type */
+  --font-display: "Caveat", "Segoe Print", cursive;
+  --font-body:
+    "Inter Variable", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Shape */
+  --radius-sm: 10px;
+  --radius: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --shadow-sm: 0 1px 2px rgb(27 15 69 / 0.06), 0 2px 8px rgb(27 15 69 / 0.05);
+  --shadow-md: 0 20px 40px -22px rgb(27 15 69 / 0.35);
   --container: 1200px;
   --gutter: 1rem;
-  --radius: 8px;
-  --radius-lg: 16px;
 
-  font: 16px/1.45 var(--inter);
-  letter-spacing: 0.18px;
+  /* Legacy names still used by module styles, mapped to the new system */
+  --fg: var(--surface);
+  --text-h: var(--ink);
+  --text-subtle: var(--text-muted);
+  --border: var(--line);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
+  --color-accent: var(--primary);
+  --color-accent-hover: var(--primary-hover);
+  --color-success: var(--success);
+  --color-error: var(--danger-fill);
+  --color-error-text: var(--danger);
+  --inter: var(--font-body);
+  /* Headings stay in Inter; Caveat only through .display (see the design doc) */
+  --heading: var(--font-body);
+
+  font: 16px/1.55 var(--font-body);
   color-scheme: light;
   color: var(--text);
   background: var(--bg);
@@ -72,15 +131,17 @@ a {
 
 h1,
 h2,
-h3 {
+h3,
+h4 {
   font-family: var(--heading);
-  color: var(--text-h);
+  color: var(--ink);
+  text-wrap: balance;
 }
 
 h1 {
   font-size: 48px;
-  font-weight: bolder;
-  letter-spacing: -1.68px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
   margin: 32px 0;
   @media (max-width: 1024px) {
     font-size: 36px;
@@ -89,9 +150,9 @@ h1 {
 }
 h2 {
   font-size: 32px;
-  font-weight: 500;
+  font-weight: 750;
   line-height: 118%;
-  letter-spacing: -0.24px;
+  letter-spacing: -0.02em;
   margin: 0 0 8px;
   @media (max-width: 1024px) {
     font-size: 20px;
@@ -142,4 +203,437 @@ ol {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+::selection {
+  background: var(--teal);
+  color: var(--brand-950);
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Typography ---------- */
+
+/* Caveat is the handwritten voice: short, large headings only */
+.display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: 0;
+  margin: 0;
+}
+.display-xl {
+  font-size: clamp(3.4rem, 9vw, 6.5rem);
+}
+.display-lg {
+  font-size: clamp(2.6rem, 5vw, 3.75rem);
+}
+.display-md {
+  font-size: clamp(2.2rem, 3.6vw, 2.9rem);
+}
+
+.eyebrow {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.lead {
+  font-size: 1.075rem;
+  color: var(--text-muted);
+  max-width: 60ch;
+}
+
+/* ---------- Buttons ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.2rem;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    color 0.15s ease;
+}
+.btn:hover {
+  transform: translateY(-1px);
+}
+.btn:active {
+  transform: translateY(0);
+}
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 8px 18px -10px rgb(109 63 224 / 0.7);
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+.btn-teal {
+  background: var(--teal);
+  color: var(--brand-950);
+  box-shadow: 0 8px 18px -10px rgb(0 0 0 / 0.45);
+}
+.btn-teal:hover:not(:disabled) {
+  background: var(--teal-hover);
+}
+.btn-soft {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+.btn-soft:hover:not(:disabled) {
+  background: #e3d9ff;
+}
+.btn-ghost {
+  color: var(--text);
+}
+.btn-ghost:hover:not(:disabled) {
+  background: var(--primary-tint);
+}
+.btn-outline {
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--ink);
+  background: var(--surface);
+}
+.btn-outline:hover:not(:disabled) {
+  box-shadow: inset 0 0 0 1px var(--primary-line);
+  color: var(--primary);
+}
+.btn-outline-light {
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.3);
+  color: #fff;
+}
+.btn-outline-light:hover:not(:disabled) {
+  background: rgb(255 255 255 / 0.1);
+}
+.btn-danger {
+  background: var(--danger-fill);
+  color: #fff;
+}
+.btn-danger:hover:not(:disabled) {
+  background: var(--danger);
+}
+.btn-sm {
+  padding: 0.5rem 0.85rem;
+  font-size: 0.85rem;
+  border-radius: 10px;
+}
+.btn-block {
+  width: 100%;
+}
+.btn .ico,
+.btn img {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+/* ---------- Chips, badges, tags ---------- */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.45rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--text);
+  white-space: nowrap;
+}
+.chip:hover {
+  border-color: var(--primary-line);
+}
+.chip[aria-pressed="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.badge--success {
+  background: var(--success-bg);
+  color: var(--success);
+}
+.badge--warning {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+.badge--danger {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+.badge--neutral {
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+.badge--primary {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+/* ---------- Forms ---------- */
+
+.input,
+.select {
+  width: 100%;
+  padding: 0.8rem 0.95rem;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.input::placeholder {
+  color: var(--text-muted);
+}
+.input:hover,
+.select:hover {
+  border-color: var(--primary-line);
+}
+.input:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-soft);
+}
+.select {
+  appearance: none;
+  width: auto;
+  padding-right: 2.4rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  background: var(--surface)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b6788' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+    right 12px center / 16px no-repeat;
+}
+
+.seg {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+.seg button {
+  padding: 0.5rem 0.85rem;
+  border-radius: 9px;
+  font-size: 0.85rem;
+  font-weight: 650;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.seg button[aria-pressed="true"] {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ---------- Tabs ---------- */
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+}
+.tabs button {
+  position: relative;
+  padding: 0.75rem 0.9rem;
+  font-weight: 650;
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.tabs button:hover {
+  color: var(--ink);
+}
+.tabs button[aria-selected="true"] {
+  color: var(--ink);
+}
+.tabs button[aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: -1px;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--primary);
+}
+
+/* ---------- Progress ---------- */
+
+.progress {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.progress > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--primary), var(--primary-bright));
+}
+
+/* ---------- Brand fox (mask, takes currentColor) ---------- */
+
+.fox {
+  display: inline-block;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  background-color: currentColor;
+  -webkit-mask: url("./assets/brand/logo.svg") center / contain no-repeat;
+  mask: url("./assets/brand/logo.svg") center / contain no-repeat;
+}
+
+/* ---------- Aurora host (dark indigo gradient; the WebGL canvas sits on top when available) ---------- */
+
+.aurora-host {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: var(--on-dark);
+  background: radial-gradient(
+    70% 90% at 85% 40%,
+    var(--brand-800) 0%,
+    var(--brand-900) 45%,
+    var(--brand-950) 100%
+  );
+}
+
+/* ---------- Skeletons ---------- */
+
+.sk {
+  display: block;
+  border-radius: 8px;
+  background: linear-gradient(
+      90deg,
+      var(--surface-2) 0%,
+      var(--primary-tint) 40%,
+      var(--surface-2) 80%
+    )
+    0 0 / 300% 100%;
+  animation: sk-shimmer 1.6s ease-in-out infinite;
+}
+.sk--text {
+  height: 0.8em;
+  margin-block: 0.3em;
+}
+.sk--title {
+  height: 1.1em;
+}
+.sk--circle {
+  border-radius: 50%;
+}
+.sk--pill {
+  border-radius: 999px;
+}
+@keyframes sk-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0s !important;
+    animation-duration: 0s !important;
+    scroll-behavior: auto !important;
+  }
+  .sk {
+    animation: none;
+  }
+}
+
+.table-skeleton-row__lead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 180px;
+}
+
+.ico {
+  width: 1.1em;
+  height: 1.1em;
+  flex: none;
+}
+
+/* ---------- Toasts (sonner) ---------- */
+
+[data-sonner-toaster] {
+  --normal-bg: var(--surface);
+  --normal-border: var(--line);
+  --normal-text: var(--ink);
+  --success-bg: #eefcf3;
+  --success-border: #bfe9cf;
+  --success-text: #17803d;
+  --error-bg: #fceeed;
+  --error-border: #f3c6c2;
+  --error-text: #b0271d;
+  --info-bg: #ecf8fe;
+  --info-border: #bfe2f5;
+  --info-text: #0b76ac;
+  --border-radius: 14px;
+  font-family: var(--font-body);
+}
+
+.skillup-toast {
+  box-shadow: var(--shadow-md), var(--shadow-sm);
 }
