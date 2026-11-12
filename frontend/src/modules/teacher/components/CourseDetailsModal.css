@@ -16,7 +16,7 @@
   }
 
   &:hover {
-    border-color: #c5cff5;
+    border-color: var(--primary-line);
   }
 
   &:focus {

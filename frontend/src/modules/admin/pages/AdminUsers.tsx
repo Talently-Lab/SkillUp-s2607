@@ -57,13 +57,34 @@ export function AdminUsers() {
     <div className="admin-page">
       <header className="admin-page__header">
         <div>
-          <h1 className="admin-page__title">Usuarios</h1>
+          <h1 className="display admin-page__title">Usuarios</h1>
           <p className="admin-page__subtitle">
             {users.length} cuentas registradas · {roleCounts.student} alumnos,{" "}
             {roleCounts.teacher} docentes y {roleCounts.admin} administradores
           </p>
         </div>
       </header>
+
+      <dl className="admin-summary" aria-label="Resumen de usuarios">
+        <div>
+          <dt>Alumnos</dt>
+          <dd className="num">{roleCounts.student}</dd>
+        </div>
+        <div>
+          <dt>Docentes</dt>
+          <dd className="num">{roleCounts.teacher}</dd>
+        </div>
+        <div>
+          <dt>Administradores</dt>
+          <dd className="num">{roleCounts.admin}</dd>
+        </div>
+        <div className="admin-summary__warn">
+          <dt>Cuentas suspendidas</dt>
+          <dd className="num">
+            {users.filter((user) => user.status === "suspended").length}
+          </dd>
+        </div>
+      </dl>
 
       <section aria-label="Listado de usuarios" className="admin-page__panel">
         <UserTableToolbar
@@ -91,7 +112,7 @@ export function AdminUsers() {
               Ningún usuario coincide con los filtros
             </p>
             <p className="admin-page__empty-text">
-              Ajusta la búsqueda, el rol o el estado.
+              Ajustá la búsqueda, el rol o el estado.
             </p>
             <button
               type="button"

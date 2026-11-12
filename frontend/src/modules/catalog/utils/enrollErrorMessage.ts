@@ -1,6 +1,6 @@
 import { ApiError } from "@/shared/api/http";
 
-const DEFAULT_MESSAGE = "No pudimos inscribirte. Inténtalo de nuevo.";
+const DEFAULT_MESSAGE = "No pudimos inscribirte. Probá de nuevo.";
 const SESSION_EXPIRED = "Tu sesión expiró. Vuelve a iniciar sesión.";
 
 // Decided by the error code, never by the API message
@@ -12,8 +12,8 @@ const messages: Record<string, string> = {
   INVALID_TOKEN: SESSION_EXPIRED,
   UNAUTHORIZED: SESSION_EXPIRED,
   NETWORK_ERROR:
-    "No pudimos conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.",
-  INTERNAL_ERROR: "Tuvimos un problema en el servidor. Inténtalo más tarde.",
+    "No pudimos conectar con el servidor. Revisá tu conexión y probá de nuevo.",
+  INTERNAL_ERROR: "Tuvimos un problema en el servidor. Probá más tarde.",
 };
 
 export function enrollErrorMessage(error: unknown): string {

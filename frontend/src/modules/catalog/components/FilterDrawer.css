@@ -11,7 +11,7 @@
 .filter-drawer__backdrop {
   position: absolute;
   inset: 0;
-  background-color: rgb(22 33 77 / 0.5);
+  background-color: rgb(27 15 69 / 0.5);
   animation: filter-drawer-fade 0.2s ease-out;
 }
 

@@ -16,13 +16,15 @@ import type {
  */
 type AuthStatus = "checking" | "authenticated" | "guest" | "signedOut";
 
-/** The account signed in with a different account type than the one selected */
+/** The account's role can't sign in through this access (general vs admin) */
 export class AccountTypeMismatchError extends Error {
+  readonly allowed: AccountType[];
   readonly role: AccountType;
 
-  constructor(role: AccountType) {
-    super(`The account is not of type ${role}`);
+  constructor(allowed: AccountType[], role: AccountType) {
+    super(`A ${role} account can't sign in here`);
     this.name = "AccountTypeMismatchError";
+    this.allowed = allowed;
     this.role = role;
   }
 }
@@ -33,9 +35,10 @@ type AuthState = {
   accessToken: string | null;
   status: AuthStatus;
   restoreSession: () => Promise<void>;
+  /** `allowed` are the roles this access accepts; the role itself comes from the API */
   login: (
     credentials: LoginCredentials,
-    accountType: AccountType,
+    allowed: AccountType[],
   ) => Promise<AuthUser>;
   register: (data: RegisterData) => Promise<AuthUser>;
   logout: () => void;
@@ -78,11 +81,11 @@ export const useAuthStore = create<AuthState>()((set) => {
       await refreshSession();
     },
 
-    login: async (credentials, accountType) => {
+    login: async (credentials, allowed) => {
       const session = await authService.login(credentials);
-      if (session.user.role !== accountType) {
+      if (!allowed.includes(session.user.role)) {
         await authService.logout().catch(() => undefined);
-        throw new AccountTypeMismatchError(accountType);
+        throw new AccountTypeMismatchError(allowed, session.user.role);
       }
       return start(session);
     },

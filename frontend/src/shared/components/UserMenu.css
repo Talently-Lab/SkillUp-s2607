@@ -24,17 +24,18 @@
   width: 2rem;
   height: 2rem;
   border-radius: 999px;
-  background-color: var(--color-primary);
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--fg);
+  background-color: var(--teal);
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--brand-950);
 }
 
 .user-menu__name {
   max-width: 10rem;
   overflow: hidden;
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: 0.9rem;
+  font-weight: 650;
+  color: var(--ink);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -54,7 +55,7 @@
   border: 1px solid var(--border);
   border-radius: 12px;
   background-color: var(--fg);
-  box-shadow: 0 16px 40px -16px rgb(22 33 77 / 0.3);
+  box-shadow: var(--shadow-md), var(--shadow-sm);
 }
 
 .user-menu__identity {
@@ -92,7 +93,8 @@
   transition: background-color 0.15s ease;
 
   &:hover {
-    background-color: var(--bg);
+    background-color: var(--primary-tint);
+    color: var(--primary);
   }
 }
 

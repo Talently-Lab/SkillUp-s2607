@@ -2,7 +2,7 @@
   min-width: 0;
   padding: 1.5rem;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   background-color: var(--fg);
 
   @media (max-width: 639px) {
@@ -62,7 +62,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background-color: var(--fg);
-  box-shadow: 0 8px 24px -12px rgb(22 33 77 / 0.35);
+  box-shadow: 0 8px 24px -12px rgb(27 15 69 / 0.35);
   font-size: 0.75rem;
 
   p {
@@ -93,6 +93,6 @@
 .sales-chart__legend-swatch {
   width: 0.625rem;
   height: 0.625rem;
-  border-radius: 2px;
-  background-color: var(--color-accent);
+  border-radius: 3px;
+  background-color: var(--teal-strong);
 }

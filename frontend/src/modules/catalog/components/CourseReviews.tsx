@@ -56,7 +56,7 @@ export function CourseReviews({ course, canReview }: CourseReviewsProps) {
       aria-labelledby="reviews-heading"
     >
       <div className="course-reviews__header">
-        <h2 id="reviews-heading" className="course-detail__section-title">
+        <h2 id="reviews-heading" className="display course-detail__section-title">
           Opiniones de estudiantes
         </h2>
         {canReview && (

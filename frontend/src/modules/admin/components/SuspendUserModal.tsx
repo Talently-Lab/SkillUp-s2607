@@ -56,7 +56,7 @@ export function SuspendUserModal({
             que reactives la cuenta.
           </p>
           <p className="confirm-message__detail">
-            Sus datos, progreso y certificados se conservan. Puedes reactivarla
+            Sus datos, progreso y certificados se conservan. Podés reactivarla
             en cualquier momento.
           </p>
         </div>

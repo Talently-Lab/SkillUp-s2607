@@ -39,9 +39,10 @@ export function DashboardLayout({
   return (
     <div className="dashboard-layout">
       <aside className="dashboard-layout__sidebar">
+        <span className="fox dashboard-layout__watermark" aria-hidden="true" />
         <div className="dashboard-layout__brand">
-          <Logo />
-          <p className="dashboard-layout__title">{title}</p>
+          <Logo light />
+          <p className="dashboard-layout__title">{roleLabel}</p>
         </div>
 
         <nav aria-label={title} className="dashboard-layout__nav">
@@ -64,7 +65,11 @@ export function DashboardLayout({
 
         <div className="dashboard-layout__user">
           <span className="dashboard-layout__avatar" aria-hidden="true">
-            {user?.name.charAt(0)}
+            {user?.name
+              .split(" ")
+              .slice(0, 2)
+              .map((part) => part.charAt(0))
+              .join("")}
           </span>
           <div className="dashboard-layout__identity">
             <p className="dashboard-layout__name">{user?.name}</p>
@@ -88,10 +93,10 @@ export function DashboardLayout({
 
       <div className="dashboard-layout__body">
         <header className="dashboard-layout__topbar">
-          <Logo />
+          <Logo light compact />
           <button
             type="button"
-            className="dashboard-layout__topbar-signout"
+            className="btn btn-sm btn-outline-light"
             onClick={handleSignOut}
           >
             Cerrar sesión

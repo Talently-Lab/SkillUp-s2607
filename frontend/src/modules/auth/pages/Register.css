@@ -1,34 +1,49 @@
 .register__title {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 700;
-  line-height: 1.25;
-  letter-spacing: -0.5px;
+  font-size: clamp(3rem, 6vw, 3.9rem);
 }
 
 .register__subtitle {
-  margin-top: 0.5rem;
-  font-size: 0.875rem;
+  margin-top: 8px;
   color: var(--text-muted);
 }
 
+.register__perks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-top: 16px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .ico {
+    width: 16px;
+    height: 16px;
+    color: var(--teal-text);
+  }
+}
+
 .register__google {
-  margin-top: 1.5rem;
+  margin-top: 28px;
 }
 
 .register__form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
+  display: grid;
+  gap: 16px;
 }
 
 .register__required-note {
-  font-size: 0.75rem;
-  color: var(--text-subtle);
+  font-size: 0.8rem;
+  color: var(--text-muted);
 }
 
 .register__required-mark {
-  color: var(--color-error-text);
+  color: var(--danger);
 }
 
 .register__strength {
@@ -40,109 +55,66 @@
 .register__strength-bars {
   display: flex;
   flex: 1;
-  gap: 0.25rem;
+  gap: 4px;
 }
 
 .register__strength-bar {
   flex: 1;
-  height: 0.25rem;
+  height: 5px;
   border-radius: 999px;
-  background-color: var(--border);
+  background-color: var(--surface-2);
   transition: background-color 0.2s ease;
 }
 
 .register__strength-bar--weak {
-  background-color: var(--color-error);
+  background-color: var(--danger-fill);
 }
 
 .register__strength-bar--fair {
-  background-color: #f5b301;
+  background-color: var(--warning);
 }
 
 .register__strength-bar--strong {
-  background-color: var(--color-success);
+  background-color: var(--success);
 }
 
 .register__strength-label {
-  width: 4rem;
+  flex: none;
+  max-width: 60%;
+  font-weight: 600;
   text-align: right;
 }
 
 .register__submit {
-  width: 100%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  height: 2.75rem;
-  border-radius: var(--radius);
-  background-color: var(--color-primary);
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--fg);
-  transition: background-color 0.15s ease;
-
-  &:hover {
-    background-color: var(--color-primary-hover);
-  }
-
-  &:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 4px var(--color-primary-soft);
-  }
-
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.7;
-  }
+  margin-top: 6px;
+  padding-block: 0.9rem;
 }
 
 .register__terms {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   line-height: 1.6;
-  text-align: center;
-  color: var(--text-subtle);
+  color: var(--text-muted);
 }
 
 .register__terms-link {
   padding: 0;
   font-size: inherit;
-  text-decoration: underline;
-  color: inherit;
+  font-weight: 600;
+  color: var(--primary);
 
   &:hover {
-    color: var(--color-primary);
+    text-decoration: underline;
   }
 }
 
 .register__login {
-  margin-top: 2rem;
-  font-size: 0.875rem;
+  margin-top: 22px;
+  font-size: 0.95rem;
   text-align: center;
   color: var(--text-muted);
 }
 
 .register__login-link {
-  font-weight: 600;
-  color: var(--color-primary);
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
-.register__admin {
-  margin-top: 0.75rem;
-  font-size: 0.75rem;
-  text-align: center;
-  color: var(--text-subtle);
-}
-
-.register__admin-link {
-  font-weight: 500;
-  color: var(--color-primary);
-
-  &:hover {
-    text-decoration: underline;
-  }
+  font-weight: 700;
+  color: var(--primary);
 }

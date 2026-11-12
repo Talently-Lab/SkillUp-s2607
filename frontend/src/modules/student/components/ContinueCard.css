@@ -1,8 +1,9 @@
 .continue-card {
   display: grid;
   overflow: hidden;
-  border-radius: var(--radius-lg);
-  background-color: var(--text-h);
+  border-radius: var(--radius-xl);
+  background: linear-gradient(135deg, var(--brand-800), var(--brand-950));
+  box-shadow: var(--shadow-md);
 
   @media (min-width: 768px) {
     grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
@@ -37,17 +38,20 @@
 }
 
 .continue-card__eyebrow {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #f4a26f;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--teal);
 }
 
 .continue-card__title {
   margin: 0.5rem 0 0;
   font-size: 1.5rem;
-  font-weight: 700;
+  font-weight: 800;
   line-height: 1.25;
-  color: var(--fg);
+  letter-spacing: -0.02em;
+  color: #fff;
 
   @media (max-width: 1024px) {
     font-size: 1.375rem;
@@ -57,11 +61,11 @@
 .continue-card__next {
   margin-top: 0.75rem;
   font-size: 0.875rem;
-  color: #dbe1f5;
+  color: var(--on-dark-muted);
 }
 
 .continue-card__next-label {
-  color: #a9b4dc;
+  color: var(--on-dark-subtle);
 }
 
 .continue-card__footer {
@@ -78,7 +82,7 @@
   justify-content: space-between;
   gap: 1rem;
   font-size: 0.875rem;
-  color: #dbe1f5;
+  color: var(--on-dark-muted);
 }
 
 .continue-card__percent {
@@ -100,11 +104,11 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.75rem 1.25rem;
-  border-radius: var(--radius);
-  font-size: 0.875rem;
-  font-weight: 600;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
   white-space: nowrap;
-  color: var(--fg);
+  color: #fff;
   transition: background-color 0.15s ease;
 
   @media (max-width: 480px) {
@@ -113,10 +117,15 @@
 }
 
 .continue-card__btn--primary {
-  background-color: var(--color-accent);
+  background-color: var(--teal);
+  color: var(--brand-950);
 
   &:hover {
-    background-color: var(--color-accent-hover);
+    background-color: var(--teal-hover);
+  }
+
+  .continue-card__btn-icon {
+    filter: brightness(0) saturate(100%);
   }
 }
 
@@ -131,4 +140,12 @@
 .continue-card__btn-icon {
   width: 1rem;
   height: 1rem;
+}
+
+.continue-card .progress-bar {
+  background-color: rgb(255 255 255 / 0.18);
+}
+
+.continue-card .progress-bar__fill {
+  background: var(--teal);
 }

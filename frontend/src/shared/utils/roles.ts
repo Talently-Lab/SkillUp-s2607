@@ -19,17 +19,11 @@ export const rolePanelLabel: Partial<Record<AccountType, string>> = {
   admin: "Administración",
 };
 
-const roleParam: Record<AccountType, string> = {
-  student: "alumno",
-  teacher: "docente",
-  admin: "admin",
-};
+/** One access for students and teachers; admins have their own route (design doc §6) */
+export const GENERAL_ROLES: AccountType[] = ["student", "teacher"];
+export const ADMIN_LOGIN_PATH = "/admin/login";
 
 export function loginPath(role: AccountType, redirect?: string): string {
-  const params = new URLSearchParams();
-  if (role !== "student") params.set("tipo", roleParam[role]);
-  if (redirect) params.set("redirect", redirect);
-
-  const query = params.toString();
-  return query ? `/login?${query}` : "/login";
+  const base = role === "admin" ? ADMIN_LOGIN_PATH : "/login";
+  return redirect ? `${base}?redirect=${encodeURIComponent(redirect)}` : base;
 }

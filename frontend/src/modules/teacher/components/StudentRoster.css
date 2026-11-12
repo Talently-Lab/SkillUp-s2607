@@ -3,7 +3,7 @@
   position: relative;
   overflow: hidden;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius);
   background-color: var(--fg);
 }
 
@@ -90,19 +90,19 @@
 }
 
 .student-roster__badge--at-risk {
-  background-color: rgb(235 87 87 / 0.12);
+  background-color: var(--danger-bg);
   color: var(--color-error-text);
 }
 
 .student-roster__badge--completed {
-  background-color: rgb(33 150 83 / 0.12);
+  background-color: var(--success-bg);
   color: var(--color-success);
 }
 
 .student-roster__empty {
   padding: 3.5rem 1.5rem;
   border: 1px dashed var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius);
   background-color: var(--fg);
   text-align: center;
 }

@@ -1,5 +1,5 @@
 .user-table__row--suspended {
-  background-color: rgb(239 241 251 / 0.6);
+  background-color: rgb(251 250 255 / 0.6);
 
   .user-table__name {
     color: var(--text-muted);
@@ -46,10 +46,10 @@
 .user-table__self {
   padding: 0.125rem 0.375rem;
   border-radius: 4px;
-  background-color: rgb(224 112 46 / 0.12);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  color: #b4521a;
+  background-color: rgb(109 63 224 / 0.12);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--primary);
 }
 
 .user-table__email {
@@ -76,7 +76,7 @@
     box-shadow 0.15s ease;
 
   &:hover:not(:disabled) {
-    border-color: #c5cff5;
+    border-color: var(--primary-line);
   }
 
   &:focus {

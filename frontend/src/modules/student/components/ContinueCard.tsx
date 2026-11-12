@@ -28,7 +28,7 @@ export function ContinueCard({ course, progress, next }: ContinueCardProps) {
       </div>
       <div className="continue-card__body">
         <p className="continue-card__eyebrow">
-          {notStarted ? "Empieza aquí" : "Continúa donde lo dejaste"}
+          {notStarted ? "Empezá acá" : "Seguí donde quedaste"}
         </p>
         <h2 id="continue-heading" className="continue-card__title">
           {course.title}

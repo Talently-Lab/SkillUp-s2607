@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 
+import { AdminTableSkeleton } from "@/modules/admin/components/AdminTableSkeleton";
 import { CourseFormModal } from "@/modules/admin/components/CourseFormModal";
 import { CourseTable } from "@/modules/admin/components/CourseTable";
 import { CourseTableToolbar } from "@/modules/admin/components/CourseTableToolbar";
@@ -12,7 +13,6 @@ import {
 } from "@/modules/admin/hooks/useAdminCourses";
 import { courseErrorMessage } from "@/modules/admin/utils/courseErrorMessage";
 import { courseRevenue } from "@/modules/admin/utils/metrics";
-import { PageLoader } from "@/shared/components/Loader";
 import { useFetch } from "@/shared/hooks/useFetch";
 import { adminUsersService } from "@/shared/services/adminUsersService";
 import { categoriesService } from "@/shared/services/categoriesService";
@@ -102,7 +102,7 @@ export function AdminCourses() {
     <div className="admin-page">
       <header className="admin-page__header">
         <div>
-          <h1 className="admin-page__title">Cursos</h1>
+          <h1 className="display admin-page__title">Cursos</h1>
           <p className="admin-page__subtitle">
             {courses.length} cursos en la plataforma ·{" "}
             {formatNumber(totalStudents)} inscripciones ·{" "}
@@ -132,7 +132,10 @@ export function AdminCourses() {
         />
 
         {table.isLoading ? (
-          <PageLoader label="Cargando cursos…" />
+          <AdminTableSkeleton
+            label="Cargando cursos…"
+            columns={["media-text", "text", "text", "text", "text", "text", "text", "pill", "button"]}
+          />
         ) : table.hasError ? (
           <div className="admin-page__empty" role="alert">
             <MaskIcon src={AlertIcon} className="admin-page__empty-icon" />
@@ -140,7 +143,7 @@ export function AdminCourses() {
               No pudimos cargar los cursos
             </p>
             <p className="admin-page__empty-text">
-              Revisa tu conexión e inténtalo de nuevo.
+              Revisá tu conexión y probá de nuevo.
             </p>
             <button
               type="button"
@@ -169,8 +172,8 @@ export function AdminCourses() {
             </p>
             <p className="admin-page__empty-text">
               {courses.length === 0
-                ? "Crea el primero para que aparezca en el catálogo."
-                : "Ajusta la búsqueda o los filtros."}
+                ? "Creá el primero para que aparezca en el catálogo."
+                : "Ajustá la búsqueda o los filtros."}
             </p>
             <button
               type="button"

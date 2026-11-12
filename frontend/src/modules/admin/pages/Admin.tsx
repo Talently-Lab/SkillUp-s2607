@@ -36,7 +36,7 @@ export function Admin() {
   return (
     <div className="admin-dashboard">
       <header>
-        <h1 className="admin-dashboard__title">Panel de control</h1>
+        <h1 className="display admin-dashboard__title">Panel de control</h1>
         <p className="admin-dashboard__subtitle">
           Resumen del campus al {today}
         </p>
@@ -51,7 +51,7 @@ export function Admin() {
             No pudimos cargar las métricas
           </p>
           <p className="admin-page__empty-text">
-            Revisa tu conexión e inténtalo de nuevo.
+            Revisá tu conexión y probá de nuevo.
           </p>
           <button
             type="button"

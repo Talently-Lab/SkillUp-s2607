@@ -91,17 +91,11 @@ export function SiteHeader() {
               <UserMenu user={user} onSignOut={handleSignOut} />
             ) : (
               <>
-                <Link
-                  to="/login"
-                  className="site-header__btn site-header__btn--ghost"
-                >
+                <Link to="/login" className="btn btn-ghost">
                   Iniciar sesión
                 </Link>
-                <Link
-                  to="/register"
-                  className="site-header__btn site-header__btn--primary"
-                >
-                  Crear cuenta
+                <Link to="/register" className="btn btn-primary">
+                  Empezá gratis
                 </Link>
               </>
             )}
@@ -148,7 +142,7 @@ export function SiteHeader() {
               </div>
               <button
                 type="button"
-                className="site-header__btn site-header__btn--ghost"
+                className="btn btn-sm btn-outline"
                 onClick={handleSignOut}
               >
                 Cerrar sesión
@@ -156,17 +150,11 @@ export function SiteHeader() {
             </div>
           ) : (
             <div className="site-header__mobile-auth">
-              <Link
-                to="/login"
-                className="site-header__btn site-header__btn--lg site-header__btn--outline"
-              >
+              <Link to="/login" className="btn btn-outline">
                 Iniciar sesión
               </Link>
-              <Link
-                to="/register"
-                className="site-header__btn site-header__btn--lg site-header__btn--primary"
-              >
-                Crear cuenta
+              <Link to="/register" className="btn btn-primary">
+                Empezá gratis
               </Link>
             </div>
           )}

@@ -118,7 +118,7 @@ export function StudentRoster({ course, roster }: StudentRosterProps) {
           Aún no hay alumnos inscritos
         </p>
         <p className="student-roster__empty-text">
-          Cuando alguien se inscriba en este curso aparecerá aquí.
+          Cuando alguien se inscriba en este curso aparecerá acá.
         </p>
       </div>
     );
@@ -286,7 +286,7 @@ export function StudentRoster({ course, roster }: StudentRosterProps) {
             Ningún alumno coincide con la búsqueda
           </p>
           <p className="admin-page__empty-text">
-            Prueba con otro nombre o cambia el filtro.
+            Probá con otro nombre o cambiá el filtro.
           </p>
           <button
             type="button"

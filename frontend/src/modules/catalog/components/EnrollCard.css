@@ -3,7 +3,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background-color: var(--fg);
-  box-shadow: 0 16px 40px -24px rgb(22 33 77 / 0.35);
+  box-shadow: 0 16px 40px -24px rgb(27 15 69 / 0.35);
 }
 
 .enroll-card__image {
@@ -66,7 +66,7 @@
   color: var(--text-h);
 
   &:hover {
-    border-color: #c5cff5;
+    border-color: var(--primary-line);
     background-color: var(--color-primary-soft);
   }
 }

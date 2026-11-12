@@ -26,11 +26,11 @@ const metricOptions: { value: Metric; label: string }[] = [
   { value: "orders", label: "Órdenes" },
 ];
 
-const BAR_COLOR = "#2c4bdb";
-const BAR_DIM_COLOR = "#b9c4f3";
-const CURRENT_COLOR = "#e0702e";
-const GRID_COLOR = "#e2e8f0";
-const TICK_COLOR = "#64748b";
+const BAR_COLOR = "#6d3fe0";
+const BAR_DIM_COLOR = "#d9cdfb";
+const CURRENT_COLOR = "#17bfa6";
+const GRID_COLOR = "#e7e4f0";
+const TICK_COLOR = "#6b6788";
 
 type ChartTooltipProps = {
   active?: boolean;
@@ -130,7 +130,7 @@ export function SalesChart({ data }: SalesChartProps) {
                   : formatNumber(value)
               }
             />
-            <Tooltip content={<ChartTooltip />} cursor={{ fill: "#eff1fb" }} />
+            <Tooltip content={<ChartTooltip />} cursor={{ fill: "#f7f4ff" }} />
             <Bar
               dataKey={metric}
               radius={[4, 4, 0, 0]}

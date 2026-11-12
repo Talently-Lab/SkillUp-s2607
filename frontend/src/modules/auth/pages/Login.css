@@ -1,87 +1,57 @@
-.login__toggle {
-  margin-bottom: 2rem;
-}
-
 .login__title {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 700;
-  line-height: 1.25;
-  letter-spacing: -0.5px;
+  font-size: clamp(3rem, 6vw, 3.9rem);
 }
 
 .login__subtitle {
-  margin-top: 0.5rem;
-  font-size: 0.875rem;
+  margin-top: 8px;
   color: var(--text-muted);
 }
 
 .login__google {
-  margin-top: 2rem;
+  margin-top: 28px;
 }
 
 .login__form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-.login__form--spaced {
-  margin-top: 2rem;
-}
-
-.login__forgot {
-  padding: 0;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--color-primary);
-
-  &:hover {
-    text-decoration: underline;
-  }
+  display: grid;
+  gap: 16px;
 }
 
 .login__submit {
-  width: 100%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  height: 2.75rem;
-  border-radius: var(--radius);
-  background-color: var(--color-primary);
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--fg);
-  transition: background-color 0.15s ease;
-
-  &:hover {
-    background-color: var(--color-primary-hover);
-  }
-
-  &:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 4px var(--color-primary-soft);
-  }
-
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.7;
-  }
+  margin-top: 6px;
+  padding-block: 0.9rem;
 }
 
 .login__footer {
-  margin-top: 2rem;
-  font-size: 0.875rem;
+  margin-top: 22px;
+  font-size: 0.95rem;
   text-align: center;
   color: var(--text-muted);
 }
 
 .login__register-link {
-  font-weight: 600;
-  color: var(--color-primary);
+  font-weight: 700;
+  color: var(--primary);
+}
 
-  &:hover {
-    text-decoration: underline;
+.login__staff {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 28px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+
+  .ico {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    color: var(--primary);
+  }
+
+  strong {
+    color: var(--ink);
   }
 }

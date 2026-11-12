@@ -86,7 +86,7 @@ export function useClassroom({
         markDone(active.id);
         goTo(1);
       } else {
-        toast.error("No pudimos guardar tu progreso. Inténtalo de nuevo.");
+        toast.error("No pudimos guardar tu progreso. Probá de nuevo.");
       }
     } finally {
       setIsSaving(false);

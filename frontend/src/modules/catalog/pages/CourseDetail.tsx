@@ -49,7 +49,7 @@ export function CourseDetail() {
           No pudimos cargar este curso
         </h1>
         <p className="course-not-found__text">
-          Revisa tu conexión e inténtalo de nuevo en unos segundos.
+          Revisá tu conexión y probá de nuevo en unos segundos.
         </p>
         <button
           type="button"
@@ -111,7 +111,7 @@ function CourseDetailView({ course }: { course: Course }) {
 
   return (
     <div className="course-detail">
-      <section className="course-hero">
+      <section className="course-hero aurora-host">
         <div className="course-hero__inner container">
           <nav className="course-hero__breadcrumb" aria-label="Ruta de navegación">
             <Link to="/catalog" className="course-hero__breadcrumb-link">
@@ -170,7 +170,7 @@ function CourseDetailView({ course }: { course: Course }) {
       <div className="course-detail__layout container">
         <div className="course-detail__main">
           <section aria-labelledby="about-heading">
-            <h2 id="about-heading" className="course-detail__section-title">
+            <h2 id="about-heading" className="display course-detail__section-title">
               Sobre este curso
             </h2>
             <div className="course-detail__description">
@@ -184,7 +184,7 @@ function CourseDetailView({ course }: { course: Course }) {
             className="course-outcomes"
             aria-labelledby="outcomes-heading"
           >
-            <h2 id="outcomes-heading" className="course-detail__section-title">
+            <h2 id="outcomes-heading" className="display course-detail__section-title">
               Lo que aprenderás
             </h2>
             <ul className="course-outcomes__list">
@@ -198,7 +198,7 @@ function CourseDetailView({ course }: { course: Course }) {
           </section>
 
           <section aria-labelledby="syllabus-heading">
-            <h2 id="syllabus-heading" className="course-detail__section-title">
+            <h2 id="syllabus-heading" className="display course-detail__section-title">
               Temario
             </h2>
             {access.isLoading ? (
@@ -249,7 +249,7 @@ function CourseDetailView({ course }: { course: Course }) {
           />
 
           <section aria-labelledby="teacher-heading">
-            <h2 id="teacher-heading" className="course-detail__section-title">
+            <h2 id="teacher-heading" className="display course-detail__section-title">
               Tu docente
             </h2>
             <div className="course-teacher">

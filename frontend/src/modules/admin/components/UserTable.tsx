@@ -92,7 +92,7 @@ export function UserTable({
                     }
                     title={
                       self
-                        ? "No puedes cambiar tu propio rol"
+                        ? "No podés cambiar tu propio rol"
                         : suspended
                           ? "Reactiva la cuenta para cambiar el rol"
                           : undefined

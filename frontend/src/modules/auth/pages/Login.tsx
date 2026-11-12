@@ -3,17 +3,14 @@ import { Link, Navigate, useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
 
 import { AuthLayout } from "@/layouts/AuthLayout";
-import { AccountTypeToggle } from "@/shared/components/AccountTypeToggle";
 import { AuthDivider } from "@/shared/components/AuthDivider";
 import { FormField } from "@/shared/components/FormField";
 import { GoogleButton } from "@/shared/components/GoogleButton";
+import { Icon } from "@/shared/components/Icon";
 import { Loader } from "@/shared/components/Loader";
 import { PasswordToggle } from "@/shared/components/PasswordToggle";
 import { useAuthStore } from "@/shared/stores/authStore";
-import type { AccountType } from "@/shared/types/account";
-import { roleHome } from "@/shared/utils/roles";
-import { copy } from "@/modules/auth/constants/loginCopy";
-import { accountTypeFromParam } from "@/modules/auth/utils/accountTypeFromParam";
+import { GENERAL_ROLES, roleHome } from "@/shared/utils/roles";
 import { authErrorMessage } from "@/modules/auth/utils/authErrorMessage";
 import {
   validateLogin,
@@ -27,9 +24,6 @@ export function Login() {
   const [params] = useSearchParams();
   const user = useAuthStore((state) => state.user);
   const login = useAuthStore((state) => state.login);
-  const [accountType, setAccountType] = useState<AccountType>(() =>
-    accountTypeFromParam(params.get("tipo")),
-  );
   const [showPassword, setShowPassword] = useState(false);
   const [values, setValues] = useState<LoginValues>({
     email: "",
@@ -37,8 +31,6 @@ export function Login() {
   });
   const [errors, setErrors] = useState<LoginErrors>({});
   const [loading, setLoading] = useState(false);
-  const text = copy[accountType];
-  const isAdmin = accountType === "admin";
   // Only same-site paths, so the param can't send the user to another domain
   const redirectParam = params.get("redirect");
   const redirect =
@@ -61,7 +53,7 @@ export function Login() {
 
     setLoading(true);
     try {
-      const signedIn = await login(values, accountType);
+      const signedIn = await login(values, GENERAL_ROLES);
       navigate(redirect ?? roleHome[signedIn.role], { replace: true });
     } catch (error) {
       toast.error(authErrorMessage(error));
@@ -71,52 +63,28 @@ export function Login() {
 
   return (
     <AuthLayout
+      title={["Aprendé a tu ritmo,", "terminá lo que empezás."]}
       quote="Terminé tres cursos mientras trabajaba. Tener todo en un solo lugar me ahorró horas cada semana."
       author="Camila Torres"
       role="Analista de datos"
+      initials="CT"
     >
-      <div className="login__toggle">
-        <AccountTypeToggle
-          value={accountType}
-          options={["student", "teacher", "admin"]}
-          onChange={(type) => {
-            setAccountType(type);
-            setErrors({});
-          }}
-        />
+      <h1 className="display login__title">Hola de nuevo</h1>
+      <p className="login__subtitle">Iniciá sesión para seguir con tus cursos.</p>
+
+      <div className="login__google">
+        <GoogleButton soon disabled={loading} />
       </div>
 
-      <h1 className="login__title">{text.title}</h1>
-      <p className="login__subtitle">{text.subtitle}</p>
+      <AuthDivider />
 
-      {!isAdmin && (
-        <>
-          <div className="login__google">
-            <GoogleButton
-              onClick={() =>
-                toast.info(
-                  "El inicio de sesión con Google estará disponible pronto.",
-                )
-              }
-              disabled={loading}
-            />
-          </div>
-
-          <AuthDivider />
-        </>
-      )}
-
-      <form
-        className={isAdmin ? "login__form login__form--spaced" : "login__form"}
-        onSubmit={handleSubmit}
-        noValidate
-      >
+      <form className="login__form" onSubmit={handleSubmit} noValidate>
         <FormField
           id="login-email"
-          label={text.emailLabel}
+          label="Email"
           type="email"
           autoComplete="email"
-          placeholder={text.emailPlaceholder}
+          placeholder="tu@email.com"
           required
           value={values.email}
           onChange={(event) => handleChange("email", event.target.value)}
@@ -134,13 +102,6 @@ export function Login() {
           onChange={(event) => handleChange("password", event.target.value)}
           error={errors.password}
           disabled={loading}
-          /* TODO: la recuperación de contraseña queda fuera del MVP; descomentar cuando se desarrolle
-          labelAction={
-            <button type="button" className="login__forgot">
-              ¿Olvidaste tu contraseña?
-            </button>
-          }
-          */
           trailing={
             <PasswordToggle
               visible={showPassword}
@@ -149,25 +110,30 @@ export function Login() {
           }
         />
 
-        <button type="submit" className="login__submit" disabled={loading}>
+        <button
+          type="submit"
+          className="btn btn-primary btn-block login__submit"
+          disabled={loading}
+        >
           {loading && <Loader />}
-          {loading ? "Iniciando sesión…" : text.submit}
+          {loading ? "Iniciando sesión…" : "Iniciar sesión"}
         </button>
       </form>
 
-      {accountType !== "student" ? (
-        <p className="login__footer">
-          Las cuentas {isAdmin ? "de administrador" : "docentes"} las crea el
-          equipo académico.
-        </p>
-      ) : (
-        <p className="login__footer">
-          ¿Aún no tienes cuenta?{" "}
-          <Link to="/register" className="login__register-link">
-            Regístrate gratis
-          </Link>
-        </p>
-      )}
+      <p className="login__footer">
+        ¿Todavía no tenés cuenta?{" "}
+        <Link to="/register" className="login__register-link">
+          Creá tu cuenta gratis
+        </Link>
+      </p>
+
+      <p className="login__staff">
+        <Icon name="book" />
+        <span>
+          <strong>¿Sos docente?</strong> Entrás desde acá con el email que te
+          dio el equipo académico. Te llevamos directo a tu panel.
+        </span>
+      </p>
     </AuthLayout>
   );
 }

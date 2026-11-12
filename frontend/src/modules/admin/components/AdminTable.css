@@ -5,12 +5,12 @@
 .admin-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   text-align: left;
 
   th,
   td {
-    padding: 0.75rem 0.625rem;
+    padding: 12px 10px;
     white-space: nowrap;
 
     &:first-child {
@@ -23,14 +23,14 @@
   }
 
   thead {
-    border-bottom: 1px solid var(--border);
-    background-color: var(--bg);
+    border-bottom: 1px solid var(--line);
+    background-color: var(--primary-tint);
   }
 
   th {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--text-subtle);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-muted);
   }
 
   td {
@@ -46,7 +46,7 @@
     }
 
     &:hover {
-      background-color: var(--bg);
+      background-color: var(--primary-tint);
     }
   }
 }
@@ -118,5 +118,17 @@
     .admin-button--sm {
       flex: 1;
     }
+  }
+}
+
+.admin-table--skeleton {
+  min-height: 400px;
+
+  td {
+    width: auto;
+  }
+
+  tbody tr:hover {
+    background-color: transparent;
   }
 }

@@ -1,0 +1,131 @@
+.admin-gate {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-height: 100svh;
+  padding: 32px max(16px, env(safe-area-inset-right, 0px)) 32px max(16px, env(safe-area-inset-left, 0px));
+}
+
+.admin-gate__card {
+  width: 100%;
+  max-width: 420px;
+  padding: 36px 32px 28px;
+  border: 1px solid var(--on-dark-line);
+  border-radius: var(--radius-xl);
+  background: rgb(23 20 43 / 0.72);
+  box-shadow: 0 40px 80px -40px rgb(0 0 0 / 0.7);
+  backdrop-filter: blur(14px);
+
+  :focus-visible {
+    outline-color: var(--teal);
+  }
+
+  .form-field__label {
+    color: var(--on-dark-muted);
+  }
+
+  .form-field__input {
+    border-color: rgb(255 255 255 / 0.16);
+    background: rgb(255 255 255 / 0.05);
+    color: #fff;
+
+    &::placeholder {
+      color: var(--on-dark-subtle);
+    }
+
+    &:hover {
+      border-color: rgb(255 255 255 / 0.3);
+    }
+
+    &:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 4px rgb(47 217 192 / 0.18);
+    }
+  }
+
+  .form-field__error {
+    color: #ffb4ad;
+  }
+
+  .password-toggle {
+    filter: invert(1);
+  }
+}
+
+.admin-gate__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  color: #fff;
+
+  b {
+    color: var(--teal);
+  }
+
+  .fox {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+.admin-gate__title {
+  margin-top: 30px;
+  font-size: clamp(2.6rem, 8vw, 3.2rem);
+  color: #fff;
+}
+
+.admin-gate__sub {
+  margin-top: 6px;
+  font-size: 0.95rem;
+  color: var(--on-dark-muted);
+}
+
+.admin-gate__form {
+  display: grid;
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.admin-gate__error {
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid rgb(230 111 102 / 0.4);
+  border-radius: 12px;
+  background: rgb(211 46 34 / 0.16);
+  font-size: 0.87rem;
+  color: #ffd0cc;
+
+  .ico {
+    width: 18px;
+    height: 18px;
+    margin-top: 1px;
+    color: #ff9b93;
+  }
+
+  a {
+    color: #fff;
+    text-decoration: underline;
+  }
+}
+
+.admin-gate__submit {
+  margin-top: 4px;
+  padding-block: 0.9rem;
+}
+
+.admin-gate__foot {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--on-dark-line);
+  font-size: 0.82rem;
+  color: var(--on-dark-subtle);
+
+  a {
+    font-weight: 650;
+    color: #fff;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}

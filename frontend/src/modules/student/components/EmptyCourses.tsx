@@ -14,8 +14,8 @@ export function EmptyCourses() {
         Tu panel está listo para tu primer curso
       </h2>
       <p className="empty-courses__text">
-        Explora el catálogo e inscríbete con un clic. Tu progreso aparecerá
-        aquí.
+        Explorá el catálogo e inscribite con un clic. Tu progreso aparecerá
+        acá.
       </p>
       <Link to="/catalog" className="empty-courses__btn">
         Ver catálogo

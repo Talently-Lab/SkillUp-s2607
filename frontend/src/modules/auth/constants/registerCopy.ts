@@ -1,9 +1,9 @@
 export const copy = {
   student: {
-    title: "Crea tu cuenta gratis",
-    subtitle: "Solo te pedimos lo necesario. Empieza a aprender hoy.",
+    title: "Empezá gratis",
+    subtitle: "Creá tu cuenta en un minuto y entrá a tu primera clase hoy.",
     nameLabel: "Nombre y apellido",
-    namePlaceholder: "Tu nombre y apellido",
-    submit: "Crear cuenta",
+    namePlaceholder: "Ej. Camila Suárez",
+    submit: "Crear mi cuenta",
   },
 };

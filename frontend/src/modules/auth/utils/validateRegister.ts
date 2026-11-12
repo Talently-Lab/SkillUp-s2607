@@ -22,20 +22,20 @@ export function validateRegister({
   const errors: RegisterErrors = {};
 
   const trimmedName = name.trim();
-  if (!trimmedName) errors.name = "Ingresa tu nombre y apellido.";
+  if (!trimmedName) errors.name = "Ingresá tu nombre y apellido.";
   else if (trimmedName.length < NAME_MIN_LENGTH)
-    errors.name = `Usa al menos ${NAME_MIN_LENGTH} caracteres.`;
+    errors.name = `Usá al menos ${NAME_MIN_LENGTH} caracteres.`;
   else if (trimmedName.length > NAME_MAX_LENGTH)
-    errors.name = `Usa como máximo ${NAME_MAX_LENGTH} caracteres.`;
+    errors.name = `Usá como máximo ${NAME_MAX_LENGTH} caracteres.`;
   else if (!NAME_PATTERN.test(trimmedName))
-    errors.name = "Usa solo letras, espacios, guiones y apóstrofes.";
+    errors.name = "Usá solo letras, espacios, guiones y apóstrofes.";
 
-  if (!email.trim()) errors.email = "Ingresa tu email.";
-  else if (!isValidEmail(email)) errors.email = "Ingresa un email válido.";
+  if (!email.trim()) errors.email = "Ingresá tu email.";
+  else if (!isValidEmail(email)) errors.email = "Ingresá un email válido.";
 
-  if (!password) errors.password = "Ingresa una contraseña.";
+  if (!password) errors.password = "Ingresá una contraseña.";
   else if (password.length < PASSWORD_MIN_LENGTH)
-    errors.password = `Usa al menos ${PASSWORD_MIN_LENGTH} caracteres.`;
+    errors.password = `Usá al menos ${PASSWORD_MIN_LENGTH} caracteres.`;
 
   return errors;
 }
