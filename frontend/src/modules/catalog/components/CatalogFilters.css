@@ -117,5 +117,5 @@
 .catalog-filters__segment--active {
   background-color: var(--fg);
   color: var(--color-primary);
-  box-shadow: 0 1px 2px rgb(22 33 77 / 0.08);
+  box-shadow: 0 1px 2px rgb(27 15 69 / 0.08);
 }

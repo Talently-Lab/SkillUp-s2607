@@ -9,7 +9,9 @@
 
 /* Hero */
 .course-hero {
-  background-color: var(--text-h);
+  background:
+    radial-gradient(60% 120% at 100% 0%, rgb(47 217 192 / 0.18), transparent 60%),
+    radial-gradient(70% 90% at 85% 40%, var(--brand-800) 0%, var(--brand-900) 45%, var(--brand-950) 100%);
 }
 
 .course-hero__inner {
@@ -26,7 +28,7 @@
   align-items: center;
   gap: 0.375rem;
   font-size: 0.875rem;
-  color: #b9c3e8;
+  color: var(--on-dark-subtle);
 }
 
 .course-hero__breadcrumb-link:hover {
@@ -54,9 +56,10 @@
 .course-hero__title {
   margin: 1.5rem 0 0;
   font-size: 1.875rem;
-  line-height: 1.2;
-  letter-spacing: -0.5px;
-  color: var(--fg);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  color: #fff;
 
   @media (min-width: 640px) {
     font-size: 2.25rem;
@@ -72,7 +75,7 @@
   margin-top: 1rem;
   font-size: 1.125rem;
   line-height: 1.6;
-  color: #dbe1f7;
+  color: var(--on-dark-muted);
 }
 
 .course-hero__meta {
@@ -82,7 +85,7 @@
   gap: 0.75rem 1.5rem;
   margin: 1.75rem 0 0;
   font-size: 0.875rem;
-  color: #dbe1f7;
+  color: var(--on-dark-muted);
 
   dd {
     margin: 0;
@@ -123,7 +126,7 @@
 .course-hero__instructor {
   margin-top: 1.25rem;
   font-size: 0.875rem;
-  color: #b9c3e8;
+  color: var(--on-dark-subtle);
 
   strong {
     font-weight: 600;
@@ -166,12 +169,10 @@
 
 .course-detail__section-title {
   margin: 0;
-  font-size: 1.25rem;
-  font-weight: 700;
-  letter-spacing: -0.24px;
+  font-size: clamp(2.2rem, 3.6vw, 2.9rem);
 
   @media (max-width: 1024px) {
-    font-size: 1.25rem;
+    font-size: 2.2rem;
   }
 }
 

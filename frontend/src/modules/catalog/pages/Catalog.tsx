@@ -1,7 +1,7 @@
 import { useState } from "react";
 
-import { CourseCard } from "@/shared/components/CourseCard";
-import { PageLoader } from "@/shared/components/Loader";
+import { CourseCard, CourseCardSkeleton } from "@/shared/components/CourseCard";
+import { useDelayedFlag } from "@/shared/hooks/useDelayedFlag";
 import { useFetch } from "@/shared/hooks/useFetch";
 import { categoriesService } from "@/shared/services/categoriesService";
 import { coursesService } from "@/shared/services/coursesService";
@@ -36,6 +36,7 @@ export function Catalog() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const closeDrawer = () => setIsDrawerOpen(false);
   const resultCount = catalog.results.length;
+  const showSkeleton = useDelayedFlag(coursesQuery.isLoading);
 
   // Without the categories endpoint the filter still works with the loaded courses
   const categories =
@@ -67,11 +68,12 @@ export function Catalog() {
   return (
     <div className="catalog">
       <section className="catalog-hero">
+        <span className="fox catalog-hero__fox" aria-hidden="true" />
         <div className="catalog-hero__inner container">
-          <h1 className="catalog-hero__title">Catálogo de cursos</h1>
+          <h1 className="display catalog-hero__title">Catálogo de cursos</h1>
           <p className="catalog-hero__subtitle">
             {coursesQuery.data ? `${courses.length} cursos` : "Cursos"} online
-            con certificado. Encuentra el tuyo y empieza hoy.
+            con certificado. Encontrá el tuyo y empezá hoy.
           </p>
           <div className="catalog-search">
             <label htmlFor="catalog-search" className="visually-hidden">
@@ -84,7 +86,7 @@ export function Catalog() {
               className="catalog-search__input"
               value={catalog.query}
               onChange={(event) => catalog.setQuery(event.target.value)}
-              placeholder="Busca por tema, curso o docente…"
+              placeholder="Buscá por tema, curso o docente…"
             />
             {catalog.query && (
               <button
@@ -101,6 +103,31 @@ export function Catalog() {
               </button>
             )}
           </div>
+          {categories.length > 0 && (
+            <div className="catalog-hero__quick" role="group" aria-label="Áreas">
+              <button
+                type="button"
+                className="chip"
+                aria-pressed={catalog.filters.categories.length === 0}
+                onClick={() =>
+                  catalog.filters.categories.forEach(catalog.toggleCategory)
+                }
+              >
+                Todas
+              </button>
+              {categories.map((name) => (
+                <button
+                  key={name}
+                  type="button"
+                  className="chip"
+                  aria-pressed={catalog.filters.categories.includes(name)}
+                  onClick={() => catalog.toggleCategory(name)}
+                >
+                  {name}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -148,7 +175,17 @@ export function Catalog() {
           </div>
 
           {coursesQuery.isLoading ? (
-            <PageLoader label="Cargando cursos…" />
+            <div aria-busy="true" aria-label="Cargando cursos…">
+              {showSkeleton && (
+                <ul className="catalog__grid">
+                  {Array.from({ length: 8 }, (_, index) => (
+                    <li key={index}>
+                      <CourseCardSkeleton />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           ) : coursesQuery.error ? (
             <div className="catalog-empty" role="alert">
               <span className="catalog-empty__icon-wrap">
@@ -162,11 +199,11 @@ export function Catalog() {
                 No pudimos cargar los cursos
               </h3>
               <p className="catalog-empty__text">
-                Revisa tu conexión e inténtalo de nuevo en unos segundos.
+                Revisá tu conexión y probá de nuevo en unos segundos.
               </p>
               <button
                 type="button"
-                className="catalog-empty__btn"
+                className="btn btn-primary catalog-empty__btn"
                 onClick={coursesQuery.retry}
               >
                 Reintentar
@@ -192,12 +229,12 @@ export function Catalog() {
                 No encontramos cursos con esos criterios
               </h3>
               <p className="catalog-empty__text">
-                Prueba con otra palabra clave o quita algunos filtros para ver
+                Probá con otra palabra clave o sacá algunos filtros para ver
                 más resultados.
               </p>
               <button
                 type="button"
-                className="catalog-empty__btn"
+                className="btn btn-primary catalog-empty__btn"
                 onClick={catalog.resetAll}
               >
                 Limpiar búsqueda y filtros

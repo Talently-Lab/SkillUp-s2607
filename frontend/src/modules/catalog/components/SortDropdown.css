@@ -16,7 +16,7 @@
   white-space: nowrap;
 
   &:hover {
-    border-color: #c5cff5;
+    border-color: var(--primary-line);
   }
 
   &:focus-visible {
@@ -46,7 +46,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background-color: var(--fg);
-  box-shadow: 0 12px 28px -12px rgb(22 33 77 / 0.3);
+  box-shadow: 0 12px 28px -12px rgb(27 15 69 / 0.3);
   animation: sort-dropdown-in 0.15s ease-out;
 
   &:focus {
