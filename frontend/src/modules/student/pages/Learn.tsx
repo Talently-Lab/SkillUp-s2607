@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { Link, Navigate, useParams } from "react-router";
 
 import { ApiError } from "@/shared/api/http";
@@ -17,6 +18,7 @@ import { useClassroom } from "@/modules/student/hooks/useClassroom";
 import CheckCircleIcon from "@/assets/icons/check-circle.svg";
 import ChevronLeftIcon from "@/assets/icons/chevron-left.svg";
 import ChevronRightIcon from "@/assets/icons/chevron-right.svg";
+import CloseIcon from "@/assets/icons/close.svg";
 import "./Learn.css";
 
 type ClassroomData = {
@@ -63,7 +65,7 @@ export function Learn() {
         <p className="learn-message__text">
           {notFound
             ? "Puede que haya cambiado de nombre o ya no esté disponible."
-            : "Revisa tu conexión e inténtalo de nuevo en unos segundos."}
+            : "Revisá tu conexión y probá de nuevo en unos segundos."}
         </p>
         {notFound ? (
           <Link to="/student" className="learn-message__btn">
@@ -87,6 +89,28 @@ export function Learn() {
 function Classroom({ course, enrollmentId, modules, progress }: ClassroomData) {
   const room = useClassroom({ enrollmentId, modules, progress });
   const { active } = room;
+  // Below 1024px the syllabus is a side panel opened from "Contenido" (design doc §8.2)
+  const [tocOpen, setTocOpen] = useState(false);
+  const tocButton = useRef<HTMLButtonElement>(null);
+  const tocClose = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!tocOpen) return;
+    tocClose.current?.focus();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setTocOpen(false);
+        tocButton.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [tocOpen]);
+
+  const closeToc = () => {
+    setTocOpen(false);
+    tocButton.current?.focus();
+  };
 
   return (
     <div className="learn">
@@ -114,6 +138,18 @@ function Classroom({ course, enrollmentId, modules, progress }: ClassroomData) {
             />
           </div>
         </div>
+        {active && (
+          <button
+            ref={tocButton}
+            type="button"
+            className="btn btn-sm btn-outline-light learn-header__toc"
+            aria-controls="learn-toc"
+            aria-expanded={tocOpen}
+            onClick={() => setTocOpen(true)}
+          >
+            Contenido
+          </button>
+        )}
       </header>
 
       {!active ? (
@@ -122,7 +158,7 @@ function Classroom({ course, enrollmentId, modules, progress }: ClassroomData) {
             Este curso aún no tiene clases publicadas
           </h1>
           <p className="learn-message__text">
-            El docente está preparando el contenido. Vuelve pronto.
+            El docente está preparando el contenido. Volvé pronto.
           </p>
         </div>
       ) : (
@@ -140,7 +176,7 @@ function Classroom({ course, enrollmentId, modules, progress }: ClassroomData) {
                     ¡Felicitaciones! Completaste el curso
                   </p>
                   <p className="learn__finished-text">
-                    Puedes repasar cualquier clase cuando quieras.
+                    Podés repasar cualquier clase cuando quieras.
                   </p>
                 </div>
               </div>
@@ -215,16 +251,35 @@ function Classroom({ course, enrollmentId, modules, progress }: ClassroomData) {
             </div>
           </main>
 
-          <aside className="learn__aside">
+          <aside
+            id="learn-toc"
+            className={tocOpen ? "learn__aside learn__aside--open" : "learn__aside"}
+            aria-label="Contenido del curso"
+          >
+            <button
+              ref={tocClose}
+              type="button"
+              className="learn__toc-close"
+              onClick={closeToc}
+              aria-label="Cerrar contenido"
+            >
+              <img src={CloseIcon} alt="" />
+            </button>
             <LessonSidebar
               modules={modules}
               completedIds={room.completedIds}
               activeId={active.id}
               activeModuleIndex={active.moduleIndex}
               progress={room.progress}
-              onSelect={room.select}
+              onSelect={(...args: Parameters<typeof room.select>) => {
+                room.select(...args);
+                setTocOpen(false);
+              }}
             />
           </aside>
+          {tocOpen && (
+            <div className="learn__scrim" onClick={closeToc} aria-hidden="true" />
+          )}
         </div>
       )}
     </div>

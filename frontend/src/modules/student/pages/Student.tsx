@@ -1,6 +1,7 @@
 import { Link, useSearchParams } from "react-router";
 
-import { PageLoader } from "@/shared/components/Loader";
+import { Skeleton } from "@/shared/components/Skeleton";
+import { useDelayedFlag } from "@/shared/hooks/useDelayedFlag";
 import { useAuthStore } from "@/shared/stores/authStore";
 import { ContinueCard } from "@/modules/student/components/ContinueCard";
 import { DashboardTabs } from "@/modules/student/components/DashboardTabs";
@@ -27,7 +28,7 @@ export function Student() {
 
   const { data, error, isLoading, retry } = useStudentDashboard(user.id);
 
-  if (isLoading) return <PageLoader label="Cargando tus cursos…" />;
+  if (isLoading) return <StudentSkeleton />;
 
   if (error || !data) {
     return (
@@ -36,7 +37,7 @@ export function Student() {
           No pudimos cargar tus cursos
         </h1>
         <p className="student-dashboard__error-text">
-          Revisa tu conexión e inténtalo de nuevo en unos segundos.
+          Revisá tu conexión y probá de nuevo en unos segundos.
         </p>
         <button
           type="button"
@@ -83,11 +84,11 @@ export function Student() {
   return (
     <div className="student-dashboard container">
       <header>
-        <h1 className="student-dashboard__title">Hola, {firstName}</h1>
+        <h1 className="display student-dashboard__title">Hola, {firstName}</h1>
         <p className="student-dashboard__subtitle">
           {enrolled.length === 0
-            ? "Aún no tienes cursos. Elige el primero y empieza hoy."
-            : `Tienes ${enrolled.length} ${enrolled.length === 1 ? "curso activo" : "cursos activos"}. Sigue así.`}
+            ? "Todavía no tenés cursos. Elegí el primero y empezá hoy."
+            : `Tenés ${enrolled.length} ${enrolled.length === 1 ? "curso activo" : "cursos activos"}. Seguí así.`}
         </p>
       </header>
 
@@ -154,6 +155,37 @@ export function Student() {
             </div>
           ))}
       </div>
+    </div>
+  );
+}
+
+/** Continue card, course rows and side cards while the dashboard loads */
+function StudentSkeleton() {
+  const visible = useDelayedFlag(true);
+  return (
+    <div
+      className="student-dashboard container"
+      aria-busy="true"
+      aria-label="Cargando tus cursos…"
+    >
+      {visible && (
+        <>
+          <Skeleton variant="title" width={260} height={48} />
+          <Skeleton variant="text" width={320} />
+          <div className="student-dashboard__grid">
+            <div className="student-dashboard__main">
+              <Skeleton height={260} className="student-skeleton__hero" />
+              {[0, 1, 2].map((row) => (
+                <Skeleton key={row} height={96} />
+              ))}
+            </div>
+            <div className="student-dashboard__aside">
+              <Skeleton height={160} />
+              <Skeleton height={240} />
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

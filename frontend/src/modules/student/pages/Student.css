@@ -5,13 +5,7 @@
 
 .student-dashboard__title {
   margin: 0;
-  font-size: 1.875rem;
-  letter-spacing: -0.5px;
-
-  @media (max-width: 1024px) {
-    margin: 0;
-    font-size: 1.75rem;
-  }
+  font-size: clamp(2.8rem, 5vw, 3.6rem);
 }
 
 .student-dashboard__subtitle {
@@ -103,4 +97,8 @@
   &:hover {
     background-color: var(--color-primary-hover);
   }
+}
+
+.student-skeleton__hero {
+  border-radius: var(--radius-xl);
 }
