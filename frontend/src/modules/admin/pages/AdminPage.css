@@ -4,7 +4,7 @@
   gap: 1.5rem;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 2rem var(--gutter) 3rem;
+  padding: 32px clamp(16px, 3vw, 40px) 56px;
 }
 
 .admin-page__header {
@@ -23,25 +23,19 @@
 
 .admin-page__title {
   margin: 0;
-  font-size: 1.75rem;
-  letter-spacing: -0.5px;
-
-  @media (max-width: 1024px) {
-    margin: 0;
-    font-size: 1.5rem;
-  }
+  font-size: clamp(2.8rem, 5vw, 3.6rem);
 }
 
 .admin-page__subtitle {
-  margin-top: 0.25rem;
-  font-size: 0.875rem;
+  margin-top: 6px;
+  font-size: 0.95rem;
   color: var(--text-muted);
 }
 
 .admin-page__panel {
   overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
   background-color: var(--fg);
 }
 
@@ -67,6 +61,7 @@
 
 .admin-page__empty-text {
   margin: 0.25rem 0 1.25rem;
+  max-width: 44ch;
   font-size: 0.875rem;
   color: var(--text-muted);
 }
@@ -75,9 +70,9 @@
   display: flex;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.75rem 1rem;
-  border-top: 1px solid var(--border);
-  font-size: 0.75rem;
+  padding: 12px 14px;
+  border-top: 1px solid var(--line);
+  font-size: 0.85rem;
   color: var(--text-subtle);
 }
 
@@ -88,6 +83,49 @@
 }
 
 .admin-page__note {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   color: var(--text-subtle);
+}
+
+.admin-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--line);
+
+  > div {
+    padding: 16px 18px;
+    background: var(--surface);
+  }
+
+  dt {
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  dd {
+    margin: 6px 0 0;
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.admin-summary > .admin-summary__warn {
+  background: var(--warning-bg);
+
+  dt,
+  dd {
+    color: var(--warning);
+  }
 }

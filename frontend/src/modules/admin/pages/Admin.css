@@ -4,23 +4,17 @@
   gap: 1.5rem;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 2rem var(--gutter) 3rem;
+  padding: 32px clamp(16px, 3vw, 40px) 56px;
 }
 
 .admin-dashboard__title {
   margin: 0;
-  font-size: 1.75rem;
-  letter-spacing: -0.5px;
-
-  @media (max-width: 1024px) {
-    margin: 0;
-    font-size: 1.5rem;
-  }
+  font-size: clamp(2.8rem, 5vw, 3.6rem);
 }
 
 .admin-dashboard__subtitle {
-  margin-top: 0.25rem;
-  font-size: 0.875rem;
+  margin-top: 6px;
+  font-size: 0.95rem;
   color: var(--text-muted);
 }
 
@@ -34,6 +28,6 @@
 }
 
 .admin-dashboard__note {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   color: var(--text-subtle);
 }

@@ -17,7 +17,7 @@
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 999px;
-  background-color: rgb(235 87 87 / 0.12);
+  background-color: var(--danger-bg);
   color: var(--color-error-text);
 
   .mask-icon {
