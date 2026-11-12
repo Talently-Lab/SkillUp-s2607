@@ -4,7 +4,7 @@
   aspect-ratio: 16 / 9;
   overflow: hidden;
   border-radius: 12px;
-  background-color: #0b1230;
+  background-color: var(--brand-950);
 }
 
 .lesson-video__media {
@@ -35,5 +35,5 @@
 .lesson-video__empty-text {
   margin: 0;
   font-size: 0.875rem;
-  color: #c8d0ee;
+  color: var(--primary-line);
 }

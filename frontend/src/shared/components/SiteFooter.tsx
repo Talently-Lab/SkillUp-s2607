@@ -9,6 +9,7 @@ const columns = [
     links: [
       { to: "/catalog", label: "Catálogo de cursos" },
       { to: "/catalog", label: "Cursos gratuitos" },
+      { to: "/#como-funciona", label: "Cómo funciona" },
     ],
   },
   {
@@ -16,6 +17,7 @@ const columns = [
     links: [
       { to: "/login", label: "Iniciar sesión" },
       { to: "/register", label: "Crear cuenta" },
+      { to: "/student", label: "Mis cursos" },
     ],
   },
 ];
@@ -25,10 +27,10 @@ export function SiteFooter() {
     <footer className="site-footer">
       <div className="site-footer__inner container">
         <div className="site-footer__about">
-          <Logo />
+          <Logo light />
           <p className="site-footer__description">
-            Todos tus cursos online en un solo campus. Aprende a tu ritmo y
-            obtén certificados verificables.
+            Todos tus cursos online en un solo campus. Aprendé a tu ritmo y
+            seguí tu progreso.
           </p>
         </div>
         {columns.map((column) => (
@@ -46,11 +48,21 @@ export function SiteFooter() {
           </div>
         ))}
       </div>
-      <div className="site-footer__bottom">
-        <p className="site-footer__copyright container">
-          © 2026 SkillUp Campus. Todos los derechos reservados.
-        </p>
+      <div className="site-footer__bottom container">
+        <span>© 2026 SkillUp Campus</span>
+        <span>¿Sos docente? Entrás con el mismo acceso.</span>
       </div>
+      {/* Third-party credits, kept apart from our own links (license requires them visible) */}
+      <p className="site-footer__credits container">
+        Imagen de portada:{" "}
+        <a
+          href="https://www.vecteezy.com/free-png/student"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Student PNGs by Vecteezy
+        </a>
+      </p>
     </footer>
   );
 }

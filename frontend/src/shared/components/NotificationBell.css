@@ -39,7 +39,7 @@
   border-radius: 999px;
   background-color: var(--color-error-text);
   box-shadow: 0 0 0 2px var(--fg);
-  font-size: 0.625rem;
+  font-size: 0.7rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: var(--fg);
@@ -56,7 +56,7 @@
   border: 1px solid var(--border);
   border-radius: 12px;
   background-color: var(--fg);
-  box-shadow: 0 16px 40px -16px rgb(22 33 77 / 0.35);
+  box-shadow: 0 16px 40px -16px rgb(27 15 69 / 0.35);
 
   @media (min-width: 640px) {
     position: absolute;
@@ -123,7 +123,7 @@
 }
 
 .notification-bell__item--unread {
-  background-color: rgb(232 236 252 / 0.6);
+  background-color: rgb(239 233 255 / 0.6);
 }
 
 .notification-bell__item-btn {
@@ -153,15 +153,15 @@
 }
 
 .notification-bell__type--payment {
-  background-color: #fdeee4;
+  background-color: var(--sun-soft);
 }
 
 .notification-bell__type--quiz {
-  background-color: #e5f4ec;
+  background-color: var(--success-bg);
 }
 
 .notification-bell__type--certificate {
-  background-color: #fef3c7;
+  background-color: var(--sun-soft);
 }
 
 .notification-bell__type-icon {

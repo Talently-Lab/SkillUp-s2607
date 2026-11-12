@@ -31,7 +31,7 @@ export function Loader({
 export function PageLoader({ label = "Cargando…" }: { label?: string }) {
   return (
     <div className="page-loader">
-      <Loader size={40} color="var(--color-primary)" label={label} />
+      <Loader size={40} color="var(--primary)" label={label} />
     </div>
   );
 }

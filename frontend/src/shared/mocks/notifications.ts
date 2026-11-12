@@ -11,7 +11,7 @@ export const notificationsByUser: Record<string, AppNotification[]> = {
       id: "ntf-cert",
       type: "certificate",
       title: "Certificado disponible",
-      body: "Marketing Digital Estratégico · Ya puedes descargarlo y compartirlo.",
+      body: "Marketing Digital Estratégico · Ya podés descargarlo y compartirlo.",
       href: "/student?tab=certificados",
       createdAt: hoursAgo(5),
       read: false,

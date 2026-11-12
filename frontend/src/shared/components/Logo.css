@@ -1,18 +1,32 @@
+/* Fox mark (mask, takes currentColor) + wordmark */
 .logo {
-  border-radius: 6px;
-  font-family: var(--heading);
-  font-size: 1.0625rem;
-  font-weight: 500;
-  letter-spacing: -0.2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 1.12rem;
+  letter-spacing: -0.02em;
   white-space: nowrap;
-  color: var(--text-h);
-
-  &:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
-  }
+  color: var(--ink);
 }
 
-.logo__brand {
-  font-weight: 700;
+.logo b {
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.logo__fox {
+  color: var(--primary);
+}
+
+.logo--light {
+  color: var(--on-dark);
+}
+
+.logo--light b {
+  color: var(--teal);
+}
+
+.logo--light .logo__fox {
+  color: var(--on-dark);
 }

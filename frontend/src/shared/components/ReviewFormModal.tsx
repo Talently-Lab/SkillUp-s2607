@@ -31,8 +31,8 @@ export function ReviewFormModal({
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const nextErrors: ReviewFormErrors = {};
-    if (!rating) nextErrors.rating = "Elige una valoración.";
-    if (!comment.trim()) nextErrors.comment = "Escribe tu comentario.";
+    if (!rating) nextErrors.rating = "Elegí una valoración.";
+    if (!comment.trim()) nextErrors.comment = "Escribí tu comentario.";
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
 
