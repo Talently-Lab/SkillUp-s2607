@@ -43,7 +43,7 @@ export function SyllabusEditor({ courseId }: SyllabusEditorProps) {
         <MaskIcon src={AlertIcon} className="admin-page__empty-icon" />
         <p className="admin-page__empty-title">No pudimos cargar el temario</p>
         <p className="admin-page__empty-text">
-          Revisa tu conexión e inténtalo de nuevo.
+          Revisá tu conexión y probá de nuevo.
         </p>
         <button
           type="button"

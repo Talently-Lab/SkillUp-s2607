@@ -50,7 +50,7 @@
   height: 100%;
   padding: 0.625rem;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius);
   background-color: var(--fg);
   text-align: left;
   transition:
@@ -59,7 +59,7 @@
     box-shadow 0.15s ease;
 
   &:hover {
-    border-color: #c5cff5;
+    border-color: var(--primary-line);
   }
 
   &:focus-visible {
@@ -82,10 +82,10 @@
 .assigned-courses__button--active:hover {
   border-color: var(--color-primary);
   background-color: var(--fg);
-  box-shadow: 0 1px 3px rgb(22 33 77 / 0.08);
+  box-shadow: 0 1px 3px rgb(27 15 69 / 0.08);
 
   @media (min-width: 1024px) {
-    border-color: #c5cff5;
+    border-color: var(--primary-line);
   }
 
   .assigned-courses__name {
@@ -140,5 +140,5 @@
 }
 
 .assigned-courses__stat .assigned-courses__star {
-  color: #f59e0b;
+  color: var(--star);
 }

@@ -17,7 +17,9 @@ import {
 } from "@/modules/teacher/constants/tabs";
 import { useTeacherDashboard } from "@/modules/teacher/hooks/useTeacherDashboard";
 import { showTeacherError } from "@/modules/teacher/utils/teacherErrorMessage";
-import { Loader, PageLoader } from "@/shared/components/Loader";
+import { Loader } from "@/shared/components/Loader";
+import { Skeleton } from "@/shared/components/Skeleton";
+import { useDelayedFlag } from "@/shared/hooks/useDelayedFlag";
 import { useFetch } from "@/shared/hooks/useFetch";
 import { categoriesService } from "@/shared/services/categoriesService";
 import type { TeacherCourseInput } from "@/shared/services/teacherService";
@@ -78,14 +80,14 @@ export function Teacher() {
   return (
     <div className="teacher-dashboard">
       <header>
-        <h1 className="teacher-dashboard__title">Hola, {firstName}</h1>
+        <h1 className="display teacher-dashboard__title">Hola, {firstName}</h1>
         <p className="teacher-dashboard__subtitle">
           Así van tus cursos esta semana.
         </p>
       </header>
 
       {dashboard.isLoading ? (
-        <PageLoader label="Cargando tus cursos…" />
+        <TeacherSkeleton />
       ) : dashboard.hasError ? (
         <div className="admin-page__panel admin-page__empty" role="alert">
           <MaskIcon src={AlertIcon} className="admin-page__empty-icon" />
@@ -93,7 +95,7 @@ export function Teacher() {
             No pudimos cargar tus cursos
           </p>
           <p className="admin-page__empty-text">
-            Revisa tu conexión e inténtalo de nuevo.
+            Revisá tu conexión y probá de nuevo.
           </p>
           <button
             type="button"
@@ -107,10 +109,10 @@ export function Teacher() {
         <div className="admin-page__panel admin-page__empty">
           <MaskIcon src={InboxIcon} className="admin-page__empty-icon" />
           <p className="admin-page__empty-title">
-            Aún no tienes cursos asignados
+            Todavía no tenés cursos asignados
           </p>
           <p className="admin-page__empty-text">
-            El equipo académico te asignará cursos pronto. Aquí podrás editar su
+            El equipo académico te asignará cursos pronto. Acá vas a poder editar su
             temario y seguir a tus alumnos.
           </p>
           <Link to="/catalog" className="admin-button admin-button--secondary">
@@ -214,6 +216,32 @@ export function Teacher() {
               onSave={saveDetails}
             />
           )}
+        </>
+      )}
+    </div>
+  );
+}
+
+/** Metrics, course list and detail placeholders while the dashboard loads */
+function TeacherSkeleton() {
+  const visible = useDelayedFlag(true);
+  return (
+    <div className="teacher-skeleton" aria-busy="true" aria-label="Cargando tus cursos…">
+      {visible && (
+        <>
+          <div className="teacher-skeleton__metrics">
+            {[0, 1, 2, 3].map((item) => (
+              <Skeleton key={item} height={92} className="teacher-skeleton__card" />
+            ))}
+          </div>
+          <div className="teacher-skeleton__grid">
+            <div className="teacher-skeleton__list">
+              {[0, 1, 2].map((item) => (
+                <Skeleton key={item} height={78} />
+              ))}
+            </div>
+            <Skeleton height={420} />
+          </div>
         </>
       )}
     </div>
