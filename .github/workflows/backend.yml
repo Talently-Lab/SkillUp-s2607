@@ -1,22 +1,22 @@
-name: Frontend CI
+name: Backend CI
 
 on:
   pull_request:
     branches: [main]
     paths:
-      - "frontend/**"
-      - ".github/workflows/frontend.yml"
+      - "backend/**"
+      - ".github/workflows/backend.yml"
   push:
     branches: [main]
     paths:
-      - "frontend/**"
-      - ".github/workflows/frontend.yml"
+      - "backend/**"
+      - ".github/workflows/backend.yml"
 
 permissions:
   contents: read
 
 concurrency:
-  group: frontend-${{ github.ref }}
+  group: backend-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -24,17 +24,19 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: frontend
+        working-directory: backend
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          package_json_file: frontend/package.json
+          package_json_file: backend/package.json
       - uses: actions/setup-node@v4
         with:
-          node_version: 24
+          node-version: 24
           cache: pnpm
-          cache-dependency-path: frontend/pnpm-lock.yaml
-      - run: pnpm install --fronzen-lockfile
+          cache-dependency-path: backend/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
       - run: pnpm lint
+      - run: pnpm format:check
+      - run: pnpm typecheck
       - run: pnpm build
