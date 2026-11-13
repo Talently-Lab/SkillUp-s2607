@@ -53,6 +53,10 @@ export function SiteFooter() {
           © 2026 SkillUp Campus ·{" "}
           <Link to="/terms" className="site-footer__link">
             Términos y condiciones
+          </Link>{" "}
+          ·{" "}
+          <Link to="/privacy" className="site-footer__link">
+            Política de privacidad
           </Link>
         </span>
         <span>¿Sos docente? Entrás con el mismo acceso.</span>
