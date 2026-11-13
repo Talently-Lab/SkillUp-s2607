@@ -15,6 +15,7 @@ import { Login } from "./modules/auth/pages/Login";
 import { AdminLogin } from "./modules/auth/pages/AdminLogin";
 import { NotFound } from "./modules/errors/NotFound";
 import { Terms } from "./modules/legal/pages/Terms";
+import { Privacy } from "./modules/legal/pages/Privacy";
 import { DashboardLayout } from "./layouts/DashboardLayout";
 import { PublicLayout } from "./layouts/PublicLayout";
 import { RequireAuth } from "./shared/components/RequireAuth";
@@ -27,6 +28,7 @@ function App() {
         <Route path="/catalog" element=<Catalog /> />
         <Route path="/catalog/:slug" element=<CourseDetail /> />
         <Route path="/terms" element=<Terms /> />
+        <Route path="/privacy" element=<Privacy /> />
         <Route
           path="/student"
           element=<RequireAuth role="student">

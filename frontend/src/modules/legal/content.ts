@@ -59,3 +59,46 @@ export const terms: LegalDocument = {
     },
   ],
 };
+
+export const privacy: LegalDocument = {
+  title: "Política de privacidad",
+  updatedAt: "12 de noviembre de 2026",
+  sections: [
+    {
+      id: "datos",
+      title: "Qué datos juntamos",
+      body: "Nombre, apellido, email, contraseña y datos de uso de la plataforma. No pedimos datos de pago: el checkout es simulado y no se realizan cobros reales.",
+    },
+    {
+      id: "uso",
+      title: "Para qué los usamos",
+      body: "Para crear tu cuenta, darte acceso a los cursos, avisarte de novedades del curso y mejorar la plataforma.",
+    },
+    {
+      id: "compartir",
+      title: "Con quién los compartimos",
+      body: "No vendemos tus datos. Solo con proveedores necesarios para que funcione la plataforma, como hosting y email.",
+    },
+    {
+      id: "cookies",
+      title: "Cookies",
+      body: "Las usamos para que no tengas que iniciar sesión todo el tiempo y para mejorar la experiencia.",
+    },
+    {
+      id: "derechos",
+      title: "Tus derechos",
+      body: "Podés pedir ver, corregir o borrar tus datos escribiendo a:",
+      email: "soporte@skillupcampus.com",
+    },
+    {
+      id: "seguridad",
+      title: "Seguridad",
+      body: "Guardamos tus datos con acceso restringido y contraseñas encriptadas.",
+    },
+    {
+      id: "cambios",
+      title: "Cambios",
+      body: "Si cambiamos esta política, te avisamos por email.",
+    },
+  ],
+};
