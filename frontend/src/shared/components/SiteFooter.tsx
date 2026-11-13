@@ -49,7 +49,12 @@ export function SiteFooter() {
         ))}
       </div>
       <div className="site-footer__bottom container">
-        <span>© 2026 SkillUp Campus</span>
+        <span>
+          © 2026 SkillUp Campus ·{" "}
+          <Link to="/terms" className="site-footer__link">
+            Términos y condiciones
+          </Link>
+        </span>
         <span>¿Sos docente? Entrás con el mismo acceso.</span>
       </div>
       {/* Third-party credits, kept apart from our own links (license requires them visible) */}
