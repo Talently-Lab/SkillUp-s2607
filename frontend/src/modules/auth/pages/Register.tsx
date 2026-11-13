@@ -184,9 +184,14 @@ export function Register() {
             Términos
           </Link>{" "}
           y la{" "}
-          <button type="button" className="register__terms-link">
+          <Link
+            to="/privacy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="register__terms-link"
+          >
             Política de privacidad
-          </button>
+          </Link>
           .
         </p>
       </form>
