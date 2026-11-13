@@ -175,9 +175,14 @@ export function Register() {
 
         <p className="register__terms">
           Al crear tu cuenta aceptás los{" "}
-          <button type="button" className="register__terms-link">
+          <Link
+            to="/terms"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="register__terms-link"
+          >
             Términos
-          </button>{" "}
+          </Link>{" "}
           y la{" "}
           <button type="button" className="register__terms-link">
             Política de privacidad
