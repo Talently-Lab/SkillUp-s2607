@@ -419,6 +419,14 @@ const EXTRA_CONTENT: {
           "Organizá stores grandes en slices",
         ],
       },
+      {
+        title: "TypeScript y buenas prácticas",
+        lessons: [
+          "Tipá tus stores con TypeScript",
+          "Acciones asíncronas y llamadas a una API",
+          "Testeá tus stores",
+        ],
+      },
     ],
   },
 ];
