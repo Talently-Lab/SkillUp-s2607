@@ -59,7 +59,7 @@ export function ClosingCta() {
           <ul>
             {[
               "Sin tarjeta de crédito",
-              "Certificado al terminar",
+              "Acceso inmediato",
               "Desde cualquier dispositivo",
             ].map((item) => (
               <li key={item}>

@@ -49,7 +49,7 @@ export const sampleReviews: SampleReview[] = [
     rating: 5,
     daysAgo: 34,
     text:
-      "Apliqué lo aprendido en mi trabajo la misma semana. El certificado además suma mucho en mi perfil profesional.",
+      "Apliqué lo aprendido en mi trabajo la misma semana. Además, poder retomar justo donde lo dejé me ayudó a no abandonar.",
   },
   {
     author: "Valeria Castro",

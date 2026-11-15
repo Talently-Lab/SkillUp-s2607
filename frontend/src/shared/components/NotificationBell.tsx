@@ -11,7 +11,6 @@ import { formatRelativeTime } from "@/shared/utils/format";
 import BellIcon from "@/assets/icons/bell.svg";
 import BellOffIcon from "@/assets/icons/bell-off.svg";
 import CartShoppingIcon from "@/assets/icons/cart-shopping.svg";
-import CertificateIcon from "@/assets/icons/certificate-ssl.svg";
 import CheckIcon from "@/assets/icons/check.svg";
 import GraduationCapIcon from "@/assets/icons/graduation-cap.svg";
 import "./NotificationBell.css";
@@ -23,7 +22,6 @@ type NotificationBellProps = {
 const typeIcon: Record<NotificationType, string> = {
   payment: CartShoppingIcon,
   quiz: CheckIcon,
-  certificate: CertificateIcon,
   welcome: GraduationCapIcon,
 };
 
@@ -112,7 +110,7 @@ export function NotificationBell({ userId }: NotificationBellProps) {
               />
               <p className="notification-bell__empty-title">Estás al día</p>
               <p className="notification-bell__empty-text">
-                Te avisaremos de pagos, quizzes y certificados.
+                Te avisaremos de inscripciones, pagos y quizzes.
               </p>
             </div>
           ) : (

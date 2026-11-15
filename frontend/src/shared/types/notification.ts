@@ -1,4 +1,4 @@
-export type NotificationType = "payment" | "quiz" | "certificate" | "welcome";
+export type NotificationType = "payment" | "quiz" | "welcome";
 
 export interface AppNotification {
   id: string;

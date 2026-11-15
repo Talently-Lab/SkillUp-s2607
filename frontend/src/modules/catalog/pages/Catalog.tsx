@@ -73,7 +73,7 @@ export function Catalog() {
           <h1 className="display catalog-hero__title">Catálogo de cursos</h1>
           <p className="catalog-hero__subtitle">
             {coursesQuery.data ? `${courses.length} cursos` : "Cursos"} online
-            con certificado. Encontrá el tuyo y empezá hoy.
+            para aprender a tu ritmo. Encontrá el tuyo y empezá hoy.
           </p>
           <div className="catalog-search">
             <label htmlFor="catalog-search" className="visually-hidden">

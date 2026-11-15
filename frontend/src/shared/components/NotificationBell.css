@@ -160,10 +160,6 @@
   background-color: var(--success-bg);
 }
 
-.notification-bell__type--certificate {
-  background-color: var(--sun-soft);
-}
-
 .notification-bell__type-icon {
   width: 1rem;
   height: 1rem;
