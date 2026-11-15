@@ -849,28 +849,10 @@
 }
 
 .video-modal__player {
-  display: grid;
-  place-content: center;
-  justify-items: center;
-  gap: 10px;
+  display: block;
+  width: 100%;
   aspect-ratio: 16 / 9;
-  padding: 24px;
-  background: radial-gradient(
-    80% 80% at 50% 40%,
-    var(--brand-800),
-    var(--brand-950)
-  );
-  text-align: center;
-
-  p {
-    font: 700 clamp(1.8rem, 4vw, 2.6rem)/1.1 var(--font-display);
-    color: #fff;
-  }
-
-  small {
-    font-size: 0.9rem;
-    color: var(--on-dark-muted);
-  }
+  background: var(--brand-950);
 }
 
 /* ---------- Featured courses: lavender band ---------- */
@@ -1260,7 +1242,7 @@
   }
 }
 
-.m-cert {
+.m-done {
   display: flex;
   align-items: center;
   gap: 10px;

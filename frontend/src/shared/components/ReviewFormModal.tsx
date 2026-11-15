@@ -38,7 +38,7 @@ export function ReviewFormModal({
 
     // TODO: enviar la reseña a la API cuando exista el endpoint, hoy no se guarda
     toast.info(
-      "¡Gracias por tu opinión! Muy pronto podrás publicar tus reseñas.",
+      "¡Gracias por tu opinión! Muy pronto vas a poder publicar tus reseñas.",
     );
     onClose();
   };

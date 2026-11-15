@@ -83,7 +83,7 @@ export function Register() {
       <h1 className="display register__title">{text.title}</h1>
       <p className="register__subtitle">{text.subtitle}</p>
       <ul className="register__perks">
-        {["Sin tarjeta", "12 cursos gratis", "Certificado al terminar"].map((perk) => (
+        {["Sin tarjeta", "12 cursos gratis", "Acceso inmediato"].map((perk) => (
           <li key={perk}>
             <Icon name="check-circle" />
             {perk}

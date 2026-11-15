@@ -8,11 +8,11 @@ function hoursAgo(hours: number): string {
 export const notificationsByUser: Record<string, AppNotification[]> = {
   "u-student-01": [
     {
-      id: "ntf-cert",
-      type: "certificate",
-      title: "Certificado disponible",
-      body: "Marketing Digital Estratégico · Ya podés descargarlo y compartirlo.",
-      href: "/student?tab=certificados",
+      id: "ntf-welcome",
+      type: "welcome",
+      title: "Te inscribiste en Marketing Digital Estratégico",
+      body: "Ya podés empezar la primera clase desde tu panel.",
+      href: "/student",
       createdAt: hoursAgo(5),
       read: false,
     },

@@ -1,11 +1,11 @@
 import { Link } from "react-router";
 
 import type { Course } from "@/shared/types/course";
-import { formatPrice } from "@/shared/utils/format";
+import { formatDuration, formatPrice } from "@/shared/utils/format";
 import { learnPath } from "@/shared/utils/paths";
 // TODO: el carrito queda fuera del MVP; descomentar cuando se desarrolle
 // import CartShoppingIcon from "@/assets/icons/cart-shopping.svg";
-import CertificateIcon from "@/assets/icons/certificate-ssl.svg";
+import BarChartIcon from "@/assets/icons/bar-chart.svg";
 import ClockIcon from "@/assets/icons/clock.svg";
 import LockIcon from "@/assets/icons/lock.svg";
 import MonitorSmartphoneIcon from "@/assets/icons/monitor-smartphone.svg";
@@ -30,10 +30,10 @@ export function EnrollCard({
 }: EnrollCardProps) {
   const isFree = course.price === null;
   const includes = [
-    { icon: ClockIcon, label: `${course.durationHours} horas de contenido` },
+    { icon: ClockIcon, label: `${formatDuration(course.durationHours)} de contenido` },
     { icon: PlayIcon, label: `${course.lessons} lecciones en video` },
     { icon: MonitorSmartphoneIcon, label: "Acceso desde cualquier dispositivo" },
-    { icon: CertificateIcon, label: "Certificado verificable" },
+    { icon: BarChartIcon, label: "Tu progreso guardado clase a clase" },
   ];
 
   return (

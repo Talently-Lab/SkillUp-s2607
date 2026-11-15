@@ -4,8 +4,8 @@ export const syllabi: CourseSyllabus[] = [
   {
     courseId: "analisis-datos-excel-powerbi",
     description: [
-      "Aprende a transformar datos en decisiones. En este curso pasarás de hojas de cálculo desordenadas a tableros interactivos que cualquier equipo puede entender.",
-      "Trabajarás con casos reales de ventas, recursos humanos y operaciones, y terminarás con un dashboard propio listo para tu portafolio.",
+      "Aprendé a transformar datos en decisiones. En este curso vas a pasar de hojas de cálculo desordenadas a tableros interactivos que cualquier equipo puede entender.",
+      "Vas a trabajar con casos reales de ventas, recursos humanos y operaciones, y vas a terminar con un dashboard propio listo para tu portafolio.",
     ],
     outcomes: [
       "Limpiar y estructurar datos con Power Query",
@@ -51,8 +51,8 @@ export const syllabi: CourseSyllabus[] = [
   {
     courseId: "fundamentos-ux-ui",
     description: [
-      "Descubre cómo se diseñan productos digitales que la gente disfruta usar. Aprenderás el proceso completo, desde entender al usuario hasta entregar interfaces pulidas.",
-      "Cada módulo incluye ejercicios prácticos y al final diseñarás el flujo completo de una app móvil.",
+      "Descubrí cómo se diseñan productos digitales que la gente disfruta usar. Vas a aprender el proceso completo, desde entender al usuario hasta entregar interfaces pulidas.",
+      "Cada módulo incluye ejercicios prácticos y al final vas a diseñar el flujo completo de una app móvil.",
     ],
     outcomes: [
       "Investigar usuarios y definir problemas reales",
@@ -98,8 +98,8 @@ export const syllabi: CourseSyllabus[] = [
   {
     courseId: "python-desde-cero",
     description: [
-      "Empieza a programar sin experiencia previa. Aprenderás Python con un enfoque práctico: automatizar tareas repetitivas que hoy te quitan tiempo.",
-      "Al terminar podrás escribir scripts que organizan archivos, procesan hojas de cálculo y envían reportes automáticamente.",
+      "Empezá a programar sin experiencia previa. Vas a aprender Python con un enfoque práctico: automatizar tareas repetitivas que hoy te quitan tiempo.",
+      "Al terminar vas a poder escribir scripts que organizan archivos, procesan hojas de cálculo y envían reportes automáticamente.",
     ],
     outcomes: [
       "Dominar la sintaxis básica de Python",
@@ -145,7 +145,7 @@ export const syllabi: CourseSyllabus[] = [
   {
     courseId: "marketing-digital-estrategico",
     description: [
-      "Construye estrategias de marketing digital basadas en datos, no en intuición. Aprenderás a conectar objetivos de negocio con canales y métricas concretas.",
+      "Construí estrategias de marketing digital basadas en datos, no en intuición. Vas a aprender a conectar objetivos de negocio con canales y métricas concretas.",
       "Incluye plantillas descargables y un plan de marketing completo para una marca real.",
     ],
     outcomes: [

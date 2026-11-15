@@ -45,12 +45,12 @@ export const CHAPTERS = [
   },
   {
     title: "Inscribite en un minuto",
-    text: "Con tu email o con Google, y entrás al contenido al instante.",
+    text: "Creá tu cuenta con tu email y entrás al contenido al instante.",
     time: "0:20",
   },
   {
-    title: "Aprendé y certificate",
-    text: "Avanzá desde cualquier dispositivo y llevate tu certificado.",
+    title: "Aprendé a tu ritmo",
+    text: "Avanzá clase a clase desde cualquier dispositivo y seguí tu progreso.",
     time: "0:40",
   },
 ];

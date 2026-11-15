@@ -128,7 +128,7 @@ export function HeroSection({ courses }: HeroSectionProps) {
               </span>
             </a>
             <p className="hero__perks">
-              12 cursos gratis · sin tarjeta · certificado al terminar
+              12 cursos gratis · sin tarjeta · acceso inmediato
             </p>
           </div>
         </div>

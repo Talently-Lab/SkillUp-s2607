@@ -129,7 +129,7 @@ export function AdminUsers() {
             Mostrando {table.rows.length} de {users.length}
           </span>
           <span className="admin-page__hint">
-            Cambia el rol directamente desde la tabla
+            Cambiá el rol directamente desde la tabla
           </span>
         </footer>
       </section>

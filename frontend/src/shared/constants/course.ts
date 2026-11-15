@@ -10,6 +10,7 @@ export const courseImages = {
   dataAnalysis: "/images/courses/data-analysis.jpg",
   uxUi: "/images/courses/ux-ui.jpg",
   python: "/images/courses/python.jpg",
+  react: "/images/courses/react.jpg",
   marketing: "/images/courses/marketing.jpg",
   finance: "/images/courses/finance.jpg",
   english: "/images/courses/english.jpg",

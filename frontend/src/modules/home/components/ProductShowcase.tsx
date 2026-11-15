@@ -9,7 +9,7 @@ const NOTES_LEFT = [
 ];
 const NOTES_RIGHT = [
   { pin: 2, text: "tu racha te empuja a volver", down: false },
-  { pin: 3, text: "tu certificado, apenas terminás", down: true },
+  { pin: 3, text: "tu progreso se guarda clase a clase", down: true },
 ];
 
 /** Mock of the student panel with handwritten notes */
@@ -84,14 +84,14 @@ export function ProductShowcase() {
                     ))}
                   </div>
                 </div>
-                <div className="m-card m-cert">
+                <div className="m-card m-done">
                   <span className="pin">3</span>
                   <span className="seal">
-                    <Icon name="cert" />
+                    <Icon name="check-circle" />
                   </span>
                   <div>
-                    <strong>Certificado listo</strong>
-                    <small>Fundamentos de UX/UI</small>
+                    <strong>Clase completada</strong>
+                    <small>Python desde cero</small>
                   </div>
                 </div>
               </div>

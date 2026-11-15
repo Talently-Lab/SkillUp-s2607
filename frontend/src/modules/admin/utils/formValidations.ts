@@ -8,7 +8,8 @@ export function toForm(course: Course): FormState {
     instructorId: course.instructorId ?? "",
     level: course.level,
     status: course.status ?? "published",
-    durationHours: String(course.durationHours),
+    // Two decimals at most, the exact value can be 0.0666…
+    durationHours: String(Math.round(course.durationHours * 100) / 100),
     price: course.price === null ? "" : String(course.price),
     isFree: course.price === null,
     image: course.image,
@@ -27,7 +28,7 @@ export function validate(form: FormState): FormErrors {
     errors.durationHours = "Debe ser mayor que 0.";
 
   if (!form.isFree && !(Number(form.price) > 0))
-    errors.price = "Ingresa un precio o marca gratis.";
+    errors.price = "Ingresá un precio o marcá gratis.";
 
   return errors;
 }

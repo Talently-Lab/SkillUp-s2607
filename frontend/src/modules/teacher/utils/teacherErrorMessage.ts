@@ -4,16 +4,16 @@ import { ApiError } from "@/shared/api/http";
 import { useAuthStore } from "@/shared/stores/authStore";
 
 const DEFAULT_MESSAGE = "Algo salió mal. Probá de nuevo.";
-const SESSION_EXPIRED = "Tu sesión expiró. Vuelve a iniciar sesión.";
+const SESSION_EXPIRED = "Tu sesión expiró. Volvé a iniciar sesión.";
 
 const messages: Record<string, string> = {
-  COURSE_EMPTY: "Agrega al menos una lección antes de publicar el curso.",
+  COURSE_EMPTY: "Agregá al menos una lección antes de publicar el curso.",
   POSITION_TAKEN:
     "El temario cambió en otra pestaña. Lo actualizamos, probá de nuevo.",
   INVALID_ORDER:
     "El temario cambió en otra pestaña. Lo actualizamos, probá de nuevo.",
-  INVALID_REFERENCE: "La categoría elegida ya no existe. Recarga la página.",
-  NOT_FOUND: "Este contenido ya no existe o el curso ya no está asignado a ti.",
+  INVALID_REFERENCE: "La categoría elegida ya no existe. Recargá la página.",
+  NOT_FOUND: "Este contenido ya no existe o el curso ya no está asignado a vos.",
   VALIDATION_ERROR: "Revisá los datos y probá de nuevo.",
   TOKEN_EXPIRED: SESSION_EXPIRED,
   INVALID_TOKEN: SESSION_EXPIRED,

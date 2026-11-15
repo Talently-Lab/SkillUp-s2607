@@ -1,7 +1,7 @@
 import { ApiError } from "@/shared/api/http";
 
 const DEFAULT_MESSAGE = "No pudimos inscribirte. Probá de nuevo.";
-const SESSION_EXPIRED = "Tu sesión expiró. Vuelve a iniciar sesión.";
+const SESSION_EXPIRED = "Tu sesión expiró. Volvé a iniciar sesión.";
 
 // Decided by the error code, never by the API message
 const messages: Record<string, string> = {

@@ -1,16 +1,16 @@
 import { ApiError } from "@/shared/api/http";
 
 const DEFAULT_MESSAGE = "Algo salió mal. Probá de nuevo.";
-const SESSION_EXPIRED = "Tu sesión expiró. Vuelve a iniciar sesión.";
+const SESSION_EXPIRED = "Tu sesión expiró. Volvé a iniciar sesión.";
 
 // Decided by the error code, never by the API message
 const messages: Record<string, string> = {
   SLUG_TAKEN: "Ya existe un curso con este título o uno muy parecido.",
   COURSE_HAS_ENROLLMENTS:
-    "No se puede eliminar porque tiene estudiantes inscritos. Pásalo a borrador para quitarlo del catálogo.",
+    "No se puede eliminar porque tiene estudiantes inscritos. Pasalo a borrador para quitarlo del catálogo.",
   INVALID_REFERENCE:
-    "La categoría o el docente elegido ya no existe. Recarga la página.",
-  NOT_FOUND: "Este curso ya no existe. Recarga la página.",
+    "La categoría o el docente elegido ya no existe. Recargá la página.",
+  NOT_FOUND: "Este curso ya no existe. Recargá la página.",
   VALIDATION_ERROR: "Revisá los datos del formulario.",
   TOKEN_EXPIRED: SESSION_EXPIRED,
   INVALID_TOKEN: SESSION_EXPIRED,
