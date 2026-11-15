@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 
 import type { Course } from "@/shared/types/course";
-import { formatPrice } from "@/shared/utils/format";
+import { formatDuration, formatPrice } from "@/shared/utils/format";
 import { coursePath } from "@/shared/utils/paths";
 import ClockIcon from "@/assets/icons/clock.svg";
 import "./RecommendedCourses.css";
@@ -34,7 +34,7 @@ export function RecommendedCourses({ courses }: RecommendedCoursesProps) {
                     src={ClockIcon}
                     alt=""
                   />
-                  {course.durationHours} h · {formatPrice(course.price)}
+                  {formatDuration(course.durationHours)} · {formatPrice(course.price)}
                 </span>
               </span>
             </Link>

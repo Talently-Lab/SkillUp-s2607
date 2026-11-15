@@ -2,6 +2,7 @@ import { Link } from "react-router";
 
 import type { Course } from "@/shared/types/course";
 import type { Enrollment } from "@/shared/types/enrollment";
+import { formatDuration } from "@/shared/utils/format";
 import { learnPath } from "@/shared/utils/paths";
 
 import BarChartIcon from "@/assets/icons/bar-chart.svg";
@@ -89,7 +90,7 @@ export function CourseCard({ course, enrollment, ribbon }: CourseCardProps) {
           <div className="course-card__meta-item">
             <dt className="visually-hidden">Duración</dt>
             <img className="course-card__meta-icon" src={ClockIcon} alt="" />
-            <dd>{course.durationHours} h</dd>
+            <dd>{formatDuration(course.durationHours)}</dd>
           </div>
           <div className="course-card__meta-item">
             <dt className="visually-hidden">Nivel</dt>

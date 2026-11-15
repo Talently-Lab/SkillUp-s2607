@@ -1,3 +1,4 @@
+import { formatDuration } from "@/shared/utils/format";
 import "./ProgressSummary.css";
 
 type ProgressSummaryProps = {
@@ -20,9 +21,9 @@ export function ProgressSummary({
           <dd className="progress-summary__value">{completedLessons}</dd>
         </div>
         <div className="progress-summary__item">
-          <dt className="progress-summary__label">Horas de estudio</dt>
+          <dt className="progress-summary__label">Tiempo de estudio</dt>
           <dd className="progress-summary__value">
-            {Math.round(hoursLearned)}
+            {formatDuration(hoursLearned)}
           </dd>
         </div>
       </dl>

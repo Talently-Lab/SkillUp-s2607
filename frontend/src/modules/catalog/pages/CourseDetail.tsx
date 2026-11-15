@@ -7,7 +7,7 @@ import { useFetch } from "@/shared/hooks/useFetch";
 import { coursesService } from "@/shared/services/coursesService";
 import type { Course } from "@/shared/types/course";
 import type { Lesson } from "@/shared/types/lesson";
-import { formatNumber } from "@/shared/utils/format";
+import { formatDuration, formatNumber } from "@/shared/utils/format";
 import { learnPath } from "@/shared/utils/paths";
 import { getSyllabus } from "@/shared/utils/syllabus";
 import { CourseReviews } from "@/modules/catalog/components/CourseReviews";
@@ -152,7 +152,7 @@ function CourseDetailView({ course }: { course: Course }) {
               <div className="course-hero__meta-item">
                 <dt className="visually-hidden">Duración</dt>
                 <img className="course-hero__icon" src={ClockIcon} alt="" />
-                <dd>{course.durationHours} h</dd>
+                <dd>{formatDuration(course.durationHours)}</dd>
               </div>
               <div className="course-hero__meta-item">
                 <dt className="visually-hidden">Nivel</dt>
@@ -231,7 +231,7 @@ function CourseDetailView({ course }: { course: Course }) {
                   {access.modules.length}{" "}
                   {access.modules.length === 1 ? "módulo" : "módulos"} ·{" "}
                   {lessonsTotal} {lessonsTotal === 1 ? "lección" : "lecciones"}{" "}
-                  · {course.durationHours} h en total
+                  · {formatDuration(course.durationHours)} en total
                 </p>
                 <SyllabusAccordion
                   modules={access.modules}

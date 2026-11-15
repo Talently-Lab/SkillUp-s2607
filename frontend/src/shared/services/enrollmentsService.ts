@@ -47,8 +47,8 @@ function toEnrollment({ course, ...enrollment }: ApiEnrollment): Enrollment {
       title: course.title,
       image: course.coverUrl ?? defaultCover(course.category.slug),
       category: course.category.name,
-      // One decimal, so 90 minutes reads as 1.5 h
-      durationHours: Math.round(course.durationMinutes / 6) / 10,
+      // Exact, formatDuration rounds it for display
+      durationHours: course.durationMinutes / 60,
       lessons: course.lessonsCount,
       price: course.priceCents > 0 ? course.priceCents / 100 : null,
       instructor: course.instructor?.fullName ?? NO_INSTRUCTOR,

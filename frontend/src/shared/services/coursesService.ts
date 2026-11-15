@@ -53,8 +53,8 @@ export function toCourse(course: ApiCourse): Course {
     categoryId: course.category.id,
     category: course.category.name,
     level: levelLabels[course.level],
-    // One decimal, so 90 minutes reads as 1.5 h
-    durationHours: Math.round(course.durationMinutes / 6) / 10,
+    // Exact, formatDuration rounds it for display
+    durationHours: course.durationMinutes / 60,
     lessons: course.lessonsCount,
     price: course.priceCents > 0 ? course.priceCents / 100 : null,
     rating: course.ratingAvg === null ? 0 : Number(course.ratingAvg),

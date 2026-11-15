@@ -5,6 +5,7 @@ import { StatusBadge } from "@/modules/admin/components/StatusBadge";
 import { courseRevenue } from "@/modules/admin/utils/metrics";
 import type { Course } from "@/shared/types/course";
 import {
+  formatDuration,
   formatMoneyRounded,
   formatNumber,
   formatPrice,
@@ -97,7 +98,7 @@ export function CourseTable({
               <td data-label="Categoría">{course.category}</td>
               <td data-label="Nivel">{course.level}</td>
               <td data-label="Duración" className="admin-table__numeric">
-                {course.durationHours} h
+                {formatDuration(course.durationHours)}
               </td>
               <td
                 data-label="Precio"

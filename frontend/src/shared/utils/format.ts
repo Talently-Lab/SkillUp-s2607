@@ -2,6 +2,16 @@ export function formatPrice(price: number | null): string {
   return price === null ? "Gratis" : `US$ ${price}`;
 }
 
+/**
+ * Course length from its hours: "4 min" under an hour, "2,3 h" from there on.
+ * Short demo courses would otherwise read as "0.1 h".
+ */
+export function formatDuration(hours: number): string {
+  const minutes = Math.round(hours * 60);
+  if (minutes < 60) return `${minutes} min`;
+  return `${(Math.round(hours * 10) / 10).toLocaleString("es-AR")} h`;
+}
+
 export function formatNumber(value: number): string {
   return new Intl.NumberFormat("es-ES").format(value);
 }
