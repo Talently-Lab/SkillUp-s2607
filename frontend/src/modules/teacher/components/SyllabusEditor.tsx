@@ -80,7 +80,7 @@ export function SyllabusEditor({ courseId }: SyllabusEditorProps) {
 
       {modules.length === 0 ? (
         <p className="syllabus-editor__empty">
-          Este curso aún no tiene módulos. Añade el primero para empezar el
+          Este curso aún no tiene módulos. Agregá el primero para empezar el
           temario.
         </p>
       ) : (

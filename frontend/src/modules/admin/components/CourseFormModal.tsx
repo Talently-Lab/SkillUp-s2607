@@ -106,7 +106,7 @@ export function CourseFormModal({
       description={
         isEdit
           ? "Los cambios se aplican al instante."
-          : "Completa los datos básicos. Podrás editarlo después."
+          : "Completá los datos básicos. Vas a poder editarlo después."
       }
       onClose={onClose}
       footer={

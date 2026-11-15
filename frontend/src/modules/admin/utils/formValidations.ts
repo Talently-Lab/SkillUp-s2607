@@ -27,7 +27,7 @@ export function validate(form: FormState): FormErrors {
     errors.durationHours = "Debe ser mayor que 0.";
 
   if (!form.isFree && !(Number(form.price) > 0))
-    errors.price = "Ingresa un precio o marca gratis.";
+    errors.price = "Ingresá un precio o marcá gratis.";
 
   return errors;
 }

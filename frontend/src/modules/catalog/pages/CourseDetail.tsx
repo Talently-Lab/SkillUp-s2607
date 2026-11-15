@@ -185,7 +185,7 @@ function CourseDetailView({ course }: { course: Course }) {
             aria-labelledby="outcomes-heading"
           >
             <h2 id="outcomes-heading" className="display course-detail__section-title">
-              Lo que aprenderás
+              Lo que vas a aprender
             </h2>
             <ul className="course-outcomes__list">
               {syllabus.outcomes.map((outcome) => (
@@ -218,7 +218,7 @@ function CourseDetailView({ course }: { course: Course }) {
               </div>
             ) : access.modules.length === 0 ? (
               <p className="course-detail__syllabus-state">
-                El docente está preparando el temario. Vuelve pronto.
+                El docente está preparando el temario. Volvé pronto.
               </p>
             ) : (
               <>

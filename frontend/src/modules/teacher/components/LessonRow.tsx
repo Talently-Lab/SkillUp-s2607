@@ -37,7 +37,7 @@ function durationLabel(lesson: TeacherLesson): {
   if (lesson.videoUrl)
     return { text: "—", hint: "No pudimos leer la duración de este video" };
 
-  return { text: "—", hint: "Añade un video para calcular la duración" };
+  return { text: "—", hint: "Agregá un video para calcular la duración" };
 }
 
 export function LessonRow({
