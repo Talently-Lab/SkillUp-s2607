@@ -5,6 +5,14 @@ import posterImage from "@/assets/images/how-poster.jpg";
 import { CHAPTERS } from "../content";
 import { ArrowCurveDown, PlayGlyph } from "./HandArrow";
 
+const HOW_VIDEO_SRC = "/videos/como-funciona.webm";
+
+/** "0:20" → 20 */
+function toSeconds(time: string) {
+  const [minutes, seconds] = time.split(":").map(Number);
+  return minutes * 60 + seconds;
+}
+
 export function HowItWorks() {
   const [chapter, setChapter] = useState(0);
   const [open, setOpen] = useState(false);
@@ -140,13 +148,21 @@ function VideoDialog({
           <Icon name="plus" className="ico video-modal__x" />
         </button>
       </div>
-      {/* Real video goes here: <video controls src="…"> and seek to CHAPTERS[chapter].time */}
-      <div className="video-modal__player">
-        <p>Acá va el video de SkillUp Campus</p>
-        <small>
-          Capítulo {chapter + 1} · desde {CHAPTERS[chapter].time}
-        </small>
-      </div>
+      {/* No audio track, muted keeps autoplay allowed everywhere */}
+      <video
+        className="video-modal__player"
+        src={HOW_VIDEO_SRC}
+        poster={posterImage}
+        controls
+        autoPlay
+        muted
+        playsInline
+        onLoadedMetadata={(event) => {
+          event.currentTarget.currentTime = toSeconds(CHAPTERS[chapter].time);
+        }}
+      >
+        Tu navegador no puede reproducir este video.
+      </video>
     </dialog>
   );
 }
