@@ -1,4 +1,4 @@
-import { and, eq, gt, isNull, like, sql } from "drizzle-orm";
+import { and, eq, gt, isNull, like, or, sql } from "drizzle-orm";
 import { db, pool } from "./client.ts";
 import { categories, courses, lessons, modules } from "./schema/index.ts";
 import { syncCourseLessons } from "../modules/course-modules/course-modules.service.ts";
@@ -396,10 +396,12 @@ const COURSES: CourseSeed[] = [
 const EXTRA_CONTENT: {
   slug: string;
   description: string;
+  coverUrl: string;
   modules: ModuleSeed[];
 }[] = [
   {
     slug: "zustand-crash-course",
+    coverUrl: "/images/courses/react.jpg",
     description:
       "Manejá el estado de tus apps React de forma simple con Zustand. Creás stores, usás selectores para cuidar el rendimiento y aplicás patrones que escalan en proyectos reales.",
     modules: [
@@ -592,6 +594,19 @@ try {
       .update(courses)
       .set({ description: extra.description })
       .where(and(eq(courses.id, existing.id), isNull(courses.description)));
+    // A missing cover, or a localhost one that breaks outside local dev
+    await db
+      .update(courses)
+      .set({ coverUrl: extra.coverUrl })
+      .where(
+        and(
+          eq(courses.id, existing.id),
+          or(
+            isNull(courses.coverUrl),
+            like(courses.coverUrl, "http://localhost%"),
+          ),
+        ),
+      );
     contentTargets.push({
       id: existing.id,
       slug: extra.slug,
