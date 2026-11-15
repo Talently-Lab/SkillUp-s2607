@@ -1,6 +1,6 @@
 # SkillUp Campus
 
-SkillUp Campus es una plataforma e-learning, donde los estudiantes pueden inscribirse a cursos, avanzar por sus módulos y obtener un certificado al terminarlos.
+SkillUp Campus es una plataforma e-learning, donde los estudiantes pueden inscribirse a cursos, avanzar por sus módulos clase a clase y seguir su progreso.
 
 Este proyecto es un **MVP de 8 semanas**.
 
@@ -8,7 +8,7 @@ Este proyecto es un **MVP de 8 semanas**.
 
 La plataforma tiene 3 tipos de usuario y cada uno tiene su propio layout para el dashboard:
 
-- **Estudiante:** se inscribe a un curso, que está dividido por módulos. Al terminarlo se le provee un certificado de terminación.
+- **Estudiante:** se inscribe a un curso, que está dividido por módulos, y marca cada clase como completada para seguir su progreso.
 - **Docente:** administra sus cursos, pudiendo agregar o quitar clases y módulos.
 - **Admin:** gestiona todo el contenido general de la plataforma y ve estadísticas como docentes y estudiantes, ingresos, estudiantes activos, cursos más vendidos, etc.
 
