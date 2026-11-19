@@ -2,18 +2,18 @@
 
 ## Herramientas
 
-Como herramientas generales de desarrollo se usa:
+Como herramientas generales de desarrollo se usan:
 
 - **Node.js 24** como entorno de ejecución. Ejecuta TypeScript de forma nativa, sin compilar en desarrollo.
-- **Express 5** para el servidor HTTP.
+- **Express 5** para el servidor HTTP, con **cookie-parser** para leer la cookie del refresh token.
 - **TypeScript** para el tipado.
 - **Zod** para validar las variables de entorno y los datos de entrada.
 - **jose** para firmar y verificar los JWT, y **argon2** (`@node-rs/argon2`) para hashear las contraseñas.
 - **helmet**, **cors** y **express-rate-limit** para los headers de seguridad, el CORS y el límite de intentos.
 - **zod-openapi** y **swagger-ui-express** para la documentación de la API.
-- **Drizzle ORM** para el acceso a la base de datos y las migraciones.
+- **Drizzle ORM** para el acceso a la base de datos y las migraciones, con el driver **pg**.
 - **PostgreSQL** como base de datos (Docker en local, Neon en producción).
-- **pino** para los logs.
+- **pino** y **pino-http** para los logs de la app y de las requests.
 - **ESLint** para el linting y **Prettier** para el formato del código.
 
 Como manejador de paquetes se usa [**pnpm**](https://pnpm.io/es).
@@ -25,7 +25,7 @@ El backend sigue una arquitectura de **modular monolith**: es un solo servidor, 
 Actualmente el proyecto está estructurado así:
 
 ```
-docs/                    # documentación del backend
+docs/                    # documentación del backend (auth y diagrama de la base de datos)
 drizzle/                 # migraciones SQL generadas por drizzle-kit
 requests.http            # requests listas para probar la API con REST Client
 src/
@@ -35,7 +35,8 @@ src/
 │   ├── client.ts        # conexión a PostgreSQL (pool + instancia de Drizzle)
 │   ├── schema/          # tablas de la base de datos, un archivo por dominio
 │   ├── seed-admin.ts    # crea el usuario admin inicial
-│   └── seed-teacher.ts  # crea un docente para desarrollo
+│   ├── seed-teacher.ts  # crea un docente para desarrollo
+│   └── seed-catalog.ts  # carga el catálogo de demo para desarrollo
 ├── docs/                # documento OpenAPI y Swagger UI
 ├── modules/             # módulos por dominio
 │   ├── activity/        # registro de los cambios hechos por el admin
@@ -59,7 +60,7 @@ src/
 
 - **`app.ts` y `server.ts`** están separados para poder testear la app sin abrir un puerto.
 - **`config/env.ts`** es el único lugar que lee `process.env`. Si falta una variable o es inválida, el servidor no arranca.
-- **`modules`**: cada módulo se divide en capas `routes` → `controller` → `service` → `repository`, y sus esquemas de Zod. Los endpoints de admin van en sus propios `*-admin.controller.ts` y `*-admin.routes.ts`.
+- **`modules`**: cada módulo se divide en capas `routes` → `controller` → `service` → `repository`, y sus esquemas de Zod. Los endpoints de admin van en sus propios archivos `*-admin.*` (como mínimo `*-admin.routes.ts` y `*-admin.controller.ts`, y también repository o schemas si los necesitan).
 - **Dependencias entre módulos**: un módulo solo puede importar los archivos `*.service.ts`, `*.repository.ts` y `*.schemas.ts` de otro módulo, nunca sus rutas, controllers u otros archivos internos. Lo valida `pnpm lint` con `eslint-plugin-boundaries`. Si algo no pertenece a ningún dominio, se mueve a `shared`.
 - **`course-modules`**: es el dominio de los módulos de un curso. Se llama así para no confundirse con la carpeta `modules/`, aunque su tabla y sus rutas siguen usando `modules`.
 - **Errores**: los errores esperados se lanzan como `AppError` y el manejador global los convierte en una respuesta `{ error: { code, message, details? } }`. Los inesperados se registran en el log y responden `500`.
@@ -67,36 +68,47 @@ src/
 
 ## Cómo levantar el proyecto
 
-1. Si no tienes pnpm instalado, ve a [https://pnpm.io/es](https://pnpm.io/es) y sigue los pasos de instalación.
+1. Si no tenés pnpm instalado, andá a [https://pnpm.io/es](https://pnpm.io/es) y seguí los pasos de instalación.
 
-2. Usa la versión de Node definida en `.nvmrc` (con [nvm](https://github.com/nvm-sh/nvm)):
+2. Usá la versión de Node definida en `.nvmrc` (con [nvm](https://github.com/nvm-sh/nvm)):
 
    ```bash
    nvm install
    nvm use
    ```
 
-3. Dentro de la carpeta `backend`, instala las dependencias:
+3. Dentro de la carpeta `backend`, instalá las dependencias:
 
    ```bash
    pnpm install
    ```
 
-4. Copia el archivo de variables de entorno y completa los valores:
+4. Copiá el archivo de variables de entorno y completá los valores:
 
    ```bash
    cp .env.example .env
    ```
 
-   `JWT_ACCESS_SECRET` es obligatorio y debe tener al menos 32 caracteres. Genera uno con:
+   `JWT_ACCESS_SECRET` es obligatorio y tiene que tener al menos 32 caracteres. Generá uno con:
 
    ```bash
    node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
    ```
 
-5. Levanta la base de datos con Docker y aplica las migraciones (ver la sección siguiente).
+   Completá también `SEED_ADMIN_PASSWORD` y, si vas a crear el docente de prueba, `SEED_TEACHER_PASSWORD`. Ambas vienen vacías.
 
-6. Ejecuta el entorno de desarrollo:
+   El resto de las variables ya tienen valores para desarrollo:
+
+   | Variable       | Para qué sirve                                                                     |
+   | -------------- | ---------------------------------------------------------------------------------- |
+   | `DATABASE_URL` | Conexión a PostgreSQL. Ya apunta al contenedor de Docker                           |
+   | `CORS_ORIGIN`  | Orígenes del frontend que pueden llamar a la API, separados por coma               |
+   | `TRUST_PROXY`  | Cantidad de proxies delante de la API: `0` en local, normalmente `1` en producción |
+   | `DOCS_ENABLED` | Activa Swagger UI en `/docs`. Por defecto está activo fuera de producción          |
+
+5. Levantá la base de datos con Docker y aplicá las migraciones (ver la sección siguiente).
+
+6. Ejecutá el entorno de desarrollo:
 
    ```bash
    pnpm dev
@@ -111,46 +123,54 @@ src/
 ## Documentación
 
 - [`docs/auth.md`](./docs/auth.md): cómo funciona la sesión, los códigos de error y cómo probar la API.
+- [`docs/database.dbml`](./docs/database.dbml): diagrama de la base de datos en DBML (se puede ver en [dbdiagram.io](https://dbdiagram.io)).
+- [`requests.http`](./requests.http): requests listas para probar la API con REST Client.
 - Swagger UI en [http://localhost:3000/docs](http://localhost:3000/docs) con el servidor levantado.
 
 ## Base de datos con Docker
 
-En desarrollo, PostgreSQL corre en un contenedor de Docker definido en `compose.yaml`. Necesitas tener instalado [Docker](https://docs.docker.com/get-docker/) con Docker Compose.
+En desarrollo, PostgreSQL corre en un contenedor de Docker definido en `compose.yaml`. Necesitás tener instalado [Docker](https://docs.docker.com/get-docker/) con Docker Compose.
 
-> En Linux, si Docker pide `sudo`, agrega tu usuario al grupo `docker` y vuelve a iniciar sesión:
+> En Linux, si Docker pide `sudo`, agregá tu usuario al grupo `docker` y volvé a iniciar sesión:
 >
 > ```bash
 > sudo usermod -aG docker $USER
 > ```
 
-1. Dentro de la carpeta `backend`, levanta la base de datos. `--wait` espera a que esté lista para recibir conexiones:
+1. Dentro de la carpeta `backend`, levantá la base de datos. `--wait` espera a que esté lista para recibir conexiones:
 
    ```bash
    docker compose up -d --wait
    ```
 
-2. En el `.env`, apunta `DATABASE_URL` al contenedor. El puerto es `5434` en tu máquina para no chocar con un PostgreSQL instalado localmente:
+2. Revisá que `DATABASE_URL` en el `.env` apunte al contenedor (es el valor que trae `.env.example`). El puerto es `5434` en tu máquina para no chocar con un PostgreSQL instalado localmente:
 
    ```bash
    DATABASE_URL=postgres://skillup-campus:skillup-campus@localhost:5434/skillup-campus
    ```
 
-3. Aplica las migraciones para crear las tablas:
+3. Aplicá las migraciones para crear las tablas:
 
    ```bash
    pnpm db:migrate
    ```
 
-4. Crea el usuario admin con las variables `SEED_ADMIN_*` del `.env`. Si ya existe, no hace nada:
+4. Creá el usuario admin con las variables `SEED_ADMIN_*` del `.env`. Si ya existe, no hace nada:
 
    ```bash
    pnpm db:seed:admin
    ```
 
-5. (Opcional) Crea un docente para probar el panel docente con las variables `SEED_TEACHER_*` del `.env`. Si ya existe, no hace nada:
+5. (Opcional) Creá un docente para probar el panel docente con las variables `SEED_TEACHER_*` del `.env`. Si ya existe, no hace nada:
 
    ```bash
    pnpm db:seed:teacher
+   ```
+
+6. (Opcional) Cargá el catálogo de demo con categorías, cursos, módulos y clases. Se puede correr varias veces: agrega lo que falta y no borra nada:
+
+   ```bash
+   pnpm db:seed:catalog
    ```
 
 Comandos útiles:
@@ -169,21 +189,21 @@ Los datos se guardan en el volumen `pgdata`, así que no se pierden al detener o
 
 Cuando modifiques una tabla en `src/db/schema/`:
 
-1. Genera la migración con un nombre descriptivo:
+1. Generá la migración con un nombre descriptivo:
 
    ```bash
    pnpm db:generate --name add-courses-table
    ```
 
-2. Revisa el archivo `.sql` generado en `drizzle/` y aplícalo:
+2. Revisá el archivo `.sql` generado en `drizzle/` y aplicalo:
 
    ```bash
    pnpm db:migrate
    ```
 
-3. Sube la migración junto con el cambio del esquema. Tu compañero la aplica con `pnpm db:migrate` después de hacer `git pull`.
+3. Subí la migración junto con el cambio del esquema. El resto del equipo la aplica con `pnpm db:migrate` después de hacer `git pull`.
 
-Nunca edites una migración que ya se aplicó: si hace falta un cambio, modifica el esquema y genera una nueva.
+Nunca edites una migración que ya se aplicó: si hace falta un cambio, modificá el esquema y generá una nueva.
 
 ## Scripts
 
@@ -202,3 +222,4 @@ Nunca edites una migración que ya se aplicó: si hace falta un cambio, modifica
 | `pnpm db:studio`       | Abre Drizzle Studio para ver los datos        |
 | `pnpm db:seed:admin`   | Crea el usuario admin inicial                 |
 | `pnpm db:seed:teacher` | Crea un docente para desarrollo               |
+| `pnpm db:seed:catalog` | Carga el catálogo de demo para desarrollo     |
